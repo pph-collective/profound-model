@@ -1,0 +1,26 @@
+site_name: PROFOUND
+site_description: Documentation for the PROFOUND model
+site_url: http://marshall-lab.github.io/profound-model
+theme:
+  name: material
+  features:
+    - instant
+    - tabs
+  palette:
+    primary: 'blue grey'
+    accent: 'indigo'
+  logo: images/profound.png
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - extra
+  - tables
+  - fenced_code
+  - footnotes
+
+nav:
+  - Overview: index.md
