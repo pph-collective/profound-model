@@ -24,3 +24,7 @@ markdown_extensions:
 
 nav:
   - Overview: index.md
+  - Getting Started:
+    - Installation: installing.md
+    - Running locally: run_local.md
+    - Running on the internet somewhere: run_internet.md
