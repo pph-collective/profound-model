@@ -4,7 +4,6 @@ site_url: http://marshall-lab.github.io/profound-model
 theme:
   name: material
   features:
-    - navigation.instant
     - navigation.tabs
   palette:
     primary: 'blue grey'

@@ -2,7 +2,7 @@ name: deploy_docs
 
 on:
   push:
-    branches: [ scaffold-docs ]
+    branches: [ main ]
 
 jobs:
   deploy_site:
