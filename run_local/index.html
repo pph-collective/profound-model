@@ -11,19 +11,21 @@
       
       
       
-      <link rel="shortcut icon" href="/profound-model/assets/images/favicon.png">
+        <link rel="canonical" href="http://marshall-lab.github.io/profound-model/run_local/">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.8">
     
     
       
-        <title>PROFOUND</title>
+        <title>Running locally - PROFOUND</title>
       
     
     
-      <link rel="stylesheet" href="/profound-model/assets/stylesheets/main.cb6bc1d0.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.cb6bc1d0.min.css">
       
         
-        <link rel="stylesheet" href="/profound-model/assets/stylesheets/palette.39b8e14a.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.39b8e14a.min.css">
         
           
           
@@ -63,6 +65,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#running-the-model" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -74,7 +81,7 @@
   <nav class="md-header-nav md-grid" aria-label="Header">
     <a href="http://marshall-lab.github.io/profound-model" title="PROFOUND" class="md-header-nav__button md-logo" aria-label="PROFOUND">
       
-  <img src="/profound-model/images/profound.png" alt="logo">
+  <img src="../images/profound.png" alt="logo">
 
     </a>
     <label class="md-header-nav__button md-icon" for="__drawer">
@@ -90,7 +97,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              
+              Running locally
             
           </span>
         </div>
@@ -153,7 +160,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="http://marshall-lab.github.io/profound-model" title="PROFOUND" class="md-nav__button md-logo" aria-label="PROFOUND">
       
-  <img src="/profound-model/images/profound.png" alt="logo">
+  <img src="../images/profound.png" alt="logo">
 
     </a>
     PROFOUND
@@ -169,7 +176,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/profound-model/." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         Overview
       </a>
     </li>
@@ -182,12 +189,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
       
       <label class="md-nav__link" for="nav-2">
         Getting Started
@@ -206,7 +215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/profound-model/installing/" class="md-nav__link">
+      <a href="../installing/" class="md-nav__link">
         Installation
       </a>
     </li>
@@ -216,11 +225,20 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="/profound-model/run_local/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Running locally
       </a>
+      
     </li>
   
 
@@ -230,7 +248,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/profound-model/run_internet/" class="md-nav__link">
+      <a href="../run_internet/" class="md-nav__link">
         Running on the internet somewhere
       </a>
     </li>
@@ -250,11 +268,38 @@
               </div>
             
             
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
               
-  <h1>404 - Not found</h1>
+                
+                
+                <h1 id="running-the-model">Running the Model</h1>
+<p>The model uses Excel to manage inputs.  Make a copy of <file> and edit it to match your desired location.</p>
+<p>When you are ready to run the model, do:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">Rscript Profound-Microsimulation.r &lt;input file path/name&gt;</span>
+</code></pre></div>
+                
+              
+              
+                
+
 
               
             </article>
@@ -264,6 +309,41 @@
       
         
 <footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../installing/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Installation
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../run_internet/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Running on the internet somewhere
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -281,15 +361,15 @@
       
     </div>
     
-      <script src="/profound-model/assets/javascripts/vendor.18f0862e.min.js"></script>
-      <script src="/profound-model/assets/javascripts/bundle.994580cf.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      <script src="../assets/javascripts/vendor.18f0862e.min.js"></script>
+      <script src="../assets/javascripts/bundle.994580cf.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
       
       <script>
         app = initialize({
-          base: "/profound-model",
+          base: "..",
           features: ['instant', 'tabs'],
           search: Object.assign({
-            worker: "/profound-model/assets/javascripts/worker/search.9c0e82ba.min.js"
+            worker: "../assets/javascripts/worker/search.9c0e82ba.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
