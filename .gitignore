@@ -1,5 +1,5 @@
 .Rhistory
+.RData
 .Rproj.user
-Inputs
-*.csv
-*.xlsx
+Archive
+*.Rproj
