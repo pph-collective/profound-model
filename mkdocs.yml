@@ -1,0 +1,29 @@
+site_name: PROFOUND
+site_description: Documentation for the PROFOUND model
+site_url: http://pph-collective.github.io/profound-model
+theme:
+  name: material
+  features:
+    - navigation.tabs
+  palette:
+    primary: 'blue grey'
+    accent: 'indigo'
+  logo: images/profound.png
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - extra
+  - tables
+  - fenced_code
+  - footnotes
+
+nav:
+  - Overview: index.md
+  - Getting Started:
+    - Installation: installing.md
+    - Running locally: run_local.md
+    - Running on the internet somewhere: run_internet.md
