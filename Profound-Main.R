@@ -25,13 +25,19 @@
 # 1. SET directpry and workspace
 #############################################################################
 rm(list=ls())
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  WB.path <- paste0("Inputs/MasterTable.xlsx")
+} else {
+  WB.path <- args[1]
+}
 # install.packages("rstudioapi")
-library(rstudioapi)
+# library(rstudioapi)
 library(dplyr)
 library(tictoc)
 library(openxlsx)
 library(abind)
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("Profound-Function-PopInitialization.R")
 source("Profound-Function-TransitionProbability.R")
 source("Profound-Function-Microsimulation.R")

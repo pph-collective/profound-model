@@ -14,7 +14,7 @@
 #############################################################################
 
 ## Define input excel file ##
-WB        <- loadWorkbook(paste0("Inputs/MasterTable.xlsx"))
+WB        <- loadWorkbook(WB.path)
 
 ## Parameters for initial cohort ##
 InitialPop    <- read.xlsx(WB, sheet="InitialPop")
