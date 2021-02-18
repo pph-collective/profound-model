@@ -1,6 +1,6 @@
 site_name: PROFOUND
 site_description: Documentation for the PROFOUND model
-site_url: http://marshall-lab.github.io/profound-model
+site_url: http://pph-collective.github.io/profound-model
 theme:
   name: material
   features:
