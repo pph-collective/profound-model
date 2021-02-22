@@ -36,7 +36,7 @@ library(optparse)
 option_list <- list(
   make_option(c("-i", "--input"), type = "character", default = "Inputs/MasterTable.xlsx", help = "path to input file"),
   make_option(c("-o", "--output"), type = "character", default = "OverdoseDeath.csv", help = "path to output file"),
-  make_option(c("-p", "--population"), type = "character", help = "A population file.  If passed, it will be loaded if it exists, and if not a new population will be formed and saved to that path.  If not passed, a new population will be created, but not saved."),
+  make_option(c("-p", "--population"), type = "character", help = "A population file.  If passed, it will be loaded if it exists, and if not a new population will be formed and saved to that path.  If not passed, a new population will be created, but not saved.")
 )
 
 opt_parser <- OptionParser(option_list = option_list)
