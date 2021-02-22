@@ -87,11 +87,13 @@ init.Nx     <- array.Nx.full[dimnames(array.Nx.full)[[1]]==yr.first-1, , ]
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if(init.pop.save && file.exists(init.pop.file)){
   init.pop  <- readRDS(init.pop.file)
+  print(paste0("Population loaded from file: ", init.pop.file))
 } else {
   tic()
   init.pop  <- pop.initiation(initials = initials, seed=2021)
   if(init.pop.save) {
     saveRDS(init.pop, init.pop.file)
+    print(paste0("Population saved to file: ", init.pop.file))
   }
   toc()
 }

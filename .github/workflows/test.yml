@@ -35,6 +35,3 @@ jobs:
       - name: Check results exists
         run: |
           [ -f OverdoseDeath.csv ]
-      - name: Sanity check file test is working
-        run: |
-          [ ! -f OverdoseDeath.csv ]
