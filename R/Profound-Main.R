@@ -34,18 +34,18 @@ library(here)
 # parse command line args
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
-  WB.path <- here("..", "Inputs", "MasterTable.xlsx")
+  WB.path <- here("Inputs", "MasterTable.xlsx")
 } else {
   WB.path <- args[1]
 }
 
-source(here("Profound-Function-PopInitialization.R"))
-source(here("Profound-Function-TransitionProbability.R"))
-source(here("Profound-Function-Microsimulation.R"))
-source(here("Profound-DecisionTree.R"))
-source(here("Profound-DataInput.R"))
-source(here("Profound-Function-NxAvailAlgm.R"))
-source(here("Profound-CEA.R"))
+source(here("R", "Profound-Function-PopInitialization.R"))
+source(here("R", "Profound-Function-TransitionProbability.R"))
+source(here("R", "Profound-Function-Microsimulation.R"))
+source(here("R", "Profound-DecisionTree.R"))
+source(here("R", "Profound-DataInput.R"))
+source(here("R", "Profound-Function-NxAvailAlgm.R"))
+source(here("R", "Profound-CEA.R"))
 
 
 # INPUT PARAMETERS
@@ -74,7 +74,7 @@ init.Nx     <- array.Nx.full[dimnames(array.Nx.full)[[1]]==yr.first-1, , ]
 
 # # Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-init.pop.file = here("..", "Inputs", "InitialPopulation.rds")
+init.pop.file = here("Inputs", "InitialPopulation.rds")
 if(file.exists(init.pop.file)){
   init.pop  <- readRDS(init.pop.file)
 } else {
