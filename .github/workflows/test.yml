@@ -14,6 +14,12 @@ jobs:
       - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.R }}
+      - name: Cache R packages
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ hashFiles('install.r') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('install.r') }}
       - name: Install dependencies
         run: Rscript install.r
       - name: Run PROFOUND

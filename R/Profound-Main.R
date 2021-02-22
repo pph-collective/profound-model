@@ -39,13 +39,13 @@ if (length(args)==0) {
   WB.path <- args[1]
 }
 
-source("Profound-Function-PopInitialization.R")
-source("Profound-Function-TransitionProbability.R")
-source("Profound-Function-Microsimulation.R")
-source("Profound-DecisionTree.R")
-source("Profound-DataInput.R")
-source("Profound-Function-NxAvailAlgm.R")
-source("Profound-CEA.R")
+source(here("Profound-Function-PopInitialization.R"))
+source(here("Profound-Function-TransitionProbability.R"))
+source(here("Profound-Function-Microsimulation.R"))
+source(here("Profound-DecisionTree.R"))
+source(here("Profound-DataInput.R"))
+source(here("Profound-Function-NxAvailAlgm.R"))
+source(here("Profound-CEA.R"))
 
 
 # INPUT PARAMETERS
