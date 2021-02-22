@@ -15,6 +15,6 @@ jobs:
         with:
           r-version: ${{ matrix.R }}
       - name: Install dependencies
-        run: Rscript install.R
+        run: Rscript install.r
       - name: Run PROFOUND
         run: Rscript R/Profound-Main.R
