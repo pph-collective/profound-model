@@ -30,13 +30,24 @@ library(tictoc)
 library(openxlsx)
 library(abind)
 library(here)
+library(optparse)
 
 # parse command line args
-args = commandArgs(trailingOnly=TRUE)
-if (length(args)==0) {
-  WB.path <- here("Inputs", "MasterTable.xlsx")
+option_list <- list(
+  make_option(c("-i", "--input"), type = "character", default = "Inputs/MasterTable.xlsx", help = "path to input file"),
+  make_option(c("-o", "--output"), type = "character", default = "OverdoseDeath.csv", help = "path to output file"),
+  make_option(c("-p", "--population"), type = "character", help = "A population file.  If passed, it will be loaded if it exists, and if not a new population will be formed and saved to that path.  If not passed, a new population will be created, but not saved."),
+)
+
+opt_parser <- OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+WB.path <- opt$input
+out.file <- opt$output
+if (is.null(opt$population)) {
+  init.pop.save <- FALSE
 } else {
-  WB.path <- args[1]
+  init.pop.save <- TRUE
+  init.pop.file <- opt$population
 }
 
 source(here("R", "Profound-Function-PopInitialization.R"))
@@ -74,13 +85,14 @@ init.Nx     <- array.Nx.full[dimnames(array.Nx.full)[[1]]==yr.first-1, , ]
 
 # # Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-init.pop.file = here("Inputs", "InitialPopulation.rds")
-if(file.exists(init.pop.file)){
+if(init.pop.save && file.exists(init.pop.file)){
   init.pop  <- readRDS(init.pop.file)
 } else {
   tic()
   init.pop  <- pop.initiation(initials = initials, seed=2021)
-  saveRDS(init.pop, init.pop.file)
+  if(init.pop.save) {
+    saveRDS(init.pop, init.pop.file)
+  }
   toc()
 }
 
@@ -128,7 +140,7 @@ comp.time = Sys.time() - p
 
 comp.time
 
-write.csv(sim_sq$m.oddeath, file="OverdoseDeath_RIV1.0.csv", row.names = T)
+write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
 
 sum(sim_sq$v.oddeath)
 # sum(sim_ep50$v.oddeath)

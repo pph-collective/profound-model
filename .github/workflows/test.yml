@@ -22,5 +22,7 @@ jobs:
           restore-keys: ${{ runner.os }}-${{ hashFiles('install.r') }}
       - name: Install dependencies
         run: Rscript install.r
-      - name: Run PROFOUND
-        run: Rscript R/Profound-Main.R
+      - name: Run PROFOUND without inital pop
+        run: Rscript R/Profound-Main.R -p Inputs/init_pop.rds
+      - name: Run PROFOUND with input pop
+        run: Rscript R/Profound-Main.R -p Inputs/init_pop.rds

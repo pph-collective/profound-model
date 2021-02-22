@@ -4,7 +4,8 @@ to_install <- c(
     "dplyr",
     "tictoc",
     "openxlsx",
-    "here")
+    "here",
+    "optparse")
 
 for (i in to_install) {
   message(paste("looking for ", i))
