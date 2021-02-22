@@ -1,7 +1,7 @@
 ###############################################################################################
 ###################### PROFOUND Naloxone Distribution model #### 2020 #########################
 ###############################################################################################
-# Main module for the microsimulation of the Profound Naloxone distribution model: 
+# Main module for the microsimulation of the Profound Naloxone distribution model:
 #
 # Author: Xiao Zang, PhD; Shayla Nolen, MPH
 # Marshall Lab, Department of Epidemiology, Brown University
@@ -24,20 +24,21 @@
 #############################################################################
 # 1. SET directpry and workspace
 #############################################################################
-rm(list=ls())
-args = commandArgs(trailingOnly=TRUE)
-if (length(args)==0) {
-  WB.path <- paste0("Inputs/MasterTable.xlsx")
-} else {
-  WB.path <- args[1]
-}
-# install.packages("rstudioapi")
-# library(rstudioapi)
+
 library(dplyr)
 library(tictoc)
 library(openxlsx)
 library(abind)
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+library(here)
+
+# parse command line args
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  WB.path <- here("..", "Inputs", "MasterTable.xlsx")
+} else {
+  WB.path <- args[1]
+}
+
 source("Profound-Function-PopInitialization.R")
 source("Profound-Function-TransitionProbability.R")
 source("Profound-Function-Microsimulation.R")
@@ -73,12 +74,13 @@ init.Nx     <- array.Nx.full[dimnames(array.Nx.full)[[1]]==yr.first-1, , ]
 
 # # Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
-  init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
-} else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))){
+init.pop.file = here("..", "Inputs", "InitialPopulation.rds")
+if(file.exists(init.pop.file)){
+  init.pop  <- readRDS(init.pop.file)
+} else {
   tic()
   init.pop  <- pop.initiation(initials = initials, seed=2021)
-  saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
+  saveRDS(init.pop, init.pop.file)
   toc()
 }
 
@@ -104,7 +106,7 @@ mor.matrix["drug", ]        <- mor.drug
 # n.nlx.v       <- c(0, 1000, 200)
 # n.od_death.v  <- c(150, 800, 250)
 # nlx.adj       <- 1                  # adjuster for naloxone availability given the ratio between naloxone kits to od_deaths in a region
-# 
+#
 # # Spatial dynamics to access naloxone kits
 # R1.nlx  <-  c(0.7, 0.2, 0.1)
 # R2.nlx  <-  c(0.15, 0.8, 0.05)

@@ -1,5 +1,12 @@
+# r cruft
 .Rhistory
 .RData
 .Rproj.user
-Archive
 *.Rproj
+
+# excel cruft
+~\$*.xlsx
+
+# don't include
+*.rds
+Archive
