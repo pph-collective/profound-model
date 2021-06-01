@@ -40,7 +40,7 @@ option_list <- list(
 
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
-WB.path <- opt$input
+WB.path <- here("..", "Inputs", "MasterTable.xlsx")
 out.file <- opt$output
 if (is.null(opt$population)) {
   init.pop.save <- FALSE
@@ -48,6 +48,7 @@ if (is.null(opt$population)) {
   init.pop.save <- TRUE
   init.pop.file <- opt$population
 }
+
 
 source(here("R", "Profound-Function-PopInitialization.R"))
 source(here("R", "Profound-Function-TransitionProbability.R"))
