@@ -1,5 +1,13 @@
+# r cruft
 .Rhistory
 .RData
 .Rproj.user
-Archive
 *.Rproj
+
+# excel cruft
+~\$*.xlsx
+
+# model outputs
+*.rds
+Archive
+*.csv
