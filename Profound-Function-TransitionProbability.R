@@ -13,7 +13,8 @@
 #################        Transistion probability function      #########################
 ########################################################################################
 
-trans.prob <- function(pop.t){
+trans.prob <- function(pop.t, vparameters){
+  list2env(vparameters, environment())
   # initialize a matrix to store transition probabilities of each individual
   n.state <- n.state
   trans.prob.matrix <- matrix(NA, n.state + 1, nrow(pop.t)) #add one row for OD
@@ -59,7 +60,8 @@ trans.prob <- function(pop.t){
   od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 1 & fx == 1)$ind]  <- od.matrix["il.hr", "subs"]  * multi.fx
   od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 0 & fx == 0)$ind]  <- od.matrix["NODU", "first"]
   od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 1 & fx == 0)$ind]  <- od.matrix["NODU", "subs"]
-  od.rate[filter(pop.t, curr.state == "NODU"                 & fx == 1)$ind]  <- (od.matrix["il.hr", "first"] * multi.NODU.fx + od.matrix["il.lr", "first"] * (1-multi.NODU.fx)) * multi.fx
+  od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 0 & fx == 1)$ind]  <- od.matrix["il.lr", "first"] * multi.NODU.fx * multi.fx
+  od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 1 & fx == 1)$ind]  <- od.matrix["il.lr", "subs"]  * multi.NODU.fx * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "preb")$ind]  <- od.matrix["preb",  "first"] * multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind]  <- od.matrix["preb",  "subs"] * multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- od.matrix["il.lr", "first"] * multi.relap

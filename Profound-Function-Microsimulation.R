@@ -11,7 +11,7 @@
 ###############################################################################################
 
 
-MicroSim <- function(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = 1) {
+MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = 1) {
   # Arguments:  
   # init.pop:      matrix of initial states for individuals
   # n.pwud:        number of PWUD
@@ -24,39 +24,64 @@ MicroSim <- function(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", see
   # Makes use of:
   # trans.prob:    function for the estimation of transition probabilities
   # Costs:         function for the estimation of cost state values
-  # decision.tree: function for the decision tree module  
+  # decision.tree: function for the decision tree module
+  list2env(vparameters, environment())
+  n.opioid <- sum(init.pop$curr.state != "NODU")
+  n.noud   <- sum(init.pop$curr.state == "NODU")
+  ini.pop.resid   <- (init.pop %>% count(residence))$n
+  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr.first-1)] %*% t(ini.pop.resid / sum(ini.pop.resid))
+  NxPharm.array   <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
+  for (cc in 1:dim(NxPharm.mx)[1]){
+    NxPharm.array[ cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * OD_loc, 0)
+  }
+  
+  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]]>=yr.first,   , ] + NxPharm.array[ -1, , ]
+  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]]==yr.first-1, , ] + NxPharm.array[  1, , ]
   
   n.nlx.mx.lst  <- array.Nx[dim(array.Nx)[1], , ]
   if (Str == "SQ"){
     n.nlx.mx.str <- n.nlx.mx.lst
-  } else if (Str == "Expand50"){
-    n.nlx.mx.str <- n.nlx.mx.lst + n.nlx.mx.lst * 0.5
-  } else if (Str == "All+200"){
-    n.nlx.mx.str <- n.nlx.mx.lst + 200
-  } else if (Str == "R2+600"){
-    n.nlx.mx.str[2] <- n.nlx.mx.lst[2] + 600
+  } else if (Str == "Expand"){ 
+    n.nlx.mx.str <- NxOEND.array[dim(NxOEND.array)[1],   , ] * 2 + NxPharm.array[dim(NxPharm.array)[1],   , ]
   }
+  
   array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
   
   v.dwc <- rep(1 / (1 + d.c) ^ (0:(n.yr-1)), each =12)   # calculate the cost discount weight based on the discount rate d.c
   
   # Create the population list to capture the state/attributes/costs for all individuals at each time point 
   pop.list <- list()
-  # pop.list[[1]] <- init.pop       # indicate the initial health state and attributes
-  
   set.seed(seed)                  # set the seed for every individual for the random number generator
-  
-  # cost.matrix[1, ] <- Costs(state = pop.list[[1]]$curr.state, OU.state = pop.list[[1]]$OU.state, nlx = sum(array.Nx[1,,])/12 , count = NULL)  # estimate costs per individual for the initial health state]
   
   for (t in 1:n.t) {
     n.nlx.yr                     <- array.Nx[floor((t-1)/12)+1, , ]
     if (t == 1){
-      m.tp                       <- trans.prob(init.pop)                # calculate the transition probabilities at cycle t 
       pop.list[[t]]              <- init.pop
+      OUD.fx                     <- ini.OUD.fx
+      # determine fentanyl use among initial population who use opioids 
+      set.seed(seed)
+      fx         <- sample(0:1, size = n.opioid, prob = c(1-OUD.fx, OUD.fx), replace = T)
+      pop.list[[t]]$fx[init.pop$curr.state != "NODU"] <- fx
+      # determine fentanyl use among initial population who use stimulants (non-opioid)
+      set.seed(seed*2)
+      fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
+      pop.list[[t]]$fx[init.pop$curr.state == "NODU"] <- fx
+      m.tp                       <- trans.prob(pop.list[[t]], vparameters)                # calculate the transition probabilities at cycle t 
       n.nlx.mn                   <- init.Nx + n.nlx.yr/12
     } else {
-      m.tp                       <- trans.prob(pop.list[[t-1]])                # calculate the transition probabilities at cycle t 
       pop.list[[t]]              <- pop.list[[t-1]]
+      if (t %% 12 ==0){
+        OUD.fx     <- min(ini.OUD.fx * (1 + gw.fx * min(floor((t-1)/12)+1, 3)), 0.9)
+        # determine fentanyl use among initial population who use opioids 
+        set.seed(seed)
+        fx         <- sample(0:1, size = n.opioid, prob = c(1-OUD.fx, OUD.fx), replace = T)
+        pop.list[[t]]$fx[init.pop$curr.state != "NODU"] <- fx
+        # # determine fentanyl exposure among population who use stimulants (non-opioid)
+        # set.seed(seed*2)
+        # fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
+        # pop.list[[t]]$fx[init.pop$curr.state == "NODU"] <- fx
+      }
+      m.tp                       <- trans.prob(pop.list[[t-1]], vparameters)                # calculate the transition probabilities at cycle t
       n.nlx.mn                   <- n.nlx.mn*(1-r.LossExp) + n.nlx.yr/12
     }
     pop.list[[t]]$curr.state   <- as.vector(samplev(probs = m.tp, m = 1))    # sample the next health state and store that state in matrix m.M
@@ -67,25 +92,44 @@ MicroSim <- function(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", see
     v.od[t]                    <- nrow(od.pop)
     ou.pop.resid               <- pop.list[[t]] %>% count(residence)
     
-    decntree.out               <- decision.tree(od.pop, n.nlx = n.nlx.mn, ou.pop.resid, seed = seed+t)
+    decntree.out               <- decision.tree(od.pop, n.nlx = n.nlx.mn, ou.pop.resid, vparameters, seed = seed+t)
     
     v.oddeath[t]               <- sum(decntree.out[ , "od.death"])
+    v.odpriv[t]                <- sum(decntree.out[ , "locpriv"])
+    v.odpubl[t]                <- v.od[t] - v.odpriv[t]
+    v.deathpriv[t]             <- sum(decntree.out[decntree.out[ , "od.death"] == 1, "locpriv"])
+    v.deathpubl[t]             <- sum(decntree.out[ , "od.death"] == 1) - v.deathpriv[t] 
     n.EMS                      <- sum(decntree.out[ , "EMS"])
     n.hospcare                 <- sum(decntree.out[ , "hospcare"])
     od.pop$curr.state[decntree.out[ , "od.death"] == 1]   <- "dead"
     od.pop$ever.od[decntree.out[ , "od.death"] != 1]      <- 1
     od.pop$curr.state[decntree.out[ , "inact"] == 1]      <- "inact"
-    od.pop$curr.state[od.pop$curr.state != "dead"]        <- od.pop$OU.state[od.pop$curr.state != "dead"]
+    od.pop$curr.state[od.pop$curr.state == "od"]          <- od.pop$OU.state[od.pop$curr.state == "od"]
+    
+    m.oddeath.fx[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$fx ==1, ])
+    m.oddeath.op[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$OU.state != "NODU", ])
+    m.oddeath.hr[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$OU.state != "NODU" & od.pop$OU.state != "preb", ])
+    m.oddeath.st[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$OU.state == "NODU", ]) 
+    m.EDvisits[t]   <- n.hospcare
+      
     od.death.sum <- od.pop[od.pop$curr.state == "dead", ] %>% count(residence)
     for (dd in 1:nrow(od.death.sum)){
       m.oddeath[t , od.death.sum$residence[dd]] <- od.death.sum$n[dd]
     }
     pop.list[[t]][od.pop$ind, ] <- od.pop
-    cost.matrix[t, ]  <- Costs(state = pop.list[[t]]$curr.state, OU.state = pop.list[[t]]$OU.state, nlx = sum(n.nlx.yr)/12 , count = list(n.EMS = n.EMS, n.hospcare = n.hospcare))
+    cost.matrix[t, ]  <- Costs(state = pop.list[[t]]$curr.state, OU.state = pop.list[[t]]$OU.state, nlx = sum(n.nlx.yr)/12 , count = list(n.EMS = n.EMS, n.hospcare = n.hospcare), vparameters)
     
-    pop.list[[t]]$age[pop.list[[t]]$curr.state != "dead"] <- pop.list[[t]]$init.age[pop.list[[t]]$curr.state != "dead"] + floor(t/12) 
-    cat('\r', paste(round(t/n.t * 100), "% done", sep = " "))       # display the progress of the simulation
-  } # close the loop for the time points 
+    pop.list[[t]]$age[pop.list[[t]]$curr.state != "dead"] <- pop.list[[t]]$init.age[pop.list[[t]]$curr.state != "dead"] + floor(t/12)     #update age for individuals that are still alive
+    
+    ##replace deceased individuals with ones with the same initial characteristics (ever.od reset as 0)
+    pop.list[[t]]$age[pop.list[[t]]$curr.state == "dead"]        <- pop.list[[t]]$init.age[pop.list[[t]]$curr.state == "dead"]
+    pop.list[[t]]$ever.od[pop.list[[t]]$curr.state == "dead"]    <- 0
+    pop.list[[t]]$OU.state[pop.list[[t]]$curr.state == "dead" & pop.list[[t]]$init.state != "inact"]   <- pop.list[[t]]$init.state[pop.list[[t]]$curr.state == "dead" & pop.list[[t]]$init.state != "inact"]
+    pop.list[[t]]$OU.state[pop.list[[t]]$curr.state == "dead" & pop.list[[t]]$init.state == "inact"]   <- pop.list[[t]]$OU.state[pop.list[[t]]$curr.state == "dead" & pop.list[[t]]$init.state == "inact"]
+    pop.list[[t]]$curr.state[pop.list[[t]]$curr.state == "dead"] <- pop.list[[t]]$init.state[pop.list[[t]]$curr.state == "dead"]
+    
+    # cat('\r', paste(round(t/n.t * 100), "% done", sep = " "))       # display the progress of the simulation
+  } # end the loop for the time steps 
   
   
   total.cost <- sum(cost.matrix[ , "TotalCost"] * v.dwc)       # total (discounted) cost
@@ -96,6 +140,9 @@ MicroSim <- function(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", see
     pop.trace = NULL
   }
   
-  results <- list(v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od, cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace) # store the results from the simulation in a list  
+  results <- list(v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od, 
+                  cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1],   , ]), 
+                  m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr= m.oddeath.hr, m.EDvisits= m.EDvisits,
+                  v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl) # store the results from the simulation in a list  
   return(results)  # return the results
 }  # end of the MicroSim function  
