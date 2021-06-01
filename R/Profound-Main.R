@@ -1,7 +1,7 @@
 ###############################################################################################
 ###################### PROFOUND Naloxone Distribution model #### 2020 #########################
 ###############################################################################################
-# Main module for the microsimulation of the Profound Naloxone distribution model: 
+# Main module for the microsimulation of the Profound Naloxone distribution model:
 #
 # Author: Xiao Zang, PhD; Shayla Nolen, MPH
 # Marshall Lab, Department of Epidemiology, Brown University
@@ -24,32 +24,38 @@
 #############################################################################
 # 1. SET directpry and workspace
 #############################################################################
-rm(list=ls())
-# args = commandArgs(trailingOnly=TRUE)
-# if (length(args)==0) {
-#   WB.path <- paste0("Inputs/MasterTable.xlsx")
-# } else {
-#   WB.path <- args[1]
-# }
-
-## Model setup parameters ##
-seed         <- 2021
-sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
-
-# install.packages("rstudioapi")
-# library(rstudioapi)
 library(dplyr)
 library(tictoc)
 library(openxlsx)
 library(abind)
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-source("Profound-Function-PopInitialization.R")
-source("Profound-Function-TransitionProbability.R")
-source("Profound-Function-Microsimulation.R")
-source("Profound-DecisionTree.R")
-source("Profound-DataInput.R")
-source("Profound-Function-NxAvailAlgm.R")
-source("Profound-CEA.R")
+library(here)
+library(optparse)
+
+# parse command line args
+option_list <- list(
+  make_option(c("-i", "--input"), type = "character", default = "Inputs/MasterTable.xlsx", help = "path to input file"),
+  make_option(c("-o", "--output"), type = "character", default = "OverdoseDeath.csv", help = "path to output file"),
+  make_option(c("-p", "--population"), type = "character", help = "A population file.  If passed, it will be loaded if it exists, and if not a new population will be formed and saved to that path.  If not passed, a new population will be created, but not saved.")
+)
+
+opt_parser <- OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+WB.path <- opt$input
+out.file <- opt$output
+if (is.null(opt$population)) {
+  init.pop.save <- FALSE
+} else {
+  init.pop.save <- TRUE
+  init.pop.file <- opt$population
+}
+
+source(here("R", "Profound-Function-PopInitialization.R"))
+source(here("R", "Profound-Function-TransitionProbability.R"))
+source(here("R", "Profound-Function-Microsimulation.R"))
+source(here("R", "Profound-DecisionTree.R"))
+source(here("R", "Profound-DataInput.R"))
+source(here("R", "Profound-Function-NxAvailAlgm.R"))
+source(here("R", "Profound-CEA.R"))
 
 
 # INPUT PARAMETERS
@@ -86,12 +92,16 @@ m.oddeath.hr <- rep(0, times = n.t)                                             
 
 ## Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
-  init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
-} else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))){
+if(init.pop.save && file.exists(init.pop.file)){
+  init.pop  <- readRDS(init.pop.file)
+  print(paste0("Population loaded from file: ", init.pop.file))
+} else {
   tic()
-  init.pop  <- pop.initiation(initials = initials, seed=seed)
-  saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
+  init.pop  <- pop.initiation(initials = initials, seed=2021)
+  if(init.pop.save) {
+    saveRDS(init.pop, init.pop.file)
+    print(paste0("Population saved to file: ", init.pop.file))
+  }
   toc()
 }
 ## Fentanyl use status for initial population determined externally (allow to vary) ##
@@ -127,7 +137,7 @@ if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
 # n.nlx.v       <- c(0, 1000, 200)
 # n.od_death.v  <- c(150, 800, 250)
 # nlx.adj       <- 1                  # adjuster for naloxone availability given the ratio between naloxone kits to od_deaths in a region
-# 
+#
 # # Spatial dynamics to access naloxone kits
 # R1.nlx  <-  c(0.7, 0.2, 0.1)
 # R2.nlx  <-  c(0.15, 0.8, 0.05)
@@ -149,7 +159,7 @@ comp.time = Sys.time() - p
 
 comp.time
 
-write.csv(sim_sq$m.oddeath, file="OverdoseDeath_RIV1.0.csv", row.names = T)
+write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
 
 
 preliminary.results <- data.frame(matrix(nrow = n.rgn * 2, ncol = 6))
