@@ -4,9 +4,9 @@
 rm(list=ls())
 
 # ## Model setup parameters ##
-seed         <- 2021
-batch.ind    <- 1       #specify the index of batch for calibration analysis
-batch.size   <- 100000
+seed         <- 2021    #define the initial seed, will draw different seeds based on the initial for calibration simulations
+batch.ind    <- 1       #specify the index of batch/job for calibration analysis (TO SAM: this is where you may need to modify, from 1-10 when submitting each of the 10 batches/jobs)
+batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
 #Load required packages
 library(dplyr)
@@ -17,11 +17,11 @@ library(foreach)
 library(doParallel)
 #Specify number of cores
 # ncores = 5; c1 <- makeCluster(ncores)   #make clusters for local machine
-c1 = Sys.getenv("SLURM_NTASKS")           #make clusters for clusters
-registerDoParallel(c1)
+c1 = Sys.getenv("SLURM_NTASKS")           #make clusters for clusters (TO SAM: not sure if this is the right command, used for Compute Canada)
+registerDoParallel(c1)                    #register cluster
 
 
-#Load scripts
+#Load required scripts and functions
 source("Profound-Function-PopInitialization.R")
 source("Profound-Function-TransitionProbability.R")
 source("Profound-Function-Microsimulation.R")
@@ -30,51 +30,51 @@ source("Profound-Function-NxAvailAlgm.R")
 source("Profound-CEA.R")
 source("Profound-Function-Parallel.R")
 
-## Model parameter updates for calibration process ##
+## load or create calibration parameter sets for calibration simulation 
+#(TO SAM: all rds files were saved in Google Drive, may need to update the path, i.e. Inputs)
 if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
-  # calib.par           <- readRDS(paste0("Inputs/Calib_par_table.rds"))
-  Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
+  #only load the indexed parameter set batch for calibration simulation
+  Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds")) 
 } else if (!file.exists(paste0("Inputs/Calib_par_table.rds"))){
   ## Specify the number of calibration random parameter sets
-  sample.size <- 1000000
-  batch.size  <- 100000
-  library(FME)
+  sample.size <- 1000000  #total number of calibration samples
+  batch.size  <- 100000   #number of samples per calibration batch
+  library(FME)            #load package for latin hypercube function
+  #load calibration parameter bounds and values
   WB       <- loadWorkbook("Inputs/MasterTable.xlsx")
   CalibPar <- read.xlsx(WB, sheet="CalibPar")
   parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
   row.names(parRange) <- CalibPar$par
   set.seed(5112021)
-  calib.par <- Latinhyper(parRange, sample.size)
+  calib.par <- Latinhyper(parRange, sample.size)            #use latin hypercube to draw random samples for parameters
   calib.par <- data.frame(calib.par)
-  saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))
-  source("Profound-CalibrationDataPrep.R")
+  saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
+  source("Profound-CalibrationDataPrep.R")                  #prepare calibration data (as lists) and save them in rds files
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
+  rm(calib.par)
 }
 
-# rm(calib.par)
-
-# nm.calp <- names(calib.par)
-calib.seed.vt <- seed + c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
-
-calib.rs.table <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15)
+#generate seeds for calibration (incremental by 1 from the initial seed)
+calib.seed.vt  <- seed + c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
+#initialize calibration results table
+calib.rs.table <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15) 
 colnames(calib.rs.table) <- c("index", "seed",
                               "od.death16", "od.death17", "od.death18", "od.death19",
                               "fx.death16", "fx.death17", "fx.death18", "fx.death19", 
                               "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19", 
                               "gof")
 calib.rs.table[ , "index"] <- c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
-calib.rs.table[ , "seed"] = calib.seed.vt
+calib.rs.table[ , "seed"]  <- calib.seed.vt
 
+#initialize results matrix to save results from parallel simulation
 calib.results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
-v.rgn <- Calibration.data.ls[[1]]$v.rgn
-# export.par <- c("nlx.avail")
 
-# calib.results <- foreach(ss = 1:nrow(calib.par), .combine = rbind, .errorhandling = 'remove', .packages= c('dplyr', 'abind')) %dopar% {
-# calib.results <- foreach(ss = 1:10, .combine = rbind, .packages= c('dplyr', 'abind', 'openxlsx'), .export = ls(globalenv())) %dopar% {
-# calib.results <- foreach(ss = 1:10, .combine = rbind, .packages= c('dplyr', 'abind', 'openxlsx'), .export = export.par) %dopar% {
+v.rgn <- Calibration.data.ls[[1]]$v.rgn  #load vector for regions (required by simulation)
+
+#parallel calibration simulation
 calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
-  yr.first    <- 2016
-  yr.last     <- 2020
+  yr.first    <- 2016   #simulation first year
+  yr.last     <- 2020   #simulation last year
   pop.info    <- c("sex", "race", "age", "residence", "curr.state",
                    "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
   v.state     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
@@ -112,7 +112,7 @@ calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .
   outcomes
 }
 
-calib.rs.table[3:14] <- calib.results
-saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds"))
+calib.rs.table[3:14] <- calib.results   #pass calibration results to results table
+saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibration results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
-stopCluster(c1)
+# stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)
