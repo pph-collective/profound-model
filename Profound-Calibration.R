@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 ###############################################################################################
 #######################           Model calibration           #################################
 ###############################################################################################
@@ -5,7 +7,15 @@ rm(list=ls())
 
 # ## Model setup parameters ##
 seed         <- 2021    #define the initial seed, will draw different seeds based on the initial for calibration simulations
-batch.ind    <- 1       #specify the index of batch/job for calibration analysis (TO SAM: this is where you may need to modify, from 1-10 when submitting each of the 10 batches/jobs)
+
+args <- commandArgs(trailingOnly=T)
+
+if (length(args) == 0){
+  batch.ind <- 1
+} else{
+  batch.ind <- strtoi(args[1])
+}
+
 batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
 #Load required packages
