@@ -1,5 +1,3 @@
-#!/usr/bin/env Rscript
-
 ###############################################################################################
 #######################           Model calibration           #################################
 ###############################################################################################
@@ -7,18 +5,21 @@ rm(list=ls())
 
 # ## Model setup parameters ##
 seed         <- 2021    #define the initial seed, will draw different seeds based on the initial for calibration simulations
-
-args <- commandArgs(trailingOnly=T)
-
+# batch.ind    <- 1       #specify the index of batch/job for calibration analysis (TO SAM: this is where you may need to modify, from 1-10 when submitting each of the 10 batches/jobs)
+args <- commandArgs(trailingOnly=TRUE)
+cores <- 1
 if (length(args) == 0){
   batch.ind <- 1
+  outpath <- getwd()
 } else{
   batch.ind <- strtoi(args[1])
+  outpath <- strtoi(args[2])
+  cores <- strtoi(args[3])
 }
-
 batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
 #Load required packages
+print("Loading required packages")
 library(dplyr)
 library(openxlsx)
 library(abind)
@@ -27,7 +28,7 @@ library(foreach)
 library(doParallel)
 #Specify number of cores
 # ncores = 5; c1 <- makeCluster(ncores)   #make clusters for local machine
-c1 = Sys.getenv("SLURM_NTASKS")           #make clusters for clusters (TO SAM: not sure if this is the right command, used for Compute Canada)
+c1 = makeCluster(cores)           #make clusters for clusters (TO SAM: not sure if this is the right command, used for Compute Canada)
 registerDoParallel(c1)                    #register cluster
 
 
@@ -42,6 +43,7 @@ source("Profound-Function-Parallel.R")
 
 ## load or create calibration parameter sets for calibration simulation 
 #(TO SAM: all rds files were saved in Google Drive, may need to update the path, i.e. Inputs)
+print("loading calibration parameters")
 if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   #only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds")) 
@@ -80,7 +82,7 @@ calib.rs.table[ , "seed"]  <- calib.seed.vt
 calib.results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
 
 v.rgn <- Calibration.data.ls[[1]]$v.rgn  #load vector for regions (required by simulation)
-
+export_vals <- c('nlx.avail')
 #parallel calibration simulation
 calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
   yr.first    <- 2016   #simulation first year
