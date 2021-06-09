@@ -1,12 +1,13 @@
 #!/bin/bash
 
+date=`date +%Y-%m-%d-T%H-%M-%S`
 memory=12g
 jobname="calibration_$date"
 num_cores=1
 walltime=12:00:00
 row=1
 
-while getopts m:r:T:c:j
+while getopts m:r:T:c:j: option
 do
     case "${option}"
         in
@@ -32,5 +33,8 @@ usage() {
     "
     exit 0
 }
+echo starting $jobname in $HOME/scratch/profound
+mkdir -p $HOME/scratch/profound
+mkdir $HOME/scratch/profound/$jobname
+sbatch --output=$HOME/scratch/profound/$jobname/slurm.out -J $jobname -t $walltime --mem=$memory -c $num_cores ./Profound-Calibration.R $row $HOME/scratch/profound $num_cores
 
-sbatch --output=$HOME/scratch/profound/slurm.out -j $jobname -t $walltime --mem=$memory -c $num_cores ./Profound-Calibration.R $row
