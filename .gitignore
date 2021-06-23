@@ -1,6 +1,14 @@
+# r cruft
 .Rhistory
 .RData
 .Rproj.user
+*.Rproj
+
+# excel cruft
+~\$*.xlsx
+
+# model outputs
+*.rds
 Archive
 Outputs
 Ignore
@@ -8,3 +16,4 @@ preliminary calibration
 *.Rproj
 *.png
 *.csv
+Inputs
