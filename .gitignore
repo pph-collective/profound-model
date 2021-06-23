@@ -3,6 +3,8 @@
 .Rproj.user
 Archive
 Outputs
+Ignore
+preliminary calibration
 *.Rproj
 *.png
 *.csv

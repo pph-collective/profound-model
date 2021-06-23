@@ -43,11 +43,11 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
   set.seed(seed)
   n.od                   <- nrow(od.pop)
   residence              <- od.pop$residence
-  out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv")
+  out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
   colnames(decntree.out) <- out.colnames
   decntree.out[ , "ind"] <- od.pop$ind
-  p.nlx.avail.mx         <- nlx.avail(n.nlx, ou.pop.resid, OD_loc, Low2Priv, nlx.adj, cap)
+  p.nlx.avail.mx         <- nlx.avail.algm(n.nlx, ou.pop.resid, OD_loc, Low2Priv, nlx.adj, cap)
 
   for (d in 1:n.od){
     loc    <- sample(c("priv", "pub"), size = 1, prob = OD_loc[ , residence[d]])
@@ -63,6 +63,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
     if (wtns == 1) {   # if witnessed
       nlx.avail <- sample.dic(p.nlx.avail)
       if (nlx.avail == 1){   # if naloxone available by witness (witnessed)
+        nlx.used = 1
         EMS <- sample.dic(p.911)
         if (EMS == 1) {  # if EMS reached (witnessed, available, naloxone used by witness )
           hospcare <- sample.dic(p.hosp)
@@ -76,6 +77,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
           hospcare <- 0
         }
       } else {  # if naloxone not used (unavailable) by witness (witnessed)
+        nlx.used = 0
         EMS <- sample.dic(p.911)
         if (EMS == 1) {   # if EMS reached (witnessed, naloxone not used by witness)
           hospcare <- sample.dic(p.hosp)
@@ -93,6 +95,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
       od.death <- sample.dic(mor_bl)
       EMS      <- 0
       hospcare <- 0
+      nlx.used = 0
     }  # end if loop for decision tree
     
     if (od.death != 1){
@@ -101,7 +104,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
       inact <- 0
     }
     
-    decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv)
+    decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used)
   }   # end for loop
   
   return(decntree.out)
