@@ -25,12 +25,7 @@
 # 1. SET directpry and workspace
 #############################################################################
 rm(list=ls())
-# args = commandArgs(trailingOnly=TRUE)
-# if (length(args)==0) {
-#   WB.path <- paste0("Inputs/MasterTable.xlsx")
-# } else {
-#   WB.path <- args[1]
-# }
+args = commandArgs(trailingOnly=TRUE)
 
 ## Model setup parameters ##
 seed         <- 2021
@@ -42,7 +37,6 @@ library(dplyr)
 library(tictoc)
 library(openxlsx)
 library(abind)
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("Profound-Function-PopInitialization.R")
 source("Profound-Function-TransitionProbability.R")
 source("Profound-Function-Microsimulation.R")

@@ -41,8 +41,10 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
   n.nlx.mx.lst  <- array.Nx[dim(array.Nx)[1], , ]
   if (Str == "SQ"){
     n.nlx.mx.str <- n.nlx.mx.lst
-  } else if (Str == "Expand"){ 
+  } else if (Str == "expand"){ 
     n.nlx.mx.str <- NxOEND.array[dim(NxOEND.array)[1],   , ] * 2 + NxPharm.array[dim(NxPharm.array)[1],   , ]
+  } else if (Str == "program"){
+    n.nlx.mx.str <- n.nlx.mx.lst + pg.add
   }
   
   array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
@@ -98,7 +100,8 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
     v.odpriv[t]                <- sum(decntree.out[ , "locpriv"])
     v.odpubl[t]                <- v.od[t] - v.odpriv[t]
     v.deathpriv[t]             <- sum(decntree.out[decntree.out[ , "od.death"] == 1, "locpriv"])
-    v.deathpubl[t]             <- sum(decntree.out[ , "od.death"] == 1) - v.deathpriv[t] 
+    v.deathpubl[t]             <- sum(decntree.out[ , "od.death"] == 1) - v.deathpriv[t]
+    v.nlxused[t]               <- sum(decntree.out[ , "nlx.used"])
     n.EMS                      <- sum(decntree.out[ , "EMS"])
     n.hospcare                 <- sum(decntree.out[ , "hospcare"])
     od.pop$curr.state[decntree.out[ , "od.death"] == 1]   <- "dead"
@@ -141,8 +144,8 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
   }
   
   results <- list(v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od, 
-                  cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1],   , ]), 
+                  cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1],   , ]), n.nlx.all.str = n.nlx.mx.str,
                   m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr= m.oddeath.hr, m.EDvisits= m.EDvisits,
-                  v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl) # store the results from the simulation in a list  
+                  v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused) # store the results from the simulation in a list  
   return(results)  # return the results
 }  # end of the MicroSim function  

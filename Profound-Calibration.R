@@ -124,7 +124,7 @@ calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .
   outcomes
 }
 
-calib.rs.table[3:14] <- calib.results   #pass calibration results to results table
+calib.rs.table[,3:14] <- calib.results   #pass calibration results to results table
 saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibration results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
 # stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)
