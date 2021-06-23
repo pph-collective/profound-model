@@ -2,6 +2,17 @@
 # 1. SET directory and workspace
 #############################################################################
 rm(list=ls())
+library(openxlsx)
+library(dplyr)
+library(abind)
+source("population.R")
+source("transition_probability.R")
+source("microsim.R")
+source("decision_tree.R")
+source("data_input.R")
+source("naloxone_available.R")
+source("cost_effectiveness.R")
+
 args = commandArgs(trailingOnly=TRUE)
 
 ## Model setup parameters ##
@@ -9,7 +20,6 @@ seed         <- 2021
 sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
 
 # Program data
-library(openxlsx)
 pg.data   <- read.xlsx("Ignore/OEND_program.xlsx", sheet = "Project Weber")
 pg.levels <- c(1, 5, 10, 20, 50)
 pg.add.array <- array(0, dim = c(length(pg.levels), 2, dim(pg.data)[1]))
@@ -24,18 +34,6 @@ for (i in 1:length(pg.levels)){
   }
 }
 
-# install.packages("rstudioapi")
-# library(rstudioapi)
-library(dplyr)
-# library(tictoc)
-library(abind)
-source("Profound-Function-PopInitialization.R")
-source("Profound-Function-TransitionProbability.R")
-source("Profound-Function-Microsimulation.R")
-source("Profound-DecisionTree.R")
-source("Profound-DataInput.R")
-source("Profound-Function-NxAvailAlgm.R")
-source("Profound-CEA.R")
 
 # INPUT PARAMETERS
 yr.first    <- 2016

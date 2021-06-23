@@ -1,62 +1,33 @@
-## Model parameter updates for calibration process ##
-if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
-  calib.par  <- readRDS(paste0("Inputs/Calib_par_table.rds"))
-} else if (!file.exists(paste0("Inputs/Calib_par_table.rds"))){
-  library(FME)
-  CalibPar <- read.xlsx(WB, sheet="CalibPar")
-  parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
-  row.names(parRange) <- CalibPar$par
-  set.seed(4122021)
-  calib.par <- Latinhyper(parRange, 10000)
-  calib.par <- data.frame(calib.par)
-  saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))
+rm(list=ls())
+#Load required packages
+library(dplyr)
+library(openxlsx)
+library(abind)
+library(ggplot2)
+library(xlsx)
+
+#Load scripts
+source("population.R")
+source("transition_probability.R")
+source("microsim.R")
+source("decision_tree.R")
+source("naloxone_available.R")
+source("cost_effectiveness.R")
+source("parallel.R")
+source("data_input.R")
+
+calib.rs.table <- NULL
+
+for (batch.ind in 1:10){
+  calib.rs.temp  <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
+  calib.rs.table <- rbind(calib.rs.table, calib.rs.temp)
 }
 
-nm.calp <- names(calib.par)
+calib.par <- readRDS(paste0("calibration/Calib_par_table.rds"))
 
-calib.rs.table <- matrix(0, nrow = nrow(calib.par), ncol = 15+length(nm.calp))
-colnames(calib.rs.table) <- c("index", "seed", nm.calp, 
-                              "od.death16", "od.death17", "od.death18", "od.death19",
-                              "fx.death16", "fx.death17", "fx.death18", "fx.death19", 
-                              "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19", "gof")
-calib.rs.table[ , "index"] <- c(1:nrow(calib.par))
-calib.rs.table[ , 3:(2+length(nm.calp))] <- as.matrix(calib.par)
-for (ss in 1:nrow(calib.par)){
-  print(paste0("Parameter set: ", ss))
-  calib.seed = seed + ss
-  calib.rs.table[ss, "seed"] = calib.seed
-  for (pp in 1:length(nm.calp)){
-    assign(nm.calp[pp], calib.par[ss,pp])
-  }
-  ## Fentanyl use status for initial population determined externally (allow to vary) ##
-  n.opioid <- sum(init.pop$curr.state != "NODU")
-  n.noud   <- sum(init.pop$curr.state == "NODU")
-  # determine fentanyl use among initial population who use opioids 
-  set.seed(calib.seed)
-  fx         <- sample(0:1, size = n.opioid, prob = c(1-ini.OUD.fx, ini.OUD.fx), replace = T)
-  init.pop$fx[init.pop$curr.state != "NODU"] <- fx
-  # determine fentanyl use among initial population who use stimulants (non-opioid)
-  set.seed(calib.seed*2)
-  fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
-  init.pop$fx[init.pop$curr.state == "NODU"] <- fx
-  
-  # Overdose probability matrix (per month)
-  od.matrix             <- matrix(0, nrow = 4, ncol = 2)
-  rownames(od.matrix)   <- c("preb", "il.lr", "il.hr", "NODU")
-  colnames(od.matrix)   <- c("first", "subs")
-  od.matrix["preb", "subs"]   <- od.preb.sub
-  od.matrix["il.lr", "subs"]  <- od.il.lr.sub
-  od.matrix["il.hr", "subs"]  <- od.il.lr.sub * multi.hr
-  od.matrix["NODU", "subs"]   <- od.NODU.sub
-  od.matrix[ , "first"]       <- od.matrix[ , "subs"] / multi.sub
-  
-  sim_sq    <- MicroSim(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = calib.seed)        # run for no treatment
-  
-  calib.rs.table[ss, c("od.death16", "od.death17", "od.death18", "od.death19")] <- colSums(matrix(sim_sq$v.oddeath, nrow=12, ncol=5))[-5]
-  calib.rs.table[ss, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")] <- (colSums(matrix(sim_sq$m.oddeath.fx, nrow=12, ncol=5)) / colSums(matrix(sim_sq$v.oddeath, nrow=12, ncol=5)))[-5]
-  calib.rs.table[ss, c("ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")] <- colSums(matrix(sim_sq$m.EDvisits, nrow=12, ncol=5))[-5]
-}
+calib.rs.table <- cbind(calib.rs.table, calib.par)
 
+WB       <- loadWorkbook("Inputs/MasterTable.xlsx")
 Target   <- read.xlsx(WB, sheet="Target")
 tar.data <- Target$pe
 
@@ -77,28 +48,78 @@ for (ss in 1:nrow(calib.rs.table)){
 
 sorted.mx <- calib.rs.table[order(calib.rs.table[ , "gof"], decreasing = F), ]
 
-library(xlsx)
-write.xlsx(sorted.mx, file="Calibration_preliminary.xlsx", 
+
+calib.sp <- 100
+calib.result.mx <- sorted.mx[1:calib.sp, ]
+write.xlsx(calib.result.mx, file=paste0("calibration/Calibrated_results.xlsx"),
            col.names = T, row.names = F)
 
-calib.sp <- 20
-calib.result.mx <- sorted.mx[1:calib.sp, ]
 
+## save calibrated results as parameter lists (prepare for main analysis)##
+#INPUT PARAMETERS
+sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+nm.calp <- names(calib.par)
+calibrated.parameters <- list()
+
+for (cc in 1:nrow(calib.result.mx)){
+  for (pp in 1:length(nm.calp)){
+    vparameters[[nm.calp[pp]]] <- calib.result.mx[cc, nm.calp[pp]]
+  }
+  # Overdose probability matrix (per month)
+  od.matrix             <- matrix(0, nrow = 4, ncol = 2)
+  rownames(od.matrix)   <- c("preb", "il.lr", "il.hr", "NODU")
+  colnames(od.matrix)   <- c("first", "subs")
+  od.matrix["preb", "subs"]   <- vparameters$od.preb.sub
+  od.matrix["il.lr", "subs"]  <- vparameters$od.il.lr.sub
+  od.matrix["il.hr", "subs"]  <- vparameters$od.il.lr.sub * vparameters$multi.hr
+  od.matrix["NODU", "subs"]   <- vparameters$od.NODU.sub
+  od.matrix[ , "first"]       <- od.matrix[ , "subs"] / vparameters$multi.sub
+  vparameters$od.matrix       <- od.matrix
+  
+  # Baseline mortality excluding overdose (per month)
+  mor.matrix                  <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  rownames(mor.matrix)        <- c("bg", "drug")
+  colnames(mor.matrix)        <- mor.gp
+  mor.matrix["bg", ]          <- vparameters$mor.bg
+  mor.matrix["drug", ]        <- vparameters$mor.drug
+  vparameters$mor.matrix      <- mor.matrix
+  vparameters$OD_911_pub      <- vparameters$OD_911_priv * vparameters$OD_911_pub_mul
+  
+  calibrated.parameters[[cc]] <- vparameters
+}
+calibrated.seed <- calib.result.mx[,"seed"]
+saveRDS(calibrated.parameters, file = paste0("calibration/CalibratedData.rds"))
+saveRDS(calibrated.seed, file = paste0("calibration/CalibratedSeed.rds"))
+
+
+
+## Plot ##
 par(mfrow=c(1,3))
 
-md.oddeath <- apply(calib.result.mx[ , c("od.death16", "od.death17", "od.death18", "od.death19")], 2, median)
+md.oddeath <- apply(calib.result.mx[ , c("od.death16", "od.death17", "od.death18", "od.death19")], 2, mean)
 ymax       <- max(calib.result.mx[ , c("od.death16", "od.death17", "od.death18", "od.death19")])
 plot(x = 2016:2019,  tar.data[1:4], col = "black" , pch = 18, xlab="Year", ylab="Number of opioid overdose deaths", cex=1.2, cex.axis=1.2, cex.lab = 1.3,
      xaxt='n', ylim = c(0, 500), frame.plot = FALSE)
 # title("A", adj = 0, line =-0.5)
 for (i in 1:calib.sp){
-  lines(x = 2016:2019, y = calib.result.mx[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd=2)
+  lines(x = 2016:2019, y = calib.result.mx[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd=3)
 }
-lines(x = 2016:2019, y = md.oddeath, col = "red", lwd=3)
+lines(x = 2016:2019, y = md.oddeath, col = "red", lwd=4)
 points(x = 2016:2019,  tar.data[1:4], col = "black" , pch = 16, cex=1.2, cex.axis=0.95)
 axis(1, at = 2016:2019, pos=0, lwd.ticks=0, cex.axis=1.2)
 # axis(side=1, pos=0, lwd.ticks=0)
 abline(h=0)
+legend("top",
+       legend = c("Target", "Model: mean", "Model: simulation"),
+       col = c("black",  "red", adjustcolor("indianred1", alpha = 0.2)),
+       pch = c(16, NA, NA),
+       lty = c(NA, 1, 1),
+       lwd=3,
+       bty = "n",
+       pt.cex = 1.2,
+       cex = 1.1,
+       text.col = "black",
+       horiz = T)
 # legend(x="bottomright",
 #        col=c("dodgerblue","firebrick2", "lightgrey"), 
 #        lwd=c(1.2, 1, 0.5), lty = c(1, NA, NA), pch=c(16, 16,16), pt.cex = c(1,1.1,1), cex = 0.8, bty = "n")
@@ -136,28 +157,30 @@ axis(1, at = 2016:2019, pos=0, lwd.ticks=0, cex.axis=1.2)
 abline(h=0)
 
 par(mfrow=c(1,1))
-legend("top", 
-       legend = c("Target", "Model: median", "Model: simulation"), 
+legend("bottom", 
+       legend = c("Target", "Model: mean", "Model: simulation"), 
        col = c("black",  "red", adjustcolor("indianred1", alpha = 0.2)), 
        pch = c(16, NA, NA), 
        lty = c(NA, 1, 1), 
        lwd=3,
        bty = "n", 
        pt.cex = 2, 
-       cex = 1.2, 
+       cex = 1.1, 
        text.col = "black", 
        horiz = T)
 
 
-library(ggplot2)
-calib.post  <- calib.result.mx[ , 3:(2+length(nm.calp))]
+nm.calp <- names(calib.par)
+
+
+calib.post  <- calib.result.mx[ , (dim(calib.result.mx)[2]-length(nm.calp)+1):dim(calib.result.mx)[2]]
 par  <- rep(colnames(calib.post), 2)
 case <- c(rep("prior", length(nm.calp)), rep("posterior", length(nm.calp)))
 pe   <- rep(0, length(nm.calp)*2)
 lend <- rep(0, length(nm.calp)*2)
 uend <- rep(0, length(nm.calp)*2)
 ggplot.data <- data.frame(par = par, case = case, pe = pe, lend = lend, uend = uend)
-CalibPar <- read.xlsx(file = "Inputs/MasterTable.xlsx", sheetIndex = 20)
+CalibPar <- read.xlsx("Inputs/MasterTable.xlsx", sheet = "CalibPar")
 ggplot.data$pe[ggplot.data$case == "prior"]   <- CalibPar$pe
 ggplot.data$lend[ggplot.data$case == "prior"] <- CalibPar$pe - CalibPar$lower
 ggplot.data$uend[ggplot.data$case == "prior"] <- CalibPar$upper - CalibPar$pe
@@ -173,3 +196,5 @@ p<- ggplot(ggplot.data, aes(x=case, y=pe, color=case)) +
   geom_errorbar(aes(ymin=pe-lend, ymax=pe+uend), width=.2, position=position_dodge(0.05)) +
   facet_wrap(~ par, scales = "free_y", ncol = 5) +
   labs(y="Value", x="") + theme_bw()
+
+## City-level validation, please go to CityLevelValidation.R ##

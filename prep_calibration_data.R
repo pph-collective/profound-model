@@ -1,16 +1,16 @@
 #Load required packages
 library(dplyr)
 library(abind)
+library(FME)
+
+source("data_input.R")
 #INPUT PARAMETERS
 sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
-
-source("Profound-DataInput.R")
 
 ## Model parameter updates for calibration process ##
 if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   calib.par  <- readRDS(paste0("Inputs/Calib_par_table.rds"))
 } else if (!file.exists(paste0("Inputs/Calib_par_table.rds"))){
-  library(FME)
   CalibPar <- read.xlsx(WB, sheet="CalibPar")
   parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
   row.names(parRange) <- CalibPar$par
