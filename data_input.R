@@ -88,7 +88,7 @@ vparameters$p.inact2relap <- with(TransProb, pe[par == "p.inact2relap"])
 
 
 ## Parameters for decision tree ##
-if (exists(sw.EMS.ODloc)){
+if (exists("sw.EMS.ODloc")){
   if (sw.EMS.ODloc == "sp"){
     OD_loc_priv         <- read.xlsx(WB, sheet="ODSettingEMS(sp)")$private
     OD_loc_pub          <- read.xlsx(WB, sheet="ODSettingEMS(sp)")$public

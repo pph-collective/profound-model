@@ -16,7 +16,7 @@ if (length(args) == 0){
   outpath <- strtoi(args[2])
   cores <- strtoi(args[3])
 }
-batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
+batch.size   <- 1000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
 #Load required packages
 print("Loading required packages")
@@ -29,7 +29,7 @@ library(foreach)
 library(doParallel)
 #Specify number of cores
 # ncores = 5; c1 <- makeCluster(ncores)   #make clusters for local machine
-c1 = makeCluster(cores)           #make clusters for clusters (TO SAM: not sure if this is the right command, used for Compute Canada)
+c1 = makeCluster(cores, outfile="")           #make clusters for clusters (TO SAM: not sure if this is the right command, used for Compute Canada)
 registerDoParallel(c1)                    #register cluster
 
 
@@ -44,15 +44,13 @@ source("parallel.R")
 source("prep_calibration_data.R")
 
 ## load or create calibration parameter sets for calibration simulation 
-#(TO SAM: all rds files were saved in Google Drive, may need to update the path, i.e. Inputs)
-print("loading calibration parameters")
 if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   #only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds")) 
 } else if (!file.exists(paste0("Inputs/Calib_par_table.rds"))){
   ## Specify the number of calibration random parameter sets
-  sample.size <- 1000000  #total number of calibration samples
-  batch.size  <- 100000   #number of samples per calibration batch
+  sample.size <- 10000  #total number of calibration samples
+  batch.size  <- 1000   #number of samples per calibration batch
 
   #load calibration parameter bounds and values
   WB       <- loadWorkbook("Inputs/MasterTable.xlsx")
@@ -122,7 +120,6 @@ calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .
   init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
   
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], vparameters = Calibration.data.ls[[ss]])
-  outcomes
 }
 
 calib.rs.table[,3:14] <- calib.results   #pass calibration results to results table

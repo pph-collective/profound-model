@@ -30,11 +30,16 @@ args = commandArgs(trailingOnly=TRUE)
 ## Model setup parameters ##
 seed         <- 2021
 sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+if (length(args) > 0){
+  sw.EMS.ODloc <- args[1]
+  seed <- strtoi(args[2])
+}
 
 library(dplyr)
 library(tictoc)
 library(openxlsx)
 library(abind)
+library(tictoc)
 source("population.R")
 source("transition_probability.R")
 source("microsim.R")
@@ -77,6 +82,7 @@ m.EDvisits   <- rep(0, times = n.t)                                             
 m.oddeath.hr <- rep(0, times = n.t)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
 
 ## Initialize the study population - people who are at risk of opioid overdose
+tic("initialize study population")
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if(init.pop.save && file.exists(init.pop.file)){
   init.pop  <- readRDS(init.pop.file)
@@ -87,47 +93,7 @@ if(init.pop.save && file.exists(init.pop.file)){
   saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
   toc()
 }
-## Fentanyl use status for initial population determined externally (allow to vary) ##
-
-# # determine fentanyl use among initial population who use opioids 
-# set.seed(seed)
-# fx         <- sample(0:1, size = n.opioid, prob = c(1-ini.OUD.fx, ini.OUD.fx), replace = T)
-# init.pop$fx[init.pop$curr.state != "NODU"] <- fx
-# # determine fentanyl use among initial population who use stimulants (non-opioid)
-# set.seed(seed*2)
-# fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
-# init.pop$fx[init.pop$curr.state == "NODU"] <- fx
-
-##Overdose probability matrix (per month)
-# od.matrix             <- matrix(0, nrow = 4, ncol = 2)
-# rownames(od.matrix)   <- c("preb", "il.lr", "il.hr", "NODU")
-# colnames(od.matrix)   <- c("first", "subs")
-# od.matrix["preb", "subs"]   <- od.preb.sub
-# od.matrix["il.lr", "subs"]  <- od.il.lr.sub
-# od.matrix["il.hr", "subs"]  <- od.il.lr.sub * multi.hr
-# od.matrix["NODU", "subs"]   <- od.NODU.sub
-# od.matrix[ , "first"]       <- od.matrix[ , "subs"] / multi.sub
-# 
-# # Baseline mortality excluding overdose (per month)
-# mor.matrix                  <- matrix(0, nrow = 2, ncol = length(mor.gp))
-# rownames(mor.matrix)        <- c("bg", "drug")
-# colnames(mor.matrix)        <- mor.gp
-# mor.matrix["bg", ]          <- mor.bg
-# mor.matrix["drug", ]        <- mor.drug
-
-
-# # Naloxone distribution
-# n.nlx.v       <- c(0, 1000, 200)
-# n.od_death.v  <- c(150, 800, 250)
-# nlx.adj       <- 1                  # adjuster for naloxone availability given the ratio between naloxone kits to od_deaths in a region
-#
-# # Spatial dynamics to access naloxone kits
-# R1.nlx  <-  c(0.7, 0.2, 0.1)
-# R2.nlx  <-  c(0.15, 0.8, 0.05)
-# R3.nlx  <-  c(0.1, 0.25, 0.65)
-# acc.nlx.matrix <- rbind(R1.nlx, R2.nlx, R3.nlx)
-# rownames(acc.nlx.matrix)  <- c("R1.from", "R2.from", "R3.from")
-# colnames(acc.nlx.matrix)  <- c("R1.to", "R2.to", "R3.to")
+toc()
 
 
 ##################################### Run the simulation ##################################
