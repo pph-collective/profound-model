@@ -32,7 +32,7 @@ for (ss in 1:nrow(calib.result.mx)){
   od.matrix["NODU", "subs"]   <- od.NODU.sub
   od.matrix[ , "first"]       <- od.matrix[ , "subs"] / multi.sub
   
-  sim_sq    <- MicroSim(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = calib.seed)        # run for no treatment
+  sim_sq    <- MicroSim(init.pop, timesteps, agent_states, d.c, PT.out = TRUE, Str = "SQ", seed = calib.seed)        # run for no treatment
 
   ODdeaths16[ , ss] <- colSums(sim_sq$m.oddeath[1:12, ])
   ODdeaths17[ , ss] <- colSums(sim_sq$m.oddeath[13:24, ])

@@ -30,8 +30,8 @@ pop.initiation <- function(initials, seed = 2021){
   ## initialize the population matrix
   total.oud     <- round(sum(oud_pop), 0)
   total.nodu    <- round(sum(stim_pop), 0)
-  init.pop      <- data.frame(matrix(0, (total.oud + total.nodu), length(pop.info)+1))                 # initial population matrix
-  dimnames(init.pop)[[2]] <- c("ind", pop.info)
+  init.pop      <- data.frame(matrix(0, (total.oud + total.nodu), length(ppl_info)+1))                 # initial population matrix
+  dimnames(init.pop)[[2]] <- c("ind", ppl_info)
   init.pop$ind            <- 1:(total.oud + total.nodu)
   
   set.seed(seed)
@@ -61,7 +61,7 @@ pop.initiation <- function(initials, seed = 2021){
     }
     
     # determine opioid use state
-    oud.state  <- v.state[1:4]
+    oud.state  <- agent_states[1:4]
     oud.prob.m <- c((1-ini.inact)* (1-ini.il.m), (1-ini.inact)* ini.il.m* (1-ini.il.hr.m), (1-ini.inact)* ini.il.m* ini.il.hr.m, ini.inact)
     oud.prob.f <- c((1-ini.inact)* (1-ini.il.f), (1-ini.inact)* ini.il.f* (1-ini.il.hr.f), (1-ini.inact)* ini.il.f* ini.il.hr.f, ini.inact)
     if (sex == "m"){

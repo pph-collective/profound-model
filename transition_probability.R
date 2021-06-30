@@ -16,9 +16,9 @@
 trans.prob <- function(pop.t, vparameters){
   list2env(vparameters, environment())
   # initialize a matrix to store transition probabilities of each individual
-  n.state <- n.state
-  trans.prob.matrix <- matrix(NA, n.state + 1, nrow(pop.t)) #add one row for OD
-  rownames(trans.prob.matrix) <- c(v.state, "od")
+  num_states <- num_states
+  trans.prob.matrix <- matrix(NA, num_states + 1, nrow(pop.t)) #add one row for OD
+  rownames(trans.prob.matrix) <- c(agent_states, "od")
   
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))                                 
@@ -133,11 +133,11 @@ trans.prob <- function(pop.t, vparameters){
   ind.relap <- pop.t$curr.state == "relap"
   if (sum(ind.relap) != 0){
     OU.v    <- filter(pop.t, curr.state == "relap")$OU.state
-    relap.m <- matrix(0, n.state+1, sum(ind.relap))
+    relap.m <- matrix(0, num_states+1, sum(ind.relap))
     for (r in 1:sum(ind.relap)){
-      relap.m[which(OU.v[r] == v.state), r] <- 1 - mor.rate[ind.relap][r] - od.rate[ind.relap][r]
-      relap.m[which("dead"  == v.state), r] <- mor.rate[ind.relap][r]          
-      relap.m[n.state+1, r]                 <- od.rate[ind.relap][r]
+      relap.m[which(OU.v[r] == agent_states), r] <- 1 - mor.rate[ind.relap][r] - od.rate[ind.relap][r]
+      relap.m[which("dead"  == agent_states), r] <- mor.rate[ind.relap][r]          
+      relap.m[num_states+1, r]                 <- od.rate[ind.relap][r]
     }
     trans.prob.matrix[ , ind.relap]  <- relap.m
   }

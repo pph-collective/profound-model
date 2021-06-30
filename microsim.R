@@ -11,12 +11,12 @@
 ###############################################################################################
 
 
-MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out = TRUE, Str = "SQ", seed = 1) {
+MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.rate, PT.out = TRUE, Str = "SQ", seed = 1) {
   # Arguments:  
   # init.pop:       matrix of initial states for individuals
   # vparameters:    ???
-  # n.t:            total number of cycles to run the model
-  # v.state:        vector of health state names
+  # timesteps:            total number of cycles to run the model
+  # agent_states:        vector of health state names
   # discount.rate:  discount rate for costs
   # PT.out:         should the output include a Microsimulation trace? (default is TRUE)
   # Str:            simulating strategy
@@ -34,14 +34,14 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out 
   print(NxDataPharm)
   # Create matrixes for ??? TO_REVIEW
   # TO_REVIEW: what is NxDataPharm? It's not clear from the name, and the vparameters make it difficult to track down
-  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr.first-1)] %*% t(init.pop.residence / sum(init.pop.residence))
+  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(t_start-1)] %*% t(init.pop.residence / sum(init.pop.residence))
   NxPharm.array   <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
   for (cc in 1:dim(NxPharm.mx)[1]){
     NxPharm.array[ cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * OD_loc, 0)
   }
   
-  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= yr.first,   , ] + NxPharm.array[ -1, , ]
-  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]] == yr.first-1, , ] + NxPharm.array[  1, , ]
+  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= t_start,   , ] + NxPharm.array[ -1, , ]
+  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]] == t_start-1, , ] + NxPharm.array[  1, , ]
   
   n.nlx.mx.lst  <- array.Nx[dim(array.Nx)[1], , ]
   if (Str == "SQ"){
@@ -54,13 +54,13 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out 
   
   array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
   
-  v.dwc <- rep(1 / (1 + discount.rate) ^ (0:(n.yr-1)), each =12)   # calculate the cost discount weight based on the discount rate
+  v.dwc <- rep(1 / (1 + discount.rate) ^ (0:(num_years-1)), each =12)   # calculate the cost discount weight based on the discount rate
   
   # Create the population list to capture the state/attributes/costs for all individuals at each time point 
   pop.list <- list()
   set.seed(seed)                  # set the seed for every individual for the random number generator
   
-  for (t in 1:n.t) {
+  for (t in 1:timesteps) {
     n.nlx.yr                     <- array.Nx[floor((t-1)/12)+1, , ]
     if (t == 1){
       pop.list[[t]]              <- init.pop
@@ -137,7 +137,7 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out 
     pop.list[[t]]$OU.state[pop.list[[t]]$curr.state == "dead" & pop.list[[t]]$init.state == "inact"]   <- pop.list[[t]]$OU.state[pop.list[[t]]$curr.state == "dead" & pop.list[[t]]$init.state == "inact"]
     pop.list[[t]]$curr.state[pop.list[[t]]$curr.state == "dead"] <- pop.list[[t]]$init.state[pop.list[[t]]$curr.state == "dead"]
     
-    # cat('\r', paste(round(t/n.t * 100), "% done", sep = " "))       # display the progress of the simulation
+    # cat('\r', paste(round(t/timesteps * 100), "% done", sep = " "))       # display the progress of the simulation
   } # end the loop for the time steps 
   
   

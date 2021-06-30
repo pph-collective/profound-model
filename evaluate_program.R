@@ -36,40 +36,40 @@ for (i in 1:length(pg.levels)){
 
 
 # INPUT PARAMETERS
-yr.first    <- 2016
-yr.last     <- 2020
-pop.info    <- c("sex", "race", "age", "residence", "curr.state",
+t_start    <- 2016
+t_end     <- 2020
+ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
                  "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
-v.state     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
+agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
 v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
-n.state     <- length(v.state)                                                     # number of states
-n.yr        <- yr.last-yr.first+1
-n.t         <- 12 * n.yr                                                           # number of time cycles (in month)
+num_states     <- length(agent_states)                                                     # number of states
+num_years        <- t_end-t_start+1
+timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
 n.rgn       <- length(v.rgn)                                                       # number of regions
 
 # OUTPUT matrices and vectors
-v.od        <- rep(0, times = n.t)                                                 # count of overdose events at each time step
-v.oddeath   <- rep(0, times = n.t)                                                 # count of overdose deaths at each time step
-m.oddeath   <- matrix(0, nrow = n.t, ncol = n.rgn)
+v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
+v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
+m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.rgn)
 colnames(m.oddeath) <- v.rgn
-v.odpriv    <- rep(0, times = n.t)                                                 # count of overdose events occurred at private setting at each time step
-v.odpubl    <- rep(0, times = n.t)                                                 # count of overdose events occurred at public setting at each time step
-v.deathpriv <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at private setting at each time step
-v.deathpubl <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at public setting at each time step
-v.nlxused   <- rep(0, times = n.t)                                                 # count of naloxone kits used at each time step
+v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
+v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
+v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step
+v.deathpubl <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at public setting at each time step
+v.nlxused   <- rep(0, times = timesteps)                                                 # count of naloxone kits used at each time step
 v.str       <- c("SQ", "Expand100")                                                # store the strategy names
 d.c         <- 0.03                                                                # discounting of costs by 3%
 cost.item   <- c("TotalCost", "NxCost")
-cost.matrix <- matrix(0, nrow=n.t, ncol = length(cost.item))
+cost.matrix <- matrix(0, nrow=timesteps, ncol = length(cost.item))
 colnames(cost.matrix) <- cost.item
-m.oddeath.fx <- rep(0, times = n.t)                                                # count of overdose deaths with fentanyl present at each time step
-m.oddeath.op <- rep(0, times = n.t)                                                # count of overdose deaths among opioid users at each time step
-m.oddeath.st <- rep(0, times = n.t)                                                # count of overdose deaths among stimulant users at each time step
-m.EDvisits   <- rep(0, times = n.t)                                                # count of opioid overdose-related ED visits at each time step
-m.oddeath.hr <- rep(0, times = n.t)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+m.oddeath.fx <- rep(0, times = timesteps)                                                # count of overdose deaths with fentanyl present at each time step
+m.oddeath.op <- rep(0, times = timesteps)                                                # count of overdose deaths among opioid users at each time step
+m.oddeath.st <- rep(0, times = timesteps)                                                # count of overdose deaths among stimulant users at each time step
+m.EDvisits   <- rep(0, times = timesteps)                                                # count of opioid overdose-related ED visits at each time step
+m.oddeath.hr <- rep(0, times = timesteps)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
 
 ## Initialize the study population - people who are at risk of opioid overdose
-pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
+ppl_info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
   init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
 } else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))){
@@ -94,19 +94,19 @@ for (ss in 1:length(sim.seed)){
   vparameters.temp<- sim.data.ls[[ss]]
   vparameters.temp$NxDataPharm$pe  <- 0
   vparameters.temp$mor_Nx <- vparameters.temp$mor_bl * (1-0.9)
-  sim_sq          <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "SQ", seed = sim.seed[ss])        # run for status quo
-  sq.dh.mx[ , ss] <- colSums(sim_sq$m.oddeath[(n.t-11):n.t, ])
+  sim_sq          <- MicroSim(init.pop, vparameters = vparameters.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "SQ", seed = sim.seed[ss])        # run for status quo
+  sq.dh.mx[ , ss] <- colSums(sim_sq$m.oddeath[(timesteps-11):timesteps, ])
   sq.nx.mx[ , ss] <- colSums(sim_sq$n.nlx.OEND.str)
-  nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$v.nlxused[(n.t-11):n.t])
-  od.death.mx[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(n.t-11):n.t, ])
+  nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$v.nlxused[(timesteps-11):timesteps])
+  od.death.mx[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps-11):timesteps, ])
   
   for (ll in 1:dim(pg.add.array)[1]){
     vparameters.temp$pg.add <- pg.add.array[ll, , ]
-    sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "program", seed = sim.seed[ss]) # run for program scenario
-    pg.dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(n.t-11):n.t, ])
+    sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "program", seed = sim.seed[ss]) # run for program scenario
+    pg.dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(timesteps-11):timesteps, ])
     pg.nx.ar[ll, , ss] <- colSums(sim_pg$n.nlx.OEND.str)
-    nlx.used.mx[ss, scenario.name[ll+1]] <- sum(sim_pg$v.nlxused[(n.t-11):n.t])
-    od.death.mx[ss, scenario.name[ll+1]] <- sum(sim_pg$m.oddeath[(n.t-11):n.t, ])
+    nlx.used.mx[ss, scenario.name[ll+1]] <- sum(sim_pg$v.nlxused[(timesteps-11):timesteps])
+    od.death.mx[ss, scenario.name[ll+1]] <- sum(sim_pg$m.oddeath[(timesteps-11):timesteps, ])
   }
 }
 
