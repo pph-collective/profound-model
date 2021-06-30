@@ -27,7 +27,7 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out 
   # decision.tree:  function for the decision tree module
   # TODO: actual docstring description
   list2env(vparameters, environment())
-  # Find number of opioid and non-opioid people who use drugs
+  # Find number of opioid and non-opioid users
   n.opioid <- sum(init.pop$curr.state != "NODU")
   n.noud   <- sum(init.pop$curr.state == "NODU")
   init.pop.residence   <- (init.pop %>% count(residence))$n
@@ -107,6 +107,7 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out 
     v.deathpriv[t]             <- sum(decntree.out[decntree.out[ , "od.death"] == 1, "locpriv"])
     v.deathpubl[t]             <- sum(decntree.out[ , "od.death"] == 1) - v.deathpriv[t]
     v.nlxused[t]               <- sum(decntree.out[ , "nlx.used"])
+    print("Here")
     n.EMS                      <- sum(decntree.out[ , "EMS"])
     n.hospcare                 <- sum(decntree.out[ , "hospcare"])
     od.pop$curr.state[decntree.out[ , "od.death"] == 1]   <- "dead"
@@ -147,7 +148,7 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out 
   } else{
     pop.trace = NULL
   }
-  
+  print("Saving results")
   results <- list(v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od, 
                   cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1],   , ]), n.nlx.all.str = n.nlx.mx.str,
                   m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr= m.oddeath.hr, m.EDvisits= m.EDvisits,

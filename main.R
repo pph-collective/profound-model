@@ -26,7 +26,7 @@
 #############################################################################
 rm(list=ls())
 args = commandArgs(trailingOnly=TRUE)
-
+init.pop.file <- "Inputs/InitialPopulation.rds"
 ## Model setup parameters ##
 seed         <- 2021
 sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
@@ -84,35 +84,30 @@ m.oddeath.hr <- rep(0, times = n.t)                                             
 ## Initialize the study population - people who are at risk of opioid overdose
 tic("initialize study population")
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-if(init.pop.save && file.exists(init.pop.file)){
+if(file.exists(init.pop.file)){
   init.pop  <- readRDS(init.pop.file)
   print(paste0("Population loaded from file: ", init.pop.file))
 } else {
-  tic()
   init.pop  <- pop.initiation(initials = initials, seed=seed)
   saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
-  toc()
 }
 toc()
 
 
 ##################################### Run the simulation ##################################
 # START SIMULATION
-p = Sys.time()
-sim_sq    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)        # run for no treatment
-sim_ep    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "Expand", seed = seed)  # run for treatment
-
-comp.time = Sys.time() - p
-
-comp.time
+tic("Simulations: ")
+sim_sq    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)  # status quo
+sim_ep    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "Expand", seed = seed)  # expanded treatment
+toc()
 
 write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
 
 
 preliminary.results <- data.frame(matrix(nrow = n.rgn * 2, ncol = 6))
-x <- c("location", "scenario", "Rate_Nx", "N_Nx", "Rate_ODdeath", "N_ODdeath")
-colnames(preliminary.results) <- x
+colnames(preliminary.results) <- c("location", "scenario", "Rate_Nx", "N_Nx", "Rate_ODdeath", "N_ODdeath")
 
+# TO_REVIEW: What is v.rgn? Why are results from the main script preliminary?
 preliminary.results$location <- rep(v.rgn, 2)
 preliminary.results$scenario <- rep(c("Status Quo", "Double"), each  = length(v.rgn))
 pop.rgn                      <- colSums(Demographic[ , -c(1:3)])
@@ -125,7 +120,7 @@ preliminary.results$N_Nx[preliminary.results$scenario == "Double"]         <- co
 preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Double"] <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.rgn * 100000
 preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]    <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
 
-write.csv(preliminary.results, file = ("preliminary.results.csv"))
+write.csv(preliminary.results, file = ("preliminary_results.csv"))
 
 sum(sim_sq$v.oddeath)
 sim_ep$v.oddeath
