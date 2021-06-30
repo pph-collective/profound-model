@@ -11,32 +11,37 @@
 ###############################################################################################
 
 
-MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = 1) {
+MicroSim <- function(init.pop, vparameters, n.t, v.state, discount.rate, PT.out = TRUE, Str = "SQ", seed = 1) {
   # Arguments:  
-  # init.pop:      matrix of initial states for individuals
-  # n.pwud:        number of PWUD
-  # n.t:           total number of cycles to run the model
-  # v.state:       vector of health state names
-  # d.c:           discount rate for costs
-  # PT.out:        should the output include a Microsimulation trace? (default is TRUE)
-  # Str:           simulating strategy
-  # seed:          starting seed number for random number generator (default is 1)
-  # Makes use of:
-  # trans.prob:    function for the estimation of transition probabilities
-  # Costs:         function for the estimation of cost state values
-  # decision.tree: function for the decision tree module
+  # init.pop:       matrix of initial states for individuals
+  # vparameters:    ???
+  # n.t:            total number of cycles to run the model
+  # v.state:        vector of health state names
+  # discount.rate:  discount rate for costs
+  # PT.out:         should the output include a Microsimulation trace? (default is TRUE)
+  # Str:            simulating strategy
+  # seed:           starting seed number for random number generator (default is 1)
+  # Makes use of:  TO_REVIEW: is this a normal thing to put in a docstring
+  # trans.prob:     function for the estimation of transition probabilities
+  # Costs:          function for the estimation of cost state values
+  # decision.tree:  function for the decision tree module
+  # TODO: actual docstring description
   list2env(vparameters, environment())
+  # Find number of opioid and non-opioid people who use drugs
   n.opioid <- sum(init.pop$curr.state != "NODU")
   n.noud   <- sum(init.pop$curr.state == "NODU")
-  ini.pop.resid   <- (init.pop %>% count(residence))$n
-  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr.first-1)] %*% t(ini.pop.resid / sum(ini.pop.resid))
+  init.pop.residence   <- (init.pop %>% count(residence))$n
+  print(NxDataPharm)
+  # Create matrixes for ??? TO_REVIEW
+  # TO_REVIEW: what is NxDataPharm? It's not clear from the name, and the vparameters make it difficult to track down
+  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr.first-1)] %*% t(init.pop.residence / sum(init.pop.residence))
   NxPharm.array   <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
   for (cc in 1:dim(NxPharm.mx)[1]){
     NxPharm.array[ cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * OD_loc, 0)
   }
   
-  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]]>=yr.first,   , ] + NxPharm.array[ -1, , ]
-  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]]==yr.first-1, , ] + NxPharm.array[  1, , ]
+  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= yr.first,   , ] + NxPharm.array[ -1, , ]
+  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]] == yr.first-1, , ] + NxPharm.array[  1, , ]
   
   n.nlx.mx.lst  <- array.Nx[dim(array.Nx)[1], , ]
   if (Str == "SQ"){
@@ -49,7 +54,7 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
   
   array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
   
-  v.dwc <- rep(1 / (1 + d.c) ^ (0:(n.yr-1)), each =12)   # calculate the cost discount weight based on the discount rate d.c
+  v.dwc <- rep(1 / (1 + discount.rate) ^ (0:(n.yr-1)), each =12)   # calculate the cost discount weight based on the discount rate
   
   # Create the population list to capture the state/attributes/costs for all individuals at each time point 
   pop.list <- list()

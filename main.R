@@ -101,8 +101,6 @@ toc()
 p = Sys.time()
 sim_sq    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)        # run for no treatment
 sim_ep    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "Expand", seed = seed)  # run for treatment
-# sim_a200 <- MicroSim(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "All+200", seed = 100)   # run for treatment
-# sim_r2   <- MicroSim(init.pop, n.t, v.state, d.c, PT.out = TRUE, Str = "R2+600", seed = 100)    # run for treatment
 
 comp.time = Sys.time() - p
 
@@ -130,7 +128,4 @@ preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]    <- ro
 write.csv(preliminary.results, file = ("preliminary.results.csv"))
 
 sum(sim_sq$v.oddeath)
-# sum(sim_ep50$v.oddeath)
-# sum(sim_a200$v.oddeath)
-# sum(sim_r2$v.oddeath)
 sim_ep$v.oddeath

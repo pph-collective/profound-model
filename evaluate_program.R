@@ -130,26 +130,6 @@ for (sc in 2:length(scenario.name)){
   preliminary.NoDeaths$upper[preliminary.NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc-1,,], 1, quantile, probs = 0.975)
   preliminary.NoDeaths$lower[preliminary.NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc-1,,], 1, quantile, probs = 0.025)
 }
-# preliminary.NoDeaths$mean[preliminary.NoDeaths$scenario == scenario.name[1]]  <- apply(pg.dh.ar[1,,], 1, mean)
-# preliminary.NoDeaths$upper[preliminary.NoDeaths$scenario == scenario.name[1]] <- apply(pg.dh.ar[1,,], 1, quantile, probs = 0.975)
-# preliminary.NoDeaths$lower[preliminary.NoDeaths$scenario == scenario.name[1]] <- apply(pg.dh.ar[1,,], 1, quantile, probs = 0.025)
-# 
-# 
-# preliminary.NoDeaths$mean[preliminary.NoDeaths$scenario == scenario.name[2]]  <- apply(pg.dh.ar[2,,], 1, mean)
-# preliminary.NoDeaths$upper[preliminary.NoDeaths$scenario == "100% increase"] <- apply(pg.dh.ar[2,,], 1, quantile, probs = 0.975)
-# preliminary.NoDeaths$lower[preliminary.NoDeaths$scenario == "100% increase"] <- apply(pg.dh.ar[2,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoDeaths$mean[preliminary.NoDeaths$scenario == "200% increase"]  <- apply(pg.dh.ar[2,,], 1, mean)
-# preliminary.NoDeaths$upper[preliminary.NoDeaths$scenario == "200% increase"] <- apply(pg.dh.ar[2,,], 1, quantile, probs = 0.975)
-# preliminary.NoDeaths$lower[preliminary.NoDeaths$scenario == "200% increase"] <- apply(pg.dh.ar[2,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoDeaths$mean[preliminary.NoDeaths$scenario == "300% increase"]  <- apply(pg.dh.ar[3,,], 1, mean)
-# preliminary.NoDeaths$upper[preliminary.NoDeaths$scenario == "300% increase"] <- apply(pg.dh.ar[3,,], 1, quantile, probs = 0.975)
-# preliminary.NoDeaths$lower[preliminary.NoDeaths$scenario == "300% increase"] <- apply(pg.dh.ar[3,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoDeaths$mean[preliminary.NoDeaths$scenario == "400% increase"]  <- apply(pg.dh.ar[4,,], 1, mean)
-# preliminary.NoDeaths$upper[preliminary.NoDeaths$scenario == "400% increase"] <- apply(pg.dh.ar[4,,], 1, quantile, probs = 0.975)
-# preliminary.NoDeaths$lower[preliminary.NoDeaths$scenario == "400% increase"] <- apply(pg.dh.ar[4,,], 1, quantile, probs = 0.025)
 
 #Rate of deaths
 preliminary.RateDeaths[ , c("mean", "upper", "lower")] <- preliminary.NoDeaths[ , c("mean", "upper", "lower")] / pop.rgn * 100000
@@ -164,26 +144,6 @@ for (sc in 2:length(scenario.name)){
   preliminary.NoNlx$upper[preliminary.NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc-1,,], 1, quantile, probs = 0.975)
   preliminary.NoNlx$lower[preliminary.NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc-1,,], 1, quantile, probs = 0.025)
 }
-# 
-# preliminary.NoNlx$mean[preliminary.NoNlx$scenario == "50% increase"]  <- apply(pg.nx.ar[1,,], 1, mean)
-# preliminary.NoNlx$upper[preliminary.NoNlx$scenario == "50% increase"] <- apply(pg.nx.ar[1,,], 1, quantile, probs = 0.975)
-# preliminary.NoNlx$lower[preliminary.NoNlx$scenario == "50% increase"] <- apply(pg.nx.ar[1,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoNlx$mean[preliminary.NoNlx$scenario == "100% increase"]  <- apply(pg.nx.ar[2,,], 1, mean)
-# preliminary.NoNlx$upper[preliminary.NoNlx$scenario == "100% increase"] <- apply(pg.nx.ar[2,,], 1, quantile, probs = 0.975)
-# preliminary.NoNlx$lower[preliminary.NoNlx$scenario == "100% increase"] <- apply(pg.nx.ar[2,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoNlx$mean[preliminary.NoNlx$scenario == "200% increase"]  <- apply(pg.nx.ar[2,,], 1, mean)
-# preliminary.NoNlx$upper[preliminary.NoNlx$scenario == "200% increase"] <- apply(pg.nx.ar[2,,], 1, quantile, probs = 0.975)
-# preliminary.NoNlx$lower[preliminary.NoNlx$scenario == "200% increase"] <- apply(pg.nx.ar[2,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoNlx$mean[preliminary.NoNlx$scenario == "300% increase"]  <- apply(pg.nx.ar[3,,], 1, mean)
-# preliminary.NoNlx$upper[preliminary.NoNlx$scenario == "300% increase"] <- apply(pg.nx.ar[3,,], 1, quantile, probs = 0.975)
-# preliminary.NoNlx$lower[preliminary.NoNlx$scenario == "300% increase"] <- apply(pg.nx.ar[3,,], 1, quantile, probs = 0.025)
-# 
-# preliminary.NoNlx$mean[preliminary.NoNlx$scenario == "400% increase"]  <- apply(pg.nx.ar[4,,], 1, mean)
-# preliminary.NoNlx$upper[preliminary.NoNlx$scenario == "400% increase"] <- apply(pg.nx.ar[4,,], 1, quantile, probs = 0.975)
-# preliminary.NoNlx$lower[preliminary.NoNlx$scenario == "400% increase"] <- apply(pg.nx.ar[4,,], 1, quantile, probs = 0.025)
 
 #Rate of Naloxone kits
 preliminary.RateNlx[ , c("mean", "upper", "lower")] <- preliminary.NoNlx[ , c("mean", "upper", "lower")] / pop.rgn * 100000
