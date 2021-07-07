@@ -80,9 +80,9 @@ m.oddeath.hr <- rep(0, times = n.t)                                             
 
 ## Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-if(init.pop.save && file.exists(init.pop.file)){
-  init.pop  <- readRDS(init.pop.file)
-  print(paste0("Population loaded from file: ", init.pop.file))
+if(file.exists("Inputs/InitialPopulation.rds")){
+  init.pop  <- readRDS("Inputs/InitialPopulation.rds")
+  print(paste0("Population loaded from file: ", "Inputs/InitialPopulation.rds"))
 } else {
   tic()
   init.pop  <- pop.initiation(initials = initials, seed=seed)
@@ -144,7 +144,7 @@ comp.time = Sys.time() - p
 
 comp.time
 
-write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
+write.csv(sim_sq$m.oddeath, file="OverdoseDeath_RIV1.0.csv", row.names = T)
 
 
 preliminary.results <- data.frame(matrix(nrow = n.rgn * 2, ncol = 6))

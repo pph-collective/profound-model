@@ -7,8 +7,8 @@ rm(list=ls())
 seed         <- 2021    #define the initial seed, will draw different seeds based on the initial for calibration simulations
 # batch.ind    <- 1       #specify the index of batch/job for calibration analysis (TO SAM: this is where you may need to modify, from 1-10 when submitting each of the 10 batches/jobs)
 args <- commandArgs(trailingOnly=TRUE)
-cores <- 1
 if (length(args) == 0){
+  cores <- 1
   batch.ind <- 1
   outpath <- getwd()
 } else{
@@ -82,7 +82,7 @@ calib.rs.table[ , "seed"]  <- calib.seed.vt
 calib.results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
 
 v.rgn <- Calibration.data.ls[[1]]$v.rgn  #load vector for regions (required by simulation)
-export_vals <- c('nlx.avail')
+
 #parallel calibration simulation
 calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
   yr.first    <- 2016   #simulation first year
