@@ -1,7 +1,7 @@
 ###############################################################################################
 ###################### PROFOUND Naloxone Distribution model #### 2020 #########################
 ###############################################################################################
-# Main module for the microsimulation of the Profound Naloxone distribution model: 
+# Main module for the microsimulation of the Profound Naloxone distribution model:
 #
 # Author: Xiao Zang, PhD; Shayla Nolen, MPH
 # Marshall Lab, Department of Epidemiology, Brown University
@@ -81,9 +81,10 @@ m.oddeath.hr <- rep(0, times = n.t)                                             
 
 ## Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
-  init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
-} else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))){
+if(file.exists("Inputs/InitialPopulation.rds")){
+  init.pop  <- readRDS("Inputs/InitialPopulation.rds")
+  print(paste0("Population loaded from file: ", "Inputs/InitialPopulation.rds"))
+} else {
   tic()
   init.pop  <- pop.initiation(initials = initials, seed=seed)
   saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
