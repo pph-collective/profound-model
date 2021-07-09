@@ -16,26 +16,12 @@
 trans.prob <- function(pop.t, vparameters){
   list2env(vparameters, environment())
   # initialize a matrix to store transition probabilities of each individual
-  num_states <- num_states
-  trans.prob.matrix <- matrix(NA, length(agent_states) + 1, nrow(pop.t)) #add one row for OD
+  trans.prob.matrix <- matrix(NA, num_states + 1, nrow(pop.t)) #add one row for OD
   rownames(trans.prob.matrix) <- c(agent_states, "od")
   
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))                                 
-  # mor.rate[filter(pop.t, age %in% c(10:14) & curr.state != "inact")$ind] <- mor.matrix["drug", "10to14"]
-  # mor.rate[filter(pop.t, age %in% c(15:24) & curr.state != "inact")$ind] <- mor.matrix["drug", "15to24"]
-  # mor.rate[filter(pop.t, age %in% c(25:34) & curr.state != "inact")$ind] <- mor.matrix["drug", "25to34"]
-  # mor.rate[filter(pop.t, age %in% c(35:44) & curr.state != "inact")$ind] <- mor.matrix["drug", "35to44"]
-  # mor.rate[filter(pop.t, age %in% c(45:54) & curr.state != "inact")$ind] <- mor.matrix["drug", "45to54"]
-  # mor.rate[filter(pop.t, age %in% c(55:64) & curr.state != "inact")$ind] <- mor.matrix["drug", "55to64"]
-  # mor.rate[filter(pop.t, age >= 65         & curr.state != "inact")$ind] <- mor.matrix["drug", "65over"]
-  # mor.rate[filter(pop.t, age %in% c(10:14) & curr.state == "inact")$ind] <- mor.matrix["bg", "10to14"]
-  # mor.rate[filter(pop.t, age %in% c(15:24) & curr.state == "inact")$ind] <- mor.matrix["bg", "15to24"]
-  # mor.rate[filter(pop.t, age %in% c(25:34) & curr.state == "inact")$ind] <- mor.matrix["bg", "25to34"]
-  # mor.rate[filter(pop.t, age %in% c(35:44) & curr.state == "inact")$ind] <- mor.matrix["bg", "35to44"]
-  # mor.rate[filter(pop.t, age %in% c(45:54) & curr.state == "inact")$ind] <- mor.matrix["bg", "45to54"]
-  # mor.rate[filter(pop.t, age %in% c(55:64) & curr.state == "inact")$ind] <- mor.matrix["bg", "55to64"]
-  # mor.rate[filter(pop.t, age >= 65         & curr.state == "inact")$ind] <- mor.matrix["bg", "65over"]
+
   mor.rate[filter(pop.t, age %in% c(10:14))$ind] <- mor.matrix["drug", "10to14"]
   mor.rate[filter(pop.t, age %in% c(15:24))$ind] <- mor.matrix["drug", "15to24"]
   mor.rate[filter(pop.t, age %in% c(25:34))$ind] <- mor.matrix["drug", "25to34"]
@@ -45,6 +31,7 @@ trans.prob <- function(pop.t, vparameters){
   mor.rate[filter(pop.t, age >= 65        )$ind] <- mor.matrix["drug", "65over"]
   
   # create a vector to store probability of overdose for each individual according to ever overdosed and fentanyl
+  # TO_REVIEW what does "multi" mean here
   od.rate <- numeric(nrow(pop.t))                                 
   od.rate[filter(pop.t, curr.state == "preb"  & ever.od == 0 & fx == 0)$ind]  <- od.matrix["preb", "first"]
   od.rate[filter(pop.t, curr.state == "preb"  & ever.od == 1 & fx == 0)$ind]  <- od.matrix["preb", "subs"]
@@ -147,6 +134,7 @@ trans.prob <- function(pop.t, vparameters){
   return(t(trans.prob.matrix))
 }
 
+# TO_REVIEW what does samplev mean?
 samplev <- function (probs, m) {
   d <- dim(probs)
   n <- d[1]

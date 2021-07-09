@@ -30,6 +30,7 @@ init.pop.file <- "Inputs/InitialPopulation.rds"
 ## Model setup parameters ##
 seed         <- 2021
 sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+out.file <- "OverdoseDeath_RIV1_0.csv"
 if (length(args) > 0){
   sw.EMS.ODloc <- args[1]
   seed <- strtoi(args[2])
@@ -50,14 +51,14 @@ source("cost_effectiveness.R")
 
 
 # INPUT PARAMETERS
-t_start    <- 2016
-t_end     <- 2020
+yr_start    <- 2016
+yr_end     <- 2020
 ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
                  "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
 agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
 v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
 num_states     <- length(agent_states)                                                     # number of states
-num_years        <- t_end-t_start+1
+num_years        <- yr_end-yr_start+1
 timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
 n.rgn       <- length(v.rgn)                                                       # number of regions
 
@@ -67,11 +68,11 @@ v.od        <- rep(0, times = timesteps)                                        
 v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
 m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.rgn)
 colnames(m.oddeath) <- v.rgn
-v.odpriv    <- rep(0, times = n.t)                                                 # count of overdose events occurred at private setting at each time step
-v.odpubl    <- rep(0, times = n.t)                                                 # count of overdose events occurred at public setting at each time step
-v.deathpriv <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at private setting at each time step
-v.deathpubl <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at public setting at each time step
-v.nlxused   <- rep(0, times = n.t)                                                 # count of naloxone kits used at each time step
+v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
+v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
+v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step
+v.deathpubl <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at public setting at each time step
+v.nlxused   <- rep(0, times = timesteps)                                                 # count of naloxone kits used at each time step
 v.str       <- c("SQ", "expand")                                                   # store the strategy names
 d.c         <- 0.03                                                                # discounting of costs by 3%
 cost.item   <- c("TotalCost", "NxCost")
@@ -85,7 +86,7 @@ m.oddeath.hr <- rep(0, times = timesteps)                                       
 
 overdoses <- data.frame(total=rep(0, timesteps))
 # initiate overdose columns
-columns <- c("total", "private", "public", "ED_visits", "deaths_total", "deaths_private", "deaths_public"
+columns <- c("total", "private", "public", "ED_visits", "deaths_total", "deaths_private", "deaths_public",
             "deaths_fx", "deaths_opioid", "deaths_stimulant", "deaths_high_risk")
 overdoses$private <- overdoses$public <- overdoses$ED_visits <- 0
 overdoses$deaths_total <- overdoses$deaths_private <- overdoses$deaths_public <- 0
@@ -106,10 +107,10 @@ if(file.exists(init.pop.file)){
 # START SIMULATION
 tic()     # calculate time per simulation for all scenarios
 # run for status quo (no intervention)
-sim_sq    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)
+sim_sq    <- MicroSim(init.pop, vparameters, timesteps, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)
 # run for expansion (with intervention)
 exp.lv    <- 2  #double all OEND programs
-sim_ep    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "expand", seed = seed)
+sim_ep    <- MicroSim(init.pop, vparameters, timesteps, v.state, d.c, PT.out = TRUE, Str = "expand", seed = seed)
 toc()
 
 write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
@@ -122,13 +123,14 @@ colnames(preliminary.results) <- c("location", "scenario", "Rate_Nx", "N_Nx", "R
 preliminary.results$location <- rep(v.rgn, 2)
 preliminary.results$scenario <- rep(c("Status Quo", "Double"), each  = length(v.rgn))
 pop.rgn                      <- colSums(Demographic[ , -c(1:3)])
-preliminary.results$Rate_Nx[preliminary.results$scenario == "Status Quo"]      <- colSums(sim_sq$n.nlx.mx.str) / pop.rgn * 100000
-preliminary.results$N_Nx[preliminary.results$scenario == "Status Quo"]         <- colSums(sim_sq$n.nlx.mx.str)
+# TO_REVIEW error on these lines: saying the colSums need an array of two dimensions. n.nlx.all.str
+preliminary.results$Rate_Nx[preliminary.results$scenario == "Status Quo"]      <- colSums(sim_sq$n.nlx.all.str) / pop.rgn * 100000
+preliminary.results$N_Nx[preliminary.results$scenario == "Status Quo"]         <- colSums(sim_sq$n.nlx.all.str)
 preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / pop.rgn * 100000
 preliminary.results$N_ODdeath[preliminary.results$scenario == "Status Quo"]    <- colSums(sim_sq$m.oddeath[49:60, ])
-preliminary.results$Rate_Nx[preliminary.results$scenario == "Double"]          <- colSums(sim_ep$n.nlx.mx.str) / pop.rgn * 100000
-preliminary.results$N_Nx[preliminary.results$scenario == "Double"]             <- colSums(sim_ep$n.nlx.mx.str)
+preliminary.results$Rate_Nx[preliminary.results$scenario == "Double"]          <- colSums(sim_ep$n.nlx.all.str) / pop.rgn * 100000
+preliminary.results$N_Nx[preliminary.results$scenario == "Double"]             <- colSums(sim_ep$n.nlx.all.str)
 preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Double"]     <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.rgn * 100000
 preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]        <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
 
-write.csv(preliminary.results, file = ("preliminary.results.csv"))
+write.csv(preliminary.results, file = ("preliminary_results.csv"))

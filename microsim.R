@@ -24,7 +24,7 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
   # Makes use of:  TO_REVIEW: is this a normal thing to put in a docstring
   # trans.prob:     function for the estimation of transition probabilities
   # Costs:          function for the estimation of cost state values
-  # decision.tree:  function for the decision tree module
+  # decisiotimestepsree:  function for the decision tree module
   # TODO: actual docstring description
   list2env(vparameters, environment())
   # Find number of opioid and non-opioid users
@@ -34,14 +34,14 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
   print(NxDataPharm)
   # Create matrixes for ??? TO_REVIEW
   # TO_REVIEW: what is NxDataPharm? It's not clear from the name, and the vparameters make it difficult to track down
-  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(t_start-1)] %*% t(init.pop.residence / sum(init.pop.residence))
+  NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr_start-1)] %*% t(init.pop.residence / sum(init.pop.residence))
   NxPharm.array   <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
   for (cc in 1:dim(NxPharm.mx)[1]){
     NxPharm.array[ cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * OD_loc, 0)
   }
   
-  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= t_start,   , ] + NxPharm.array[ -1, , ]
-  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]] == t_start-1, , ] + NxPharm.array[  1, , ]
+  array.Nx    <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= yr_start,   , ] + NxPharm.array[ -1, , ]
+  init.Nx     <- NxOEND.array[dimnames(NxOEND.array)[[1]] == yr_start-1, , ] + NxPharm.array[  1, , ]
   
   n.nlx.mx.lst  <- array.Nx[dim(array.Nx)[1], , ]
   if (Str == "SQ"){
@@ -52,7 +52,7 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
     n.nlx.mx.str <- n.nlx.mx.lst + pg.add
   }
   
-  for (aa in 1:(n.yr-dim(array.Nx)[1])) {
+  for (aa in 1:(num_years-dim(array.Nx)[1])) {
     array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
   }
   
@@ -101,7 +101,7 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
     v.od[t]                    <- nrow(od.pop)
     ou.pop.resid               <- pop.list[[t]] %>% count(residence)
     
-    decntree.out               <- decision.tree(od.pop, n.nlx = n.nlx.mn, ou.pop.resid, vparameters, seed = seed+t)
+    decntree.out               <- decisiotimestepsree(od.pop, n.nlx = n.nlx.mn, ou.pop.resid, vparameters, seed = seed+t)
     
     v.oddeath[t]               <- sum(decntree.out[ , "od.death"])
     v.odpriv[t]                <- sum(decntree.out[ , "locpriv"])
@@ -109,7 +109,6 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
     v.deathpriv[t]             <- sum(decntree.out[decntree.out[ , "od.death"] == 1, "locpriv"])
     v.deathpubl[t]             <- sum(decntree.out[ , "od.death"] == 1) - v.deathpriv[t]
     v.nlxused[t]               <- sum(decntree.out[ , "nlx.used"])
-    print("Here")
     n.EMS                      <- sum(decntree.out[ , "EMS"])
     n.hospcare                 <- sum(decntree.out[ , "hospcare"])
     od.pop$curr.state[decntree.out[ , "od.death"] == 1]   <- "dead"

@@ -39,8 +39,8 @@
 # 2. Decision tree function
 #############################################################################
 
-decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
-  # TO_REVIEW n.nlx is the number of naloxone kits distributed? ou.pop.resid? why are the params called vparameters?
+decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
+  # TO_REVIEW n.nlx is the number of naloxone kits distributed? what is ou.pop.resid? why are the params called vparameters?
   list2env(vparameters, environment())
   set.seed(seed)
   n.od                   <- nrow(od.pop)
@@ -65,9 +65,10 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
     if (sample.dic(p.wtns) == 1) {   # if witnessed
       if (sample.dic(p.nlx.avail) == 1){   # if naloxone available by witness (witnessed)
         nlx.used = 1
-        EMS <- 
-        if (sample.dic(p.911) == 1) {  # if EMS reached (witnessed, available, naloxone used by witness )
-          if (sample.dic(p.hosp) == 1) {  # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
+        EMS <- sample.dic(p.911)
+        if (EMS == 1) {  # if EMS reached (witnessed, available, naloxone used by witness )
+          hospcare <- sample.dic(p.hosp)
+          if (hospcare == 1) {  # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
             od.death <- sample.dic(mor_Nx)
           } else {  # if not hospitalized (witnessed, available, naloxone used by witness, EMS reached)
             od.death <- sample.dic(mor_Nx)
@@ -78,8 +79,11 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
         }
       } else {  # if naloxone not used (unavailable) by witness (witnessed)
         nlx.used = 0
-        if (sample.dic(p.911) == 1) {   # if EMS reached (witnessed, naloxone not used by witness)
-          if (sample.dic(p.hosp) == 1) {  # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
+        EMS <- sample.dic(p.911)
+        if (EMS == 1) {   # if EMS reached (witnessed, naloxone not used by witness)
+        hospcare <- sample.dic(p.hosp)
+          if (hospcare == 1) {  # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
+          # TO_REVIEW hospitalized and unhospitalized probabiliites the same?
             od.death <- sample.dic(mor_bl*rr_mor_EMS)
           } else {  # if not hospitalized (witnessed, naloxone not used by witness, EMS reached)
             od.death <- sample.dic(mor_bl*rr_mor_EMS)

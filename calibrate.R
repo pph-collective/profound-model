@@ -94,14 +94,14 @@ v.rgn <- Calibration.data.ls[[1]]$v.rgn  #load vector for regions (required by s
 # parallel calibration simulation
 # TODO: look into apply functions for parallel
 calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
-  t_start    <- 2016   #simulation first year
-  t_end     <- 2020   #simulation last year
+  yr_start    <- 2016   #simulation first year
+  yr_end     <- 2020   #simulation last year
   ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
                    "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
   agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
   v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
   num_states     <- length(agent_states)                                                     # number of states
-  num_years        <- t_end-t_start+1
+  num_years        <- yr_end-yr_start+1
   timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
   n.rgn       <- length(v.rgn)                                                       # number of regions
   
