@@ -67,11 +67,12 @@ v.od        <- rep(0, times = timesteps)                                        
 v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
 m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.rgn)
 colnames(m.oddeath) <- v.rgn
-v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
-v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
-v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step
-v.deathpubl <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at public setting at each time step
-v.str       <- c("SQ", "Expand100")                                                # store the strategy names
+v.odpriv    <- rep(0, times = n.t)                                                 # count of overdose events occurred at private setting at each time step
+v.odpubl    <- rep(0, times = n.t)                                                 # count of overdose events occurred at public setting at each time step
+v.deathpriv <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at private setting at each time step
+v.deathpubl <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at public setting at each time step
+v.nlxused   <- rep(0, times = n.t)                                                 # count of naloxone kits used at each time step
+v.str       <- c("SQ", "expand")                                                   # store the strategy names
 d.c         <- 0.03                                                                # discounting of costs by 3%
 cost.item   <- c("TotalCost", "NxCost")
 cost.matrix <- matrix(0, nrow=timesteps, ncol = length(cost.item))
@@ -99,14 +100,16 @@ if(file.exists(init.pop.file)){
   init.pop  <- pop.initiation(initials = initials, seed=seed)
   saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
 }
-toc()
 
 
 ##################################### Run the simulation ##################################
 # START SIMULATION
-tic("Simulations: ")
-sim_sq    <- MicroSim(init.pop, vparameters, timesteps, agent_states, d.c, PT.out = TRUE, Str = "SQ", seed = seed)  # status quo
-sim_ep    <- MicroSim(init.pop, vparameters, timesteps, agent_states, d.c, PT.out = TRUE, Str = "Expand", seed = seed)  # expanded treatment
+tic()     # calculate time per simulation for all scenarios
+# run for status quo (no intervention)
+sim_sq    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)
+# run for expansion (with intervention)
+exp.lv    <- 2  #double all OEND programs
+sim_ep    <- MicroSim(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, Str = "expand", seed = seed)
 toc()
 
 write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
@@ -123,12 +126,9 @@ preliminary.results$Rate_Nx[preliminary.results$scenario == "Status Quo"]      <
 preliminary.results$N_Nx[preliminary.results$scenario == "Status Quo"]         <- colSums(sim_sq$n.nlx.mx.str)
 preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / pop.rgn * 100000
 preliminary.results$N_ODdeath[preliminary.results$scenario == "Status Quo"]    <- colSums(sim_sq$m.oddeath[49:60, ])
-preliminary.results$Rate_Nx[preliminary.results$scenario == "Double"]      <- colSums(sim_ep$n.nlx.mx.str) / pop.rgn * 100000
-preliminary.results$N_Nx[preliminary.results$scenario == "Double"]         <- colSums(sim_ep$n.nlx.mx.str)
-preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Double"] <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.rgn * 100000
-preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]    <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
+preliminary.results$Rate_Nx[preliminary.results$scenario == "Double"]          <- colSums(sim_ep$n.nlx.mx.str) / pop.rgn * 100000
+preliminary.results$N_Nx[preliminary.results$scenario == "Double"]             <- colSums(sim_ep$n.nlx.mx.str)
+preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Double"]     <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.rgn * 100000
+preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]        <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
 
-write.csv(preliminary.results, file = ("preliminary_results.csv"))
-
-sum(sim_sq$v.oddeath)
-sim_ep$v.oddeath
+write.csv(preliminary.results, file = ("preliminary.results.csv"))

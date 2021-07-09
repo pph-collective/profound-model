@@ -47,12 +47,14 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
   if (Str == "SQ"){
     n.nlx.mx.str <- n.nlx.mx.lst
   } else if (Str == "expand"){ 
-    n.nlx.mx.str <- NxOEND.array[dim(NxOEND.array)[1],   , ] * 2 + NxPharm.array[dim(NxPharm.array)[1],   , ]
+    n.nlx.mx.str <- NxOEND.array[dim(NxOEND.array)[1],   , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1],   , ]
   } else if (Str == "program"){
     n.nlx.mx.str <- n.nlx.mx.lst + pg.add
   }
   
-  array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
+  for (aa in 1:(n.yr-dim(array.Nx)[1])) {
+    array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
+  }
   
   v.dwc <- rep(1 / (1 + discount.rate) ^ (0:(num_years-1)), each =12)   # calculate the cost discount weight based on the discount rate
   
@@ -65,11 +67,11 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
     if (t == 1){
       pop.list[[t]]              <- init.pop
       OUD.fx                     <- ini.OUD.fx
-      # determine fentanyl use among initial population who use opioids 
+      # determine fentanyl use among population who use opioids 
       set.seed(seed)
       fx         <- sample(0:1, size = n.opioid, prob = c(1-OUD.fx, OUD.fx), replace = T)
       pop.list[[t]]$fx[init.pop$curr.state != "NODU"] <- fx
-      # determine fentanyl use among initial population who use stimulants (non-opioid)
+      # determine fentanyl use among population who use stimulants (non-opioid)
       set.seed(seed*2)
       fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
       pop.list[[t]]$fx[init.pop$curr.state == "NODU"] <- fx
@@ -79,7 +81,7 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
       pop.list[[t]]              <- pop.list[[t-1]]
       if (t %% 12 ==0){
         OUD.fx     <- min(ini.OUD.fx * (1 + gw.fx * min(floor((t-1)/12)+1, 3)), 0.9)
-        # determine fentanyl use among initial population who use opioids 
+        # determine fentanyl use among population who use opioids 
         set.seed(seed)
         fx         <- sample(0:1, size = n.opioid, prob = c(1-OUD.fx, OUD.fx), replace = T)
         pop.list[[t]]$fx[init.pop$curr.state != "NODU"] <- fx
