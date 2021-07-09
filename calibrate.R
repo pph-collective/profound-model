@@ -1,16 +1,22 @@
 ###############################################################################################
-#######################           Model calibration           #################################
+#######################        Model calibration runs         #################################
 ###############################################################################################
+# Module for running model with uncalibrated data in parallel over calibration period
+#
+# Authors: Xiao Zang, PhD, Sam Bessey, MS
+#
+# People, Place and Health Collective, Department of Epidemiology, Brown University
+#
+
 rm(list=ls())
 
 # ## Model setup parameters ##
 seed         <- 2021    #define the initial seed, will draw different seeds based on the initial for calibration simulations
-# batch.ind    <- 1       #specify the index of batch/job for calibration analysis (TO SAM: this is where you may need to modify, from 1-10 when submitting each of the 10 batches/jobs)
 args <- commandArgs(trailingOnly=TRUE)
-cores <- 1
 if (length(args) == 0){
   batch.ind <- 1
   outpath <- getwd()
+  cores <- 1
 } else{
   batch.ind <- strtoi(args[1])
   outpath <- strtoi(args[2])
@@ -27,10 +33,9 @@ library(FME)
 #Load packages for parallel performance
 library(foreach)
 library(doParallel)
-#Specify number of cores
-# ncores = 5; c1 <- makeCluster(ncores)   #make clusters for local machine
-c1 = makeCluster(cores, outfile="")           #make clusters for clusters (TO SAM: not sure if this is the right command, used for Compute Canada)
-registerDoParallel(c1)                    #register cluster
+# make and register the cluster given the provided number of cores
+c1 = makeCluster(cores, outfile="")
+registerDoParallel(c1)
 
 
 #Load required scripts and functions
@@ -43,31 +48,35 @@ source("cost_effectiveness.R")
 source("parallel.R")
 source("prep_calibration_data.R")
 
+
+# TO_REVIEW is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
 ## load or create calibration parameter sets for calibration simulation 
 if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   #only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds")) 
-} else if (!file.exists(paste0("Inputs/Calib_par_table.rds"))){
+} else {
   ## Specify the number of calibration random parameter sets
   sample.size <- 10000  #total number of calibration samples
+  # TO_REVIEW batch size is determined above. Does it need to be redeclared here?
   batch.size  <- 1000   #number of samples per calibration batch
 
   #load calibration parameter bounds and values
-  WB       <- loadWorkbook("Inputs/MasterTable.xlsx")
-  CalibPar <- read.xlsx(WB, sheet="CalibPar")
+  CalibPar <- read.xlsx("Inputs/MasterTable.xlsx", "CalibPar")
   parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
   row.names(parRange) <- CalibPar$par
+  # TO_REVIEW we're using a static seed for all calibration runs? or just for the random draws in the hypercube?
+  # create and save calibration parameters using latin hypercube sampling with a set seed
   set.seed(5112021)
-  calib.par <- Latinhyper(parRange, sample.size)            #use latin hypercube to draw random samples for parameters
-  calib.par <- data.frame(calib.par)
+  calib.par <- Latinhyper(parRange, sample.size) %>% data.frame()
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
+  # TO_REVIEW Where are the CalibrationSampleData files generated? What's the difference between those and the Calib_par_table file?
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
   rm(calib.par)
 }
 
-#generate seeds for calibration (incremental by 1 from the initial seed)
+# generate stepwise seeds for calibration starting at initial seed
 calib.seed.vt  <- seed + c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
-#initialize calibration results table
+# initialize calibratiobration_results table
 calib.rs.table <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15) 
 colnames(calib.rs.table) <- c("index", "seed",
                               "od.death16", "od.death17", "od.death18", "od.death19",
@@ -77,13 +86,14 @@ colnames(calib.rs.table) <- c("index", "seed",
 calib.rs.table[ , "index"] <- c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
 calib.rs.table[ , "seed"]  <- calib.seed.vt
 
-#initialize results matrix to save results from parallel simulation
-calib.results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
+#initializbration_results matrix to savbration_results from parallel simulation
+calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
 
 v.rgn <- Calibration.data.ls[[1]]$v.rgn  #load vector for regions (required by simulation)
-export_vals <- c('nlx.avail')
-#parallel calibration simulation
-calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
+
+# parallel calibration simulation
+# TODO: look into apply functions for parallel
+calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
   t_start    <- 2016   #simulation first year
   t_end     <- 2020   #simulation last year
   ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
@@ -122,7 +132,7 @@ calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], vparameters = Calibration.data.ls[[ss]])
 }
 
-calib.rs.table[,3:14] <- calib.results   #pass calibration results to results table
-saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibration results table to an rds, will combine all 10 tables/bacthes in a subsequent process
+calib.rs.table[,3:14] <- calibration_results   #pass calibratiobration_results tbration_results table
+saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibratiobration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
 # stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)

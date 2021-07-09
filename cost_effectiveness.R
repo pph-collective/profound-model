@@ -4,7 +4,7 @@
 # Module for Data Input of the Profound Naloxone distribution model: 
 #
 # Author: Xiao Zang, PhD; Shayla Nolen, MPH
-# Marshall Lab, Department of Epidemiology, Brown University
+# People, Place and Health Collective, Department of Epidemiology, Brown University
 #
 # Created: Dec 30, 2020
 # Last update: Jan 31, 2021

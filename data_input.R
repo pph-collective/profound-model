@@ -10,8 +10,7 @@
 # Last update: April 12, 2021
 #
 #############################################################################
-###################        DATA INPUT function      #########################
-#############################################################################
+# TO_REVIEW what does "data input" mean?
 ## Define input excel file ##
 vparameters   <- list()
 WB            <- loadWorkbook("Inputs/MasterTable.xlsx")
@@ -25,7 +24,9 @@ prev.NODU.f   <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"])   #preval
 
 Demographic   <- read.xlsx(WB, sheet="Demographic")
 demo.mx       <- data.matrix(Demographic[ , 4:ncol(Demographic)])
+# TO_REVIEW why do you need a separate vector for column names?
 v.rgn         <- colnames(Demographic)[-c(1:3)]                          #region names (city/town)
+# TO_REVIEW ditto, why not just use Demographics$* when you want these things?
 vparameters$v.rgn <- v.rgn
 v.demo.sex    <- Demographic$sex
 v.demo.race   <- Demographic$race
@@ -34,6 +35,8 @@ v.demo.age    <- Demographic$age
 OUDDemo       <- read.xlsx(WB, sheet="OUDPrevNSDUH")$pe
 StimDemo      <- read.xlsx(WB, sheet="StimPrevNSDUH")$pe
 
+# TO_REVIEW what does "ini" mean. What is an opioid patern. What about inact? lr and hr?
+# why create all these variables and then put them into a dataframe? Wastes memory
 OpioidPattern <- read.xlsx(WB, sheet="OpioidPattern")
 ini.il.m      <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"])   # % of illicite opioid use among OUD pop
 ini.il.f      <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"])   # % of illicite opioid use among OUD pop
@@ -50,22 +53,26 @@ StimulantPattern <- read.xlsx(WB, sheet="StimulantPattern")
 ini.NOUD.fx      <- with(StimulantPattern, pe[par == "ini.NOUD.fx"])
 ini.everod.sti   <- with(StimulantPattern, pe[par == "ini.everod"])
 
+# TO_REVIEW initials = initial values?
 initials      <- list(pop.size = pop.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.rgn = v.rgn, OUDDemo = OUDDemo, StimDemo = StimDemo, 
                       ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, ini.inact = ini.inact,
                       # ini.OUD.fx = ini.OUD.fx, ini.NOUD.fx = ini.NOUD.fx,
                       ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr)
 
+# TO_REVIEW don't need to make the intermediate ini.OUD.fx, etc?
 vparameters$ini.OUD.fx  <- ini.OUD.fx
 vparameters$gw.fx       <- gw.fx
 vparameters$ini.NOUD.fx <- ini.NOUD.fx
 
 ## Parameters for microsimulation ##
-#life table: for mortality
+# life table: for mortality
 mor.bg.y                  <- read.xlsx(WB, sheet="LifeTable")$pe
 vparameters$mor.bg        <- 1-(1-mor.bg.y/1000000)^(1/12)
 mor.drug.y                <- read.xlsx(WB, sheet="LifeTable")$drug
 vparameters$mor.drug      <- 1-(1-mor.drug.y/1000000)^(1/12)
+# TO_REVIEW can mor.gp go into an existing matrix or df? What does gp stand for?
 mor.gp                    <- read.xlsx(WB, sheet="LifeTable")$age
+rm(list=c("mor.bg.y", "mor.drug.y"))
 #risk of overdose
 OverdoseRisk  <- read.xlsx(WB, sheet="OverdoseRisk")
 vparameters$od.preb.sub   <- with(OverdoseRisk, pe[par == "od.preb.sub"])
@@ -149,13 +156,15 @@ vparameters$c.il.hr       <- with(Cost, pe[par == "c.il.hr"])
 vparameters$c.inact       <- with(Cost, pe[par == "c.inact"])
 vparameters$c.NODU        <- with(Cost, pe[par == "c.NODU"])
 vparameters$c.nlx.kit     <- with(Cost, pe[par == "c.nlx.kit"])
+# TO_REVIEW dtb?
 vparameters$c.nlx.dtb     <- with(Cost, pe[par == "c.nlx.dtb"])
+# TO_REVIEW what are these relapse params signifying? Not sure what cost of remaining one cycle means
 c.relap.v          <- numeric(0)                      # cost of remaining one cycle: relapsed, as the average of inactive and prior state
 c.relap.v["preb"]  <- (vparameters$c.preb  + vparameters$c.inact)/2
 c.relap.v["il.lr"] <- (vparameters$c.il.lr + vparameters$c.inact)/2
 c.relap.v["il.hr"] <- (vparameters$c.il.hr + vparameters$c.inact)/2
 vparameters$c.relap.v     <- c.relap.v
-
+# TO_REVIEW: cost of EMS and hospital care?
 vparameters$c.EMS         <- with(Cost, pe[par == "c.EMS"])
 vparameters$c.hospcare    <- with(Cost, pe[par == "c.hospcare"])
 

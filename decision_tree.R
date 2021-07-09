@@ -10,7 +10,7 @@
 # Last update: April 12, 2021
 #
 ###############################################################################################
-#########################           Decsion Tree           ####################################
+#########################           Decision Tree           ####################################
 ###############################################################################################
 
 ###############################################################################################
@@ -26,6 +26,7 @@
 #############################################################################
 # INPUT PARAMETERS
 # p.wtns              # probability an overodse is witnessed
+# TO_REVIEW can we just say probability of naloxone in the variable name (prob_nlx)?
 # p.nlx.wtns          # probability naloxone is used/administered by witness if available             
 # p.911               # probability of seeking help from 911
 # p.hosp              # probability of transporting to hospital care
@@ -39,13 +40,15 @@
 #############################################################################
 
 decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
+  # TO_REVIEW n.nlx is the number of naloxone kits distributed? ou.pop.resid? why are the params called vparameters?
   list2env(vparameters, environment())
   set.seed(seed)
   n.od                   <- nrow(od.pop)
   residence              <- od.pop$residence
   out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
-  colnames(decntree.out) <- out.colnames
+  colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
+  # TO_REVIEW ind?
   decntree.out[ , "ind"] <- od.pop$ind
   p.nlx.avail.mx         <- nlx.avail.algm(n.nlx, ou.pop.resid, OD_loc, Low2Priv, nlx.adj, cap)
 
@@ -57,17 +60,14 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
     p.hosp <- OD_hosp
     p.od2inact <- OD_cess
     
-    wtns   <- sample.dic(p.wtns)
     p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
     
-    if (wtns == 1) {   # if witnessed
-      nlx.avail <- sample.dic(p.nlx.avail)
-      if (nlx.avail == 1){   # if naloxone available by witness (witnessed)
+    if (sample.dic(p.wtns) == 1) {   # if witnessed
+      if (sample.dic(p.nlx.avail) == 1){   # if naloxone available by witness (witnessed)
         nlx.used = 1
-        EMS <- sample.dic(p.911)
-        if (EMS == 1) {  # if EMS reached (witnessed, available, naloxone used by witness )
-          hospcare <- sample.dic(p.hosp)
-          if (hospcare == 1) {  # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
+        EMS <- 
+        if (sample.dic(p.911) == 1) {  # if EMS reached (witnessed, available, naloxone used by witness )
+          if (sample.dic(p.hosp) == 1) {  # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
             od.death <- sample.dic(mor_Nx)
           } else {  # if not hospitalized (witnessed, available, naloxone used by witness, EMS reached)
             od.death <- sample.dic(mor_Nx)
@@ -78,10 +78,8 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
         }
       } else {  # if naloxone not used (unavailable) by witness (witnessed)
         nlx.used = 0
-        EMS <- sample.dic(p.911)
-        if (EMS == 1) {   # if EMS reached (witnessed, naloxone not used by witness)
-          hospcare <- sample.dic(p.hosp)
-          if (hospcare == 1) {  # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
+        if (sample.dic(p.911) == 1) {   # if EMS reached (witnessed, naloxone not used by witness)
+          if (sample.dic(p.hosp) == 1) {  # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
             od.death <- sample.dic(mor_bl*rr_mor_EMS)
           } else {  # if not hospitalized (witnessed, naloxone not used by witness, EMS reached)
             od.death <- sample.dic(mor_bl*rr_mor_EMS)
@@ -103,7 +101,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
     } else {
       inact <- 0
     }
-    
+
     decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used)
   }   # end for loop
   

@@ -17,7 +17,7 @@ trans.prob <- function(pop.t, vparameters){
   list2env(vparameters, environment())
   # initialize a matrix to store transition probabilities of each individual
   num_states <- num_states
-  trans.prob.matrix <- matrix(NA, num_states + 1, nrow(pop.t)) #add one row for OD
+  trans.prob.matrix <- matrix(NA, length(agent_states) + 1, nrow(pop.t)) #add one row for OD
   rownames(trans.prob.matrix) <- c(agent_states, "od")
   
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
