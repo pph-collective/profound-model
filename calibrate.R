@@ -22,7 +22,7 @@ if (length(args) == 0){
   outpath <- strtoi(args[2])
   cores <- strtoi(args[3])
 }
-batch.size   <- 1000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
+batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
 #Load required packages
 print("Loading required packages")
@@ -49,27 +49,25 @@ source("parallel.R")
 source("prep_calibration_data.R")
 
 
-# TO_REVIEW is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
+# REVIEWED - check for both / is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
 ## load or create calibration parameter sets for calibration simulation 
 if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   #only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds")) 
 } else {
   ## Specify the number of calibration random parameter sets
-  sample.size <- 10000  #total number of calibration samples
-  # TO_REVIEW batch size is determined above. Does it need to be redeclared here?
-  batch.size  <- 1000   #number of samples per calibration batch
+  sample.size <- 1000000  #total number of calibration samples
 
   #load calibration parameter bounds and values
   CalibPar <- read.xlsx("Inputs/MasterTable.xlsx", "CalibPar")
   parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
   row.names(parRange) <- CalibPar$par
-  # TO_REVIEW we're using a static seed for all calibration runs? or just for the random draws in the hypercube?
+
   # create and save calibration parameters using latin hypercube sampling with a set seed
   set.seed(5112021)
   calib.par <- Latinhyper(parRange, sample.size) %>% data.frame()
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
-  # TO_REVIEW Where are the CalibrationSampleData files generated? What's the difference between those and the Calib_par_table file?
+
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
   rm(calib.par)
 }

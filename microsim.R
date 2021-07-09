@@ -21,7 +21,7 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
   # PT.out:         should the output include a Microsimulation trace? (default is TRUE)
   # Str:            simulating strategy
   # seed:           starting seed number for random number generator (default is 1)
-  # Makes use of:  TO_REVIEW: is this a normal thing to put in a docstring
+  # Makes use of:
   # trans.prob:     function for the estimation of transition probabilities
   # Costs:          function for the estimation of cost state values
   # decisiotimestepsree:  function for the decision tree module
@@ -32,8 +32,7 @@ MicroSim <- function(init.pop, vparameters, timesteps, agent_states, discount.ra
   n.noud   <- sum(init.pop$curr.state == "NODU")
   init.pop.residence   <- (init.pop %>% count(residence))$n
   print(NxDataPharm)
-  # Create matrixes for ??? TO_REVIEW
-  # TO_REVIEW: what is NxDataPharm? It's not clear from the name, and the vparameters make it difficult to track down
+  # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
   NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr_start-1)] %*% t(init.pop.residence / sum(init.pop.residence))
   NxPharm.array   <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
   for (cc in 1:dim(NxPharm.mx)[1]){

@@ -26,7 +26,7 @@
 #############################################################################
 # INPUT PARAMETERS
 # p.wtns              # probability an overodse is witnessed
-# TO_REVIEW can we just say probability of naloxone in the variable name (prob_nlx)?
+# REVIEWED if no witness, no naloxone \ can we just say probability of naloxone in the variable name (prob_nlx)?
 # p.nlx.wtns          # probability naloxone is used/administered by witness if available             
 # p.911               # probability of seeking help from 911
 # p.hosp              # probability of transporting to hospital care
@@ -40,7 +40,7 @@
 #############################################################################
 
 decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
-  # TO_REVIEW n.nlx is the number of naloxone kits distributed? what is ou.pop.resid? why are the params called vparameters?
+  # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change vparameters to params or parameters
   list2env(vparameters, environment())
   set.seed(seed)
   n.od                   <- nrow(od.pop)
@@ -48,7 +48,7 @@ decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed)
   out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
   colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
-  # TO_REVIEW ind?
+  # REVIEWED ind = index; id
   decntree.out[ , "ind"] <- od.pop$ind
   p.nlx.avail.mx         <- nlx.avail.algm(n.nlx, ou.pop.resid, OD_loc, Low2Priv, nlx.adj, cap)
 
@@ -83,7 +83,6 @@ decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed)
         if (EMS == 1) {   # if EMS reached (witnessed, naloxone not used by witness)
         hospcare <- sample.dic(p.hosp)
           if (hospcare == 1) {  # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
-          # TO_REVIEW hospitalized and unhospitalized probabiliites the same?
             od.death <- sample.dic(mor_bl*rr_mor_EMS)
           } else {  # if not hospitalized (witnessed, naloxone not used by witness, EMS reached)
             od.death <- sample.dic(mor_bl*rr_mor_EMS)
