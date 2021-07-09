@@ -25,17 +25,7 @@
 # 1. SET directpry and workspace
 #############################################################################
 rm(list=ls())
-args = commandArgs(trailingOnly=TRUE)
-init.pop.file <- "Inputs/InitialPopulation.rds"
-## Model setup parameters ##
-seed         <- 2021
-sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
-out.file <- "OverdoseDeath_RIV1_0.csv"
-if (length(args) > 0){
-  sw.EMS.ODloc <- args[1]
-  seed <- strtoi(args[2])
-}
-
+library("argparser")
 library(dplyr)
 library(tictoc)
 library(openxlsx)
@@ -48,6 +38,25 @@ source("decision_tree.R")
 source("data_input.R")
 source("naloxone_available.R")
 source("cost_effectiveness.R")
+
+args = arg_parser("arguments")
+args <- add_argument(args, "--seed", help="seed for random number", default=2021)
+args <- add_argument(args, "--regional", help="flag to run regional model", flag=TRUE)
+args <- add_argument(args, "--outfile", help="file to store outputs", default="OverdoseDeath_RIV1_0.csv")
+args <- add_argument(args, "--initppl", help="file with initial ppl info", default="Inputs/InitialPopulation.rds")
+argv <- parse_args(args)
+seed <- as.integer(argv$seed)
+print(seed)
+print(class(seed))
+
+init.pop.file <- "Inputs/InitialPopulation.rds"
+## Model setup parameters ##
+sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+out.file <- argv$outfile
+if (isTRUE(argv$regional)){
+  sw.EMS.ODloc <- "sp"
+}
+
 
 
 # INPUT PARAMETERS
@@ -63,7 +72,7 @@ timesteps         <- 12 * num_years                                             
 n.rgn       <- length(v.rgn)                                                       # number of regions
 
 # OUTPUT matrices and vectors
-# TO_REVIEW: why are these separate vectors instead of one output data frame? And why both for od_death
+# REVIEWED separate script
 v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
 v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
 m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.rgn)
@@ -119,7 +128,7 @@ write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
 preliminary.results <- data.frame(matrix(nrow = n.rgn * 2, ncol = 6))
 colnames(preliminary.results) <- c("location", "scenario", "Rate_Nx", "N_Nx", "Rate_ODdeath", "N_ODdeath")
 
-# TO_REVIEW: What is v.rgn? Why are results from the main script preliminary?
+# REVIEWED change rgn to region; remove preliminary from var name
 preliminary.results$location <- rep(v.rgn, 2)
 preliminary.results$scenario <- rep(c("Status Quo", "Double"), each  = length(v.rgn))
 pop.rgn                      <- colSums(Demographic[ , -c(1:3)])
