@@ -10,19 +10,6 @@ sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (
 
 # # Program data
 library(openxlsx)
-# pg.data   <- read.xlsx("Ignore/OEND_program.xlsx", sheet = "Project Weber")
-# pg.levels <- c(1, 5, 10, 20, 50)
-# pg.add.array <- array(0, dim = c(length(pg.levels), 2, dim(pg.data)[1]))
-# dimnames(pg.add.array)[[2]] <- c("high", "low")
-# for (i in 1:length(pg.levels)){
-#   if (pg.data$Risk[1] == "high"){
-#     pg.add.array[i, "high", ] <- round(pg.data$Volume[1] * pg.data$Proportion * pg.levels[i], 0)
-#     pg.add.array[i, "low", ]  <- 0
-#   } else {
-#     pg.add.array[i, "high", ] <- 0
-#     pg.add.array[i, "low", ]  <- round(pg.data$Volume[1] * pg.data$Proportion * pg.levels[i], 0)
-#   }
-# }
 
 # install.packages("rstudioapi")
 # library(rstudioapi)
@@ -81,13 +68,13 @@ if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
 
 sim.data.ls <- readRDS(file = paste0("calibration/CalibratedData.rds"))
 sim.seed    <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
-sim.seed    <- sim.seed[1:100]
+sim.seed    <- sim.seed[1:10]
 
 # sq.dh.mx  <- sq.nx.mx <- matrix(0, nrow = length(v.rgn), ncol = length(sim.seed))
 # pg.dh.ar  <- pg.nx.ar <- array(0, dim = c(dim(pg.add.array)[1], length(v.rgn), length(sim.seed)))
 # nlx.used.mx <- matrix(0, nrow = length(sim.seed), ncol = 1+length(pg.levels))
-od.death.mx.last <- od.death.mx.totl <- matrix(0, nrow = length(sim.seed), ncol = 3)
-scenario.name <- c("Status Quo", "No OEND", "Saturation")
+scenario.name <- c("Zero", "Status Quo", "Double", "Five times", "Ten times", "Saturation")
+od.death.mx.last <- od.death.mx.totl <- matrix(0, nrow = length(sim.seed), ncol = length(scenario.name))
 # colnames(nlx.used.mx) <- scenario.name
 colnames(od.death.mx.last) <- colnames(od.death.mx.totl) <- scenario.name
 
@@ -105,7 +92,19 @@ for (ss in 1:length(sim.seed)){
   
   exp.lv <- 0
   sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "expand", seed = sim.seed[ss]) # run for program scenario
-  od.death.mx.last[ss, "No OEND"] <- sum(sim_pg$m.oddeath[(n.t-11):n.t, ])
+  od.death.mx.last[ss, "Zero"] <- sum(sim_pg$m.oddeath[(n.t-11):n.t, ])
+  
+  exp.lv <- 2
+  sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "expand", seed = sim.seed[ss]) # run for program scenario
+  od.death.mx.last[ss, "Double"] <- sum(sim_pg$m.oddeath[(n.t-11):n.t, ])
+  
+  exp.lv <- 5
+  sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "expand", seed = sim.seed[ss]) # run for program scenario
+  od.death.mx.last[ss, "Five times"] <- sum(sim_pg$m.oddeath[(n.t-11):n.t, ])
+  
+  exp.lv <- 10
+  sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "expand", seed = sim.seed[ss]) # run for program scenario
+  od.death.mx.last[ss, "Ten times"] <- sum(sim_pg$m.oddeath[(n.t-11):n.t, ])
   
   exp.lv  <- 10000
   sim_pg  <- MicroSim(init.pop, vparameters = vparameters.temp, n.t, v.state, d.c, PT.out = FALSE, Str = "expand", seed = sim.seed[ss]) # run for program scenario
@@ -155,5 +154,5 @@ for (ss in 1:length(sim.seed)){
 # write.csv(preliminary.NoNlx, file = ("Ignore/preliminary.Number.Naloxone.csv"), row.names = F)
 # write.csv(preliminary.RateNlx, file = ("Ignore/preliminary.Rate.Naloxone.csv"), row.names = F)
 # write.csv(nlx.used.mx, file = ("Ignore/preliminary.NaloxoneUsed.csv"), row.names = F)
-write.csv(od.death.mx.last, file = ("Ignore/SA/SA_NoSat_3Y_TotalODdeaths_last.csv"), row.names = F)
+write.csv(od.death.mx.last, file = ("Ignore/SA/SA_Expand_3Y_TotalODdeaths_last.csv"), row.names = F)
 # write.csv(od.death.mx.totl, file = ("Ignore/SA/SA_5Y_TotalODdeaths_total.csv"), row.names = F)

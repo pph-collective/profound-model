@@ -43,7 +43,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
   set.seed(seed)
   n.od                   <- nrow(od.pop)
   residence              <- od.pop$residence
-  out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
+  out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
   colnames(decntree.out) <- out.colnames
   decntree.out[ , "ind"] <- od.pop$ind
@@ -104,7 +104,7 @@ decision.tree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
       inact <- 0
     }
     
-    decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used)
+    decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used, wtns)
   }   # end for loop
   
   return(decntree.out)

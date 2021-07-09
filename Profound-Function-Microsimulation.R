@@ -99,6 +99,7 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
     decntree.out               <- decision.tree(od.pop, n.nlx = n.nlx.mn, ou.pop.resid, vparameters, seed = seed+t)
     
     v.oddeath[t]               <- sum(decntree.out[ , "od.death"])
+    v.oddeath.w[t]             <- sum(decntree.out[decntree.out[ , "wtns"] == 1 , "od.death"])
     v.odpriv[t]                <- sum(decntree.out[ , "locpriv"])
     v.odpubl[t]                <- v.od[t] - v.odpriv[t]
     v.deathpriv[t]             <- sum(decntree.out[decntree.out[ , "od.death"] == 1, "locpriv"])
@@ -148,6 +149,6 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
   results <- list(v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od, 
                   cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1],   , ]), n.nlx.all.str = n.nlx.mx.str,
                   m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr= m.oddeath.hr, m.EDvisits= m.EDvisits,
-                  v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused) # store the results from the simulation in a list  
+                  v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused, v.oddeath.w = v.oddeath.w) # store the results from the simulation in a list  
   return(results)  # return the results
 }  # end of the MicroSim function  

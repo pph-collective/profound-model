@@ -85,36 +85,11 @@ v.rgn <- Calibration.data.ls[[1]]$v.rgn  #load vector for regions (required by s
 
 #parallel calibration simulation
 calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages= c('dplyr', 'abind')) %dopar% {
-  yr.first    <- 2016   #simulation first year
-  yr.last     <- 2020   #simulation last year
-  pop.info    <- c("sex", "race", "age", "residence", "curr.state",
-                   "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
-  v.state     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
-  v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
-  n.state     <- length(v.state)                                                     # number of states
-  n.yr        <- yr.last-yr.first+1
-  n.t         <- 12 * n.yr                                                           # number of time cycles (in month)
-  n.rgn       <- length(v.rgn)                                                       # number of regions
+  yr.first    <- 2016        # starting year of simulation 
+  yr.last     <- 2020        # end year of simulation (also the year for evaluation)
+  d.c         <- 0.03        # discounting of costs by 3%
   
-  # OUTPUT matrices and vectors
-  v.od        <- rep(0, times = n.t)                                                 # count of overdose events at each time step
-  v.oddeath   <- rep(0, times = n.t)                                                 # count of overdose deaths at each time step
-  m.oddeath   <- matrix(0, nrow = n.t, ncol = n.rgn)
-  colnames(m.oddeath) <- v.rgn
-  v.odpriv    <- rep(0, times = n.t)                                                 # count of overdose events occurred at private setting at each time step
-  v.odpubl    <- rep(0, times = n.t)                                                 # count of overdose events occurred at public setting at each time step
-  v.deathpriv <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at private setting at each time step
-  v.deathpubl <- rep(0, times = n.t)                                                 # count of overdose deaths occurred at public setting at each time step
-  v.str       <- c("SQ", "Expand100")                                                # store the strategy names
-  d.c         <- 0.03                                                                # discounting of costs by 3%
-  cost.item   <- c("TotalCost", "NxCost")
-  cost.matrix <- matrix(0, nrow=n.t, ncol = length(cost.item))
-  colnames(cost.matrix) <- cost.item
-  m.oddeath.fx <- rep(0, times = n.t)                                                # count of overdose deaths with fentanyl present at each time step
-  m.oddeath.op <- rep(0, times = n.t)                                                # count of overdose deaths among opioid users at each time step
-  m.oddeath.st <- rep(0, times = n.t)                                                # count of overdose deaths among stimulant users at each time step
-  m.EDvisits   <- rep(0, times = n.t)                                                # count of opioid overdose-related ED visits at each time step
-  m.oddeath.hr <- rep(0, times = n.t)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+  source("Profound-InputOutput-Setup.R")
   
   ## Initialize the study population - people who are at risk of opioid overdose
   pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
