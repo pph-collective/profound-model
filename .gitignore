@@ -16,3 +16,7 @@ preliminary calibration
 *.Rproj
 *.png
 *.csv
+<<<<<<< HEAD
+=======
+Inputs/Calib*
+>>>>>>> AddDoc

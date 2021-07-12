@@ -39,6 +39,7 @@ for (i in 1:length(pg.levels)){
 
 
 # INPUT PARAMETERS
+<<<<<<< HEAD:evaluate_program.R
 yr_start    <- 2016
 yr_end     <- 2020
 ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
@@ -72,6 +73,13 @@ m.oddeath.op <- rep(0, times = timesteps)                                       
 m.oddeath.st <- rep(0, times = timesteps)                                                # count of overdose deaths among stimulant users at each time step
 m.EDvisits   <- rep(0, times = timesteps)                                                # count of opioid overdose-related ED visits at each time step
 m.oddeath.hr <- rep(0, times = timesteps)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+=======
+yr.first    <- 2016
+yr.last     <- 2020
+d.c         <- 0.03   
+
+source("Profound-InputOutput-Setup.R")
+>>>>>>> AddDoc:Profound-Main-ProgramEvaluation.R
 
 ## Initialize the study population - people who are at risk of opioid overdose
 ppl_info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")

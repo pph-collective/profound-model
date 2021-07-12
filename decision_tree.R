@@ -43,9 +43,9 @@ decisiotimestepsree  <- function(od.ppl, n.nlx, ou.ppl.resid, params, seed){
   # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
   list2env(params, environment())
   set.seed(seed)
-  n.od                   <- nrow(od.ppl)
-  residence              <- od.ppl$residence
-  out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
+  n.od                   <- nrow(od.pop)
+  residence              <- od.pop$residence
+  out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
   colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
   # REVIEWED ind = index; id
@@ -104,8 +104,8 @@ decisiotimestepsree  <- function(od.ppl, n.nlx, ou.ppl.resid, params, seed){
     } else {
       inact <- 0
     }
-
-    decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used)
+    
+    decntree.out[d , -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used, wtns)
   }   # end for loop
   
   return(decntree.out)
