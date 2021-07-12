@@ -34,4 +34,4 @@ jobs:
         run: Rscript main.R -p Inputs/init_pop.rds
       - name: Check results exists
         run: |
-          [ -f OverdoseDeath.csv ]
+          [ -f overdose_deaths.csv ]

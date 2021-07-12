@@ -48,7 +48,6 @@ argv <- parse_args(args)
 seed <- as.integer(argv$seed)
 
 init.pop.file <- argv$ppl
-ppl_outfile <- argv$new_pop
 ## Model setup parameters ##
 sw.EMS.ODloc <- "ov"
 out.file <- argv$outfile
@@ -142,4 +141,4 @@ preliminary.results$N_Nx[preliminary.results$scenario == "Double"]             <
 preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Double"]     <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.rgn * 100000
 preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]        <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
 
-write.csv(preliminary.results, file = ("preliminary_results.csv"))
+write.csv(preliminary.results, file = ("overdose_deaths.csv"))
