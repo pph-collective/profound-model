@@ -1,9 +1,9 @@
 # TODO file header
 
-ODdeaths16 <- matrix(0, nrow = n.region, ncol = nrow(calib.result.mx))
-ODdeaths17 <- matrix(0, nrow = n.region, ncol = nrow(calib.result.mx))
-ODdeaths18 <- matrix(0, nrow = n.region, ncol = nrow(calib.result.mx))
-ODdeaths19 <- matrix(0, nrow = n.region, ncol = nrow(calib.result.mx))
+ODdeaths16 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
+ODdeaths17 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
+ODdeaths18 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
+ODdeaths19 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
 row.names(ODdeaths16) <- row.names(ODdeaths17) <- row.names(ODdeaths18) <- row.names(ODdeaths19) <- v.region
 for (ss in 1:nrow(calib.result.mx)){
   print(paste0("Parameter set: ", ss))

@@ -31,30 +31,30 @@ for (i in 1:length(pg.levels)){
 library(dplyr)
 # library(tictoc)
 library(abind)
-source("Profound-Function-PopInitialization.R")
-source("Profound-Function-TransitionProbability.R")
-source("Profound-Function-Microsimulation.R")
-source("Profound-DecisionTree.R")
-source("Profound-DataInput.R")
-source("Profound-Function-NxAvailAlgm.R")
-source("Profound-CEA.R")
+source("population.R")
+source("transition_probability.R")
+source("microsim.R")
+source("decision_tree.R")
+source("data_input.R")
+source("naloxone_available.R")
+source("cost_effectiveness.R")
 
 # INPUT PARAMETERS
-yr.first    <- 2016
-yr.last     <- 2024
+yr_start    <- 2016
+yr_end     <- 2024
 pop.info    <- c("sex", "race", "age", "residence", "curr.state",
                  "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
-v.state     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
+agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
 v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
-n.state     <- length(v.state)                                                     # number of states
-num_years        <- yr.last-yr.first+1
+num_states     <- length(agent_states)                                                     # number of states
+num_years        <- yr_end-yr_start+1
 timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
-n.region       <- length(v.region)                                                       # number of regions
+num_regions       <- length(v.region)                                                       # number of regions
 
 # OUTPUT matrices and vectors
 v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
 v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
-m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.region)
+m.oddeath   <- matrix(0, nrow = timesteps, ncol = num_regions)
 colnames(m.oddeath) <- v.region
 v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
 v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
@@ -98,7 +98,7 @@ for (ss in 1:length(sim.seed)){
   params.temp<- sim.data.ls[[ss]]
   params.temp$NxDataPharm$pe  <- 0
   params.temp$mor_Nx <- params.temp$mor_bl * (1-0.9)
-  sim_sq          <- MicroSim(init_ppl, params = params.temp, timesteps, v.state, d.c, PT.out = FALSE, strategy = "SQ", seed = sim.seed[ss])        # run for status quo
+  sim_sq          <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = sim.seed[ss])        # run for status quo
   # sq.dh.mx[ , ss] <- colSums(sim_sq$m.oddeath[(timesteps-11):timesteps, ])
   # sq.nx.mx[ , ss] <- colSums(sim_sq$n.nlx.OEND.str)
   # nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$v.nlxused[(timesteps-11):timesteps])
@@ -107,7 +107,7 @@ for (ss in 1:length(sim.seed)){
   
   for (ll in 1:dim(pg.add.array)[1]){
     params.temp$pg.add <- pg.add.array[ll, , ]
-    sim_pg  <- MicroSim(init_ppl, params = params.temp, timesteps, v.state, d.c, PT.out = FALSE, strategy = "program", seed = sim.seed[ss]) # run for program scenario
+    sim_pg  <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "program", seed = sim.seed[ss]) # run for program scenario
     # pg.dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(timesteps-11):timesteps, ])
     # pg.nx.ar[ll, , ss] <- colSums(sim_pg$n.nlx.OEND.str)
     # nlx.used.mx[ss, scenario.name[ll+1]] <- sum(sim_pg$v.nlxused[(timesteps-11):timesteps])
@@ -118,7 +118,7 @@ for (ss in 1:length(sim.seed)){
 
 # ppl_region  <- colSums(Demographic[ , -c(1:3)])
 # 
-# preliminary.NoDeaths <- data.frame(matrix(nrow = n.region * (1+dim(pg.add.array)[1]), ncol = 5))
+# preliminary.NoDeaths <- data.frame(matrix(nrow = num_regions * (1+dim(pg.add.array)[1]), ncol = 5))
 # x <- c("location", "scenario", "mean", "upper", "lower")
 # colnames(preliminary.NoDeaths) <- x
 # preliminary.NoDeaths$location <- rep(v.region, 1+dim(pg.add.array)[1])

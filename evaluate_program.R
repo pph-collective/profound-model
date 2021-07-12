@@ -39,47 +39,11 @@ for (i in 1:length(pg.levels)){
 
 
 # INPUT PARAMETERS
-<<<<<<< HEAD:evaluate_program.R
 yr_start    <- 2016
 yr_end     <- 2020
-ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
-                 "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
-agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
-v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
-num_states     <- length(agent_states)                                                     # number of states REVIEWED calculate this when needed?
-num_years        <- yr_end - yr_start + 1
-timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
-n.region       <- length(v.region)                                                       # number of regions
-
-# OUTPUT matrices and vectors
-# REVIEWED add these two vectors to the oddeath matrix
-v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
-v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
-m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.region)
-colnames(m.oddeath) <- v.region
-v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
-v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
-v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step
-v.deathpubl <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at public setting at each time step
-v.nlxused   <- rep(0, times = timesteps)                                                 # count of naloxone kits used at each time step
-v.str       <- c("SQ", "Expand100")                                                # store the strategy names
-d.c         <- 0.03                                                                # discounting of costs by 3% REVIEWED update data name to discount_cost
-cost.item   <- c("TotalCost", "NxCost")
-cost.matrix <- matrix(0, nrow=timesteps, ncol = length(cost.item))
-colnames(cost.matrix) <- cost.item
-# combine these vectors into matrix and/or data frame
-m.oddeath.fx <- rep(0, times = timesteps)                                                # count of overdose deaths with fentanyl present at each time step
-m.oddeath.op <- rep(0, times = timesteps)                                                # count of overdose deaths among opioid users at each time step
-m.oddeath.st <- rep(0, times = timesteps)                                                # count of overdose deaths among stimulant users at each time step
-m.EDvisits   <- rep(0, times = timesteps)                                                # count of opioid overdose-related ED visits at each time step
-m.oddeath.hr <- rep(0, times = timesteps)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
-=======
-yr.first    <- 2016
-yr.last     <- 2020
 d.c         <- 0.03   
 
-source("Profound-InputOutput-Setup.R")
->>>>>>> AddDoc:Profound-Main-ProgramEvaluation.R
+source("io_setup.R")
 
 ## Initialize the study population - people who are at risk of opioid overdose
 ppl_info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
@@ -127,7 +91,7 @@ for (ss in 1:length(sim.seed)){
 
 pop.region  <- colSums(Demographic[ , -c(1:3)])
 
-preliminary.NoDeaths <- data.frame(matrix(nrow = n.region * (1+dim(pg.add.array)[1]), ncol = 5))
+preliminary.NoDeaths <- data.frame(matrix(nrow = num_regions * (1+dim(pg.add.array)[1]), ncol = 5))
 x <- c("location", "scenario", "mean", "upper", "lower")
 colnames(preliminary.NoDeaths) <- x
 preliminary.NoDeaths$location <- rep(v.region, 1+dim(pg.add.array)[1])

@@ -39,6 +39,11 @@ source("data_input.R")
 source("naloxone_available.R")
 source("cost_effectiveness.R")
 
+yr_start    <- 2016        # starting year of simulation 
+yr_end     <- 2020        # end year of simulation (also the year for evaluation)
+d.c         <- 0.03        # discounting of costs by 3% 
+source("io_setup.R")
+
 args = arg_parser("arguments")
 args <- add_argument(args, "--seed", help="seed for random number", default=2021)
 args <- add_argument(args, "--regional", help="flag to run regional model", flag=TRUE)
@@ -55,76 +60,32 @@ if (isTRUE(argv$regional)){
   sw.EMS.ODloc <- "sp"
 }
 
-
-
-# INPUT PARAMETERS
-yr_start    <- 2016
-yr_end     <- 2020
-ppl_info    <- c("sex", "race", "age", "residence", "curr.state",
-                 "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
-agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
-v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
-num_states     <- length(agent_states)                                                     # number of states
-num_years        <- yr_end-yr_start+1
-timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
-n.region       <- length(v.region)                                                       # number of regions
-
-# OUTPUT matrices and vectors
-# REVIEWED now in separate script
-v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
-v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
-m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.region)
-colnames(m.oddeath) <- v.region
-v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
-v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
-v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step
-v.deathpubl <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at public setting at each time step
-v.nlxused   <- rep(0, times = timesteps)                                                 # count of naloxone kits used at each time step
-v.str       <- c("SQ", "expand")                                                   # store the strategy names
-d.c         <- 0.03                                                                # discounting of costs by 3%
-cost.item   <- c("TotalCost", "NxCost")
-cost.matrix <- matrix(0, nrow=timesteps, ncol = length(cost.item))
-colnames(cost.matrix) <- cost.item
-m.oddeath.fx <- rep(0, times = timesteps)                                                # count of overdose deaths with fentanyl present at each time step
-m.oddeath.op <- rep(0, times = timesteps)                                                # count of overdose deaths among opioid users at each time step
-m.oddeath.st <- rep(0, times = timesteps)                                                # count of overdose deaths among stimulant users at each time step
-m.EDvisits   <- rep(0, times = timesteps)                                                # count of opioid overdose-related ED visits at each time step
-m.oddeath.hr <- rep(0, times = timesteps)                                                # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
-
-overdoses <- data.frame(total=rep(0, timesteps))
-# initiate overdose columns
-columns <- c("total", "private", "public", "ED_visits", "deaths_total", "deaths_private", "deaths_public",
-            "deaths_fx", "deaths_opioid", "deaths_stimulant", "deaths_high_risk")
-overdoses$private <- overdoses$public <- overdoses$ED_visits <- 0
-overdoses$deaths_total <- overdoses$deaths_private <- overdoses$deaths_public <- 0
-
 ## Initialize the study population - people who are at risk of opioid overdose
-tic("initialize study population")
 ppl_info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if(file.exists(init_ppl.file)){
   init_ppl  <- readRDS(init_ppl.file)
   print(paste0("Population loaded from file: ", init_ppl.file))
 } else {
   init_ppl  <- initiate_ppl(initials = initials, seed=seed)
-  saveRDS(init_ppl, paste0(init_ppl.file))
+  saveRDS(init_ppl, init_ppl.file)
   print(paste0("Population saved to file: ", init_ppl.file))
 }
 
 
 ##################################### Run the simulation ##################################
 # START SIMULATION
-tic()     # calculate time per simulation for all scenarios
+tic("Simulation time: ")     # calculate simulation time
 # run for status quo (no intervention)
-sim_sq    <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "SQ", seed = seed)
+sim_sq    <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = seed)
 # run for expansion (with intervention)
 exp.lv    <- 2  #double all OEND programs
-sim_ep    <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
+sim_ep    <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
 toc()
 
 write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
 
 
-results <- data.frame(matrix(nrow = n.region * 2, ncol = 6))
+results <- data.frame(matrix(nrow = num_regions * 2, ncol = 6))
 colnames(results) <- c("location", "scenario", "nlx_avail_rate", "nlx_avail", "overdose_deaths_rate", "overdose_deaths")
 
 results$location <- rep(v.region, 2)

@@ -37,7 +37,7 @@ library(dplyr)
 library(tictoc)
 library(openxlsx)
 library(abind)
-source("Profound-Function-PopInitialization.R")
+source("population.R")
 source("Profound-Function-TransitionProbability.R")
 source("Profound-Function-Microsimulation.R")
 source("Profound-DecisionTree.R")
@@ -51,7 +51,7 @@ yr.first    <- 2016        # starting year of simulation
 yr.last     <- 2020        # end year of simulation (also the year for evaluation)
 d.c         <- 0.03        # discounting of costs by 3%                                    
 
-source("Profound-InputOutput-Setup.R")
+source("io_setup.R")
 
 ## Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")

@@ -13,19 +13,19 @@
 # INPUT setup
 pop.info    <- c("sex", "race", "age", "residence", "curr.state",
                  "OU.state", "init.age", "init.state", "ever.od", "fx")            # information for each model individual
-v.state     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
+agent_states     <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead")       # vector for state names
 v.oustate   <- c("preb", "il.lr", "il.hr")                                         # vector for active opioid use state names
-n.state     <- length(v.state)                                                     # number of states
-n.yr        <- yr.last-yr.first+1
-timesteps         <- 12 * n.yr                                                           # number of time cycles (in month)
-n.rgn       <- length(v.rgn)                                                       # number of regions
+num_states     <- length(agent_states)                                                     # number of states
+num_years        <- yr_end-yr_start+1
+timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
+num_regions       <- length(v.region)                                                       # number of regions
 
 # OUTPUT matrices and vectors
 v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
 v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
 v.oddeath.w <- rep(0, times = timesteps)                                                 # count of overdose deaths that were witnessed at each time step
-m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.rgn)
-colnames(m.oddeath) <- v.rgn
+m.oddeath   <- matrix(0, nrow = timesteps, ncol = num_regions)
+colnames(m.oddeath) <- v.region
 v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
 v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
 v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step

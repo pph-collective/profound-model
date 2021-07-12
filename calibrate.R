@@ -101,12 +101,12 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   num_states     <- length(agent_states)                                                     # number of states
   num_years        <- yr_end-yr_start+1
   timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
-  n.region       <- length(v.region)                                                       # number of regions
+  num_regions       <- length(v.region)                                                       # number of regions
   
   # OUTPUT matrices and vectors
   v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
   v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
-  m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.region)
+  m.oddeath   <- matrix(0, nrow = timesteps, ncol = num_regions)
   colnames(m.oddeath) <- v.region
   v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
   v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step

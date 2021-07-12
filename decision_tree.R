@@ -39,17 +39,17 @@
 # 2. Decision tree function
 #############################################################################
 
-decisiotimestepsree  <- function(od.ppl, n.nlx, ou.ppl.resid, params, seed){
+decisiontimesteptree  <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed){
   # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
   list2env(params, environment())
   set.seed(seed)
-  n.od                   <- nrow(od.pop)
-  residence              <- od.pop$residence
+  n.od                   <- nrow(od_ppl)
+  residence              <- od_ppl$residence
   out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
-  colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
+  colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   # REVIEWED ind = index; id
-  decntree.out[ , "ind"] <- od.ppl$ind
+  decntree.out[ , "ind"] <- od_ppl$ind
   p.nlx.avail.mx         <- nlx.avail.algm(n.nlx, ou.ppl.resid, OD_loc, Low2Priv, nlx.adj, cap)
 
   for (d in 1:n.od){
@@ -60,6 +60,7 @@ decisiotimestepsree  <- function(od.ppl, n.nlx, ou.ppl.resid, params, seed){
     p.hosp <- OD_hosp
     p.od2inact <- OD_cess
     
+    wtns   <- sample.dic(p.wtns)
     p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
     
     if (sample.dic(p.wtns) == 1) {   # if witnessed

@@ -36,5 +36,5 @@ usage() {
 echo starting $jobname in $HOME/scratch/profound
 mkdir -p $HOME/scratch/profound
 mkdir $HOME/scratch/profound/$jobname
-sbatch --output=$HOME/scratch/profound/$jobname/slurm.out -J $jobname -t $walltime --mem=$memory -c $num_cores ./Profound-Calibration.R $row $HOME/scratch/profound $num_cores
+sbatch --output=$HOME/scratch/profound/$jobname/slurm.out -J $jobname -t $walltime --mem=$memory -c $num_cores ./calibration.R $row $HOME/scratch/profound $num_cores
 

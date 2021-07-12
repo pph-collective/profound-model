@@ -33,13 +33,13 @@ registerDoParallel(c1)                    #register cluster
 
 
 #Load required scripts and functions
-source("Profound-Function-PopInitialization.R")
-source("Profound-Function-TransitionProbability.R")
-source("Profound-Function-Microsimulation.R")
-source("Profound-DecisionTree.R")
-source("Profound-Function-NxAvailAlgm.R")
-source("Profound-CEA.R")
-source("Profound-Function-Parallel.R")
+source("population.R")
+source("transition_probability.R")
+source("microsim.R")
+source("decision_tree.R")
+source("naloxone_available.R")
+source("cost_effectiveness.R")
+source("parallel.R")
 
 ## load or create calibration parameter sets for calibration simulation 
 #(TO SAM: all rds files were saved in Google Drive, may need to update the path, i.e. Inputs)
@@ -61,7 +61,7 @@ if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   calib.par <- Latinhyper(parRange, sample.size)            #use latin hypercube to draw random samples for parameters
   calib.par <- data.frame(calib.par)
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
-  source("Profound-CalibrationDataPrep.R")                  #prepare calibration data (as lists) and save them in rds files
+  source("prep_calibration_data.R")                  #prepare calibration data (as lists) and save them in rds files
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
   rm(calib.par)
 }
@@ -89,7 +89,7 @@ calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .
   yr.last     <- 2020        # end year of simulation (also the year for evaluation)
   d.c         <- 0.03        # discounting of costs by 3%
   
-  source("Profound-InputOutput-Setup.R")
+  source("io_setup.R")
   
   ## Initialize the study population - people who are at risk of opioid overdose
   pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")

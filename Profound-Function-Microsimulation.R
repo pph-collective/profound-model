@@ -24,7 +24,7 @@ MicroSim <- function(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, S
   # Makes use of:
   # trans.prob:    function for the estimation of transition probabilities
   # Costs:         function for the estimation of cost state values
-  # decisiotimestepsree: function for the decision tree module
+  # decisiotimesteptree: function for the decision tree module
   list2env(params, environment())
   n.opioid <- sum(init_ppl$curr.state != "NODU")
   n.noud   <- sum(init_ppl$curr.state == "NODU")
@@ -92,11 +92,11 @@ MicroSim <- function(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, S
     ind.oustate.chg            <- filter(pop.list[[t]], curr.state %in% v.oustate &  OU.state != curr.state)$ind
     pop.list[[t]]$OU.state[ind.oustate.chg] <- pop.list[[t]]$curr.state[ind.oustate.chg]
     
-    od.pop                     <- pop.list[[t]][pop.list[[t]]$curr.state == "od", ]
-    v.od[t]                    <- nrow(od.pop)
+    od_ppl                     <- pop.list[[t]][pop.list[[t]]$curr.state == "od", ]
+    v.od[t]                    <- nrow(od_ppl)
     ou.pop.resid               <- pop.list[[t]] %>% count(residence)
     
-    decntree.out               <- decisiotimestepsree(od.pop, n.nlx = n.nlx.mn, ou.pop.resid, params, seed = seed+t)
+    decntree.out               <- decisiotimesteptree(od_ppl, n.nlx = n.nlx.mn, ou.pop.resid, params, seed = seed+t)
     
     v.oddeath[t]               <- sum(decntree.out[ , "od.death"])
     v.oddeath.w[t]             <- sum(decntree.out[decntree.out[ , "wtns"] == 1 , "od.death"])
@@ -107,22 +107,22 @@ MicroSim <- function(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, S
     v.nlxused[t]               <- sum(decntree.out[ , "nlx.used"])
     n.EMS                      <- sum(decntree.out[ , "EMS"])
     n.hospcare                 <- sum(decntree.out[ , "hospcare"])
-    od.pop$curr.state[decntree.out[ , "od.death"] == 1]   <- "dead"
-    od.pop$ever.od[decntree.out[ , "od.death"] != 1]      <- 1
-    od.pop$curr.state[decntree.out[ , "inact"] == 1]      <- "inact"
-    od.pop$curr.state[od.pop$curr.state == "od"]          <- od.pop$OU.state[od.pop$curr.state == "od"]
+    od_ppl$curr.state[decntree.out[ , "od.death"] == 1]   <- "dead"
+    od_ppl$ever.od[decntree.out[ , "od.death"] != 1]      <- 1
+    od_ppl$curr.state[decntree.out[ , "inact"] == 1]      <- "inact"
+    od_ppl$curr.state[od_ppl$curr.state == "od"]          <- od_ppl$OU.state[od_ppl$curr.state == "od"]
     
-    m.oddeath.fx[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$fx ==1, ])
-    m.oddeath.op[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$OU.state != "NODU", ])
-    m.oddeath.hr[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$OU.state != "NODU" & od.pop$OU.state != "preb", ])
-    m.oddeath.st[t] <- nrow(od.pop[od.pop$curr.state == "dead" & od.pop$OU.state == "NODU", ]) 
+    m.oddeath.fx[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx ==1, ])
+    m.oddeath.op[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU", ])
+    m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "preb", ])
+    m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ]) 
     m.EDvisits[t]   <- n.hospcare
       
-    od.death.sum <- od.pop[od.pop$curr.state == "dead", ] %>% count(residence)
+    od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
     for (dd in 1:nrow(od.death.sum)){
       m.oddeath[t , od.death.sum$residence[dd]] <- od.death.sum$n[dd]
     }
-    pop.list[[t]][od.pop$ind, ] <- od.pop
+    pop.list[[t]][od_ppl$ind, ] <- od_ppl
     cost.matrix[t, ]  <- Costs(state = pop.list[[t]]$curr.state, OU.state = pop.list[[t]]$OU.state, nlx = sum(n.nlx.yr)/12 , count = list(n.EMS = n.EMS, n.hospcare = n.hospcare), params)
     
     pop.list[[t]]$age[pop.list[[t]]$curr.state != "dead"] <- pop.list[[t]]$init.age[pop.list[[t]]$curr.state != "dead"] + floor(t/12)     #update age for individuals that are still alive
