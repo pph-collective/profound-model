@@ -46,12 +46,11 @@ args <- add_argument(args, "--outfile", help="file to store outputs", default="O
 args <- add_argument(args, "--ppl", help="file with initial ppl info", default="Inputs/InitialPopulation.rds")
 argv <- parse_args(args)
 seed <- as.integer(argv$seed)
-print(seed)
-print(class(seed))
 
-init.pop.file <- "Inputs/InitialPopulation.rds"
+init.pop.file <- args$ppl
+
 ## Model setup parameters ##
-sw.EMS.ODloc <- "ov"  #Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+sw.EMS.ODloc <- "ov"
 out.file <- argv$outfile
 if (isTRUE(argv$regional)){
   sw.EMS.ODloc <- "sp"
