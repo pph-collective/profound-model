@@ -39,9 +39,9 @@
 # 2. Decision tree function
 #############################################################################
 
-decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, vparameters, seed){
-  # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change vparameters to params or parameters
-  list2env(vparameters, environment())
+decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, params, seed){
+  # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
+  list2env(params, environment())
   set.seed(seed)
   n.od                   <- nrow(od.pop)
   residence              <- od.pop$residence

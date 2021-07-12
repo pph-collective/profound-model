@@ -16,8 +16,8 @@
 ### Costs function
 # The Costs function estimates the costs at every cycle.
 
-Costs <- function (state, OU.state, nlx, count, vparameters) {
-  list2env(vparameters, environment())
+Costs <- function (state, OU.state, nlx, count, params) {
+  list2env(params, environment())
   if (is.null(count)){
     count.EMS       <- 0
     count.hospcare  <- 0

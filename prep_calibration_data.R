@@ -56,29 +56,29 @@ for (bb in 1:(sample.size/batch.size)){
     stopifnot(ii + batch.bgn - 1 == cc)
     stopifnot(ii == cc - batch.bgn + 1)
     for (pp in 1:length(nm.calp)){
-      vparameters[[nm.calp[pp]]] <- calib.par[cc, pp]
+      params[[nm.calp[pp]]] <- calib.par[cc, pp]
     }
     # Overdose probability matrix (per month)
     od.matrix             <- matrix(0, nrow = 4, ncol = 2)
     rownames(od.matrix)   <- c("preb", "il.lr", "il.hr", "NODU")
     colnames(od.matrix)   <- c("first", "subs")
-    od.matrix["preb", "subs"]   <- vparameters$od.preb.sub
-    od.matrix["il.lr", "subs"]  <- vparameters$od.il.lr.sub
-    od.matrix["il.hr", "subs"]  <- vparameters$od.il.lr.sub * vparameters$multi.hr
-    od.matrix["NODU", "subs"]   <- vparameters$od.NODU.sub
-    od.matrix[ , "first"]       <- od.matrix[ , "subs"] / vparameters$multi.sub
-    vparameters$od.matrix       <- od.matrix
+    od.matrix["preb", "subs"]   <- params$od.preb.sub
+    od.matrix["il.lr", "subs"]  <- params$od.il.lr.sub
+    od.matrix["il.hr", "subs"]  <- params$od.il.lr.sub * params$multi.hr
+    od.matrix["NODU", "subs"]   <- params$od.NODU.sub
+    od.matrix[ , "first"]       <- od.matrix[ , "subs"] / params$multi.sub
+    params$od.matrix       <- od.matrix
     
     # Baseline mortality excluding overdose (per month)
     mor.matrix                  <- matrix(0, nrow = 2, ncol = length(mor.gp))
     rownames(mor.matrix)        <- c("bg", "drug")
     colnames(mor.matrix)        <- mor.gp
-    mor.matrix["bg", ]          <- vparameters$mor.bg
-    mor.matrix["drug", ]        <- vparameters$mor.drug
-    vparameters$mor.matrix      <- mor.matrix
-    vparameters$OD_911_pub      <- vparameters$OD_911_priv * vparameters$OD_911_pub_mul
+    mor.matrix["bg", ]          <- params$mor.bg
+    mor.matrix["drug", ]        <- params$mor.drug
+    params$mor.matrix      <- mor.matrix
+    params$OD_911_pub      <- params$OD_911_priv * params$OD_911_pub_mul
     
-    calib.parameters[[ii]] <- vparameters
+    calib.parameters[[ii]] <- params
     ii <- ii+1
   }
   toc()
@@ -93,29 +93,29 @@ calib.par$batch_number <- trunc(calib.par$batch_number)
 
 prep_data <- function(cc) {
   for (pp in 1:length(nm.calp)){
-      vparameters[[nm.calp[pp]]] <- calib.par[cc, pp]
+      params[[nm.calp[pp]]] <- calib.par[cc, pp]
     }
     ii <- cc - batch.bgn + 1
     # Overdose probability matrix (per month)
     od.matrix             <- matrix(0, nrow = 4, ncol = 2)
     rownames(od.matrix)   <- c("preb", "il.lr", "il.hr", "NODU")
     colnames(od.matrix)   <- c("first", "subs")
-    od.matrix["preb", "subs"]   <- vparameters$od.preb.sub
-    od.matrix["il.lr", "subs"]  <- vparameters$od.il.lr.sub
-    od.matrix["il.hr", "subs"]  <- vparameters$od.il.lr.sub * vparameters$multi.hr
-    od.matrix["NODU", "subs"]   <- vparameters$od.NODU.sub
-    od.matrix[ , "first"]       <- od.matrix[ , "subs"] / vparameters$multi.sub
-    vparameters$od.matrix       <- od.matrix
+    od.matrix["preb", "subs"]   <- params$od.preb.sub
+    od.matrix["il.lr", "subs"]  <- params$od.il.lr.sub
+    od.matrix["il.hr", "subs"]  <- params$od.il.lr.sub * params$multi.hr
+    od.matrix["NODU", "subs"]   <- params$od.NODU.sub
+    od.matrix[ , "first"]       <- od.matrix[ , "subs"] / params$multi.sub
+    params$od.matrix       <- od.matrix
     
     # Baseline mortality excluding overdose (per month)
     mor.matrix                  <- matrix(0, nrow = 2, ncol = length(mor.gp))
     rownames(mor.matrix)        <- c("bg", "drug")
     colnames(mor.matrix)        <- mor.gp
-    mor.matrix["bg", ]          <- vparameters$mor.bg
-    mor.matrix["drug", ]        <- vparameters$mor.drug
-    vparameters$mor.matrix      <- mor.matrix
-    vparameters$OD_911_pub      <- vparameters$OD_911_priv * vparameters$OD_911_pub_mul
+    mor.matrix["bg", ]          <- params$mor.bg
+    mor.matrix["drug", ]        <- params$mor.drug
+    params$mor.matrix      <- mor.matrix
+    params$OD_911_pub      <- params$OD_911_priv * params$OD_911_pub_mul
     
-    calib.parameters[[ii]] <- vparameters
+    calib.parameters[[ii]] <- params
   
 }

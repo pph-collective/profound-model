@@ -67,14 +67,14 @@ v.oustate   <- c("preb", "il.lr", "il.hr")                                      
 num_states     <- length(agent_states)                                                     # number of states
 num_years        <- yr_end-yr_start+1
 timesteps         <- 12 * num_years                                                           # number of time cycles (in month)
-n.rgn       <- length(v.rgn)                                                       # number of regions
+n.region       <- length(v.region)                                                       # number of regions
 
 # OUTPUT matrices and vectors
-# REVIEWED separate script
+# REVIEWED now in separate script
 v.od        <- rep(0, times = timesteps)                                                 # count of overdose events at each time step
 v.oddeath   <- rep(0, times = timesteps)                                                 # count of overdose deaths at each time step
-m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.rgn)
-colnames(m.oddeath) <- v.rgn
+m.oddeath   <- matrix(0, nrow = timesteps, ncol = n.region)
+colnames(m.oddeath) <- v.region
 v.odpriv    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at private setting at each time step
 v.odpubl    <- rep(0, times = timesteps)                                                 # count of overdose events occurred at public setting at each time step
 v.deathpriv <- rep(0, times = timesteps)                                                 # count of overdose deaths occurred at private setting at each time step
@@ -115,30 +115,29 @@ if(file.exists(init.pop.file)){
 # START SIMULATION
 tic()     # calculate time per simulation for all scenarios
 # run for status quo (no intervention)
-sim_sq    <- MicroSim(init.pop, vparameters, timesteps, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)
+sim_sq    <- MicroSim(init.pop, params, timesteps, v.state, d.c, PT.out = TRUE, Str = "SQ", seed = seed)
 # run for expansion (with intervention)
 exp.lv    <- 2  #double all OEND programs
-sim_ep    <- MicroSim(init.pop, vparameters, timesteps, v.state, d.c, PT.out = TRUE, Str = "expand", seed = seed)
+sim_ep    <- MicroSim(init.pop, params, timesteps, v.state, d.c, PT.out = TRUE, Str = "expand", seed = seed)
 toc()
 
 write.csv(sim_sq$m.oddeath, file=out.file, row.names = T)
 
 
-preliminary.results <- data.frame(matrix(nrow = n.rgn * 2, ncol = 6))
-colnames(preliminary.results) <- c("location", "scenario", "Rate_Nx", "N_Nx", "Rate_ODdeath", "N_ODdeath")
+results <- data.frame(matrix(nrow = n.region * 2, ncol = 6))
+colnames(results) <- c("location", "scenario", "nlx_avail_rate", "nlx_avail", "overdose_deaths_rate", "overdose_deaths")
 
-# REVIEWED change rgn to region; remove preliminary from var name
-preliminary.results$location <- rep(v.rgn, 2)
-preliminary.results$scenario <- rep(c("Status Quo", "Double"), each  = length(v.rgn))
-pop.rgn                      <- colSums(Demographic[ , -c(1:3)])
-# TO_REVIEW error on these lines: saying the colSums need an array of two dimensions. n.nlx.all.str
-preliminary.results$Rate_Nx[preliminary.results$scenario == "Status Quo"]      <- colSums(sim_sq$n.nlx.all.str) / pop.rgn * 100000
-preliminary.results$N_Nx[preliminary.results$scenario == "Status Quo"]         <- colSums(sim_sq$n.nlx.all.str)
-preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / pop.rgn * 100000
-preliminary.results$N_ODdeath[preliminary.results$scenario == "Status Quo"]    <- colSums(sim_sq$m.oddeath[49:60, ])
-preliminary.results$Rate_Nx[preliminary.results$scenario == "Double"]          <- colSums(sim_ep$n.nlx.all.str) / pop.rgn * 100000
-preliminary.results$N_Nx[preliminary.results$scenario == "Double"]             <- colSums(sim_ep$n.nlx.all.str)
-preliminary.results$Rate_ODdeath[preliminary.results$scenario == "Double"]     <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.rgn * 100000
-preliminary.results$N_ODdeath[preliminary.results$scenario == "Double"]        <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
+results$location <- rep(v.region, 2)
+results$scenario <- rep(c("Status Quo", "Double"), each  = length(v.region))
+pop.region                      <- colSums(Demographic[ , -c(1:3)])
 
-write.csv(preliminary.results, file = ("overdose_deaths.csv"))
+results$nlx_avail_rate[results$scenario == "Status Quo"]      <- colSums(sim_sq$avail_nlx) / pop.region * 100000
+results$nlx_avail[results$scenario == "Status Quo"]         <- colSums(sim_sq$avail_nlx)
+results$overdose_deaths_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / pop.region * 100000
+results$overdose_deaths[results$scenario == "Status Quo"]    <- colSums(sim_sq$m.oddeath[49:60, ])
+results$nlx_avail_rate[results$scenario == "Double"]          <- colSums(sim_ep$avail_nlx) / pop.region * 100000
+results$nlx_avail[results$scenario == "Double"]             <- colSums(sim_ep$avail_nlx)
+results$overdose_deaths_rate[results$scenario == "Double"]     <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / pop.region * 100000
+results$overdose_deaths[results$scenario == "Double"]        <- round(colSums(sim_ep$m.oddeath[49:60, ]* 0.8),0)
+
+write.csv(results, file = ("overdose_deaths.csv"))

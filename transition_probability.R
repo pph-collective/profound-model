@@ -13,8 +13,8 @@
 #################        Transistion probability function      #########################
 ########################################################################################
 
-trans.prob <- function(pop.t, vparameters){
-  list2env(vparameters, environment())
+trans.prob <- function(pop.t, params){
+  list2env(params, environment())
   # initialize a matrix to store transition probabilities of each individual
   trans.prob.matrix <- matrix(NA, num_states + 1, nrow(pop.t)) #add one row for OD
   rownames(trans.prob.matrix) <- c(agent_states, "od")

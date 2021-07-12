@@ -16,16 +16,16 @@
 pop.initiation <- function(initials, seed = 2021){
   list2env(initials, environment())
   ## opioid population
-  # TO_REVIEW opioid population means population of people who use opioids? nsduh? rgn?
+  # TO_REVIEW opioid population means population of people who use opioids? nsduh? region?
   oud_pop_nsduh <- demo.mx * OUDDemo                              #number of OUD population estimates for each subgroup in each region according to NSDUH prevalence estimates
   oud.adj       <- prev.oud / (sum(oud_pop_nsduh)/sum(demo.mx))   #adjuster for OUD population according to overall oud prevalence and estimated one from the previous step
   oud_pop       <- oud_pop_nsduh * oud.adj
-  prop.oud.rgn  <- colSums(oud_pop) / sum(oud_pop)
+  prop.oud.region  <- colSums(oud_pop) / sum(oud_pop)
   oud_demo      <- oud_pop / matrix(rep(colSums(oud_pop), each = nrow(oud_pop)), nrow = nrow(oud_pop), ncol = ncol(oud_pop))
   
   ## non-opioid population
   stim_pop      <- demo.mx * StimDemo                              #number of NODU population estimates for each subgroup in each region according to NSDUH prevalence estimates
-  prop.nodu.rgn <- colSums(stim_pop) / sum(stim_pop)
+  prop.nodu.region <- colSums(stim_pop) / sum(stim_pop)
   nodu_demo     <- stim_pop / matrix(rep(colSums(stim_pop), each = nrow(stim_pop)), nrow = nrow(stim_pop), ncol = ncol(stim_pop))
   
   ## initialize the population matrix
@@ -36,14 +36,14 @@ pop.initiation <- function(initials, seed = 2021){
   init.pop$ind            <- 1:(total.oud + total.nodu)
   
   set.seed(seed)
-  oud.rgn.ind   <- sample(1:length(v.rgn), size = total.oud,  prob = prop.oud.rgn,  replace = TRUE)
-  nodu.rgn.ind  <- sample(1:length(v.rgn), size = total.nodu, prob = prop.nodu.rgn, replace = TRUE)
+  oud.region.ind   <- sample(1:length(v.region), size = total.oud,  prob = prop.oud.region,  replace = TRUE)
+  nodu.region.ind  <- sample(1:length(v.region), size = total.nodu, prob = prop.nodu.region, replace = TRUE)
   
   ## OPIOID USE POPULATION
   for (i in 1:total.oud){
     set.seed(seed+i)
     # determine demographic
-    demo.ind   <- sample(1:nrow(oud_demo), size = 1,  prob = oud_demo[,oud.rgn.ind[i]])
+    demo.ind   <- sample(1:nrow(oud_demo), size = 1,  prob = oud_demo[,oud.region.ind[i]])
     sex        <- v.demo.sex[demo.ind]
     race       <- v.demo.race[demo.ind]
     age.ind    <- v.demo.age[demo.ind]
@@ -97,7 +97,7 @@ pop.initiation <- function(initials, seed = 2021){
     init.pop$sex[i]        <- sex
     init.pop$race[i]       <- race
     init.pop$age[i]        <- age
-    init.pop$residence[i]  <- v.rgn[oud.rgn.ind[i]]
+    init.pop$residence[i]  <- v.region[oud.region.ind[i]]
     init.pop$curr.state[i] <- curr.state
     init.pop$OU.state[i]   <- OU.state
     init.pop$init.age[i]   <- init.age
@@ -113,7 +113,7 @@ pop.initiation <- function(initials, seed = 2021){
     curr.state <- init.state <- OU.state <- "NODU"
     
     # determine demographic
-    demo.ind   <- sample(1:nrow(nodu_demo), size = 1,  prob = nodu_demo[,nodu.rgn.ind[i]])
+    demo.ind   <- sample(1:nrow(nodu_demo), size = 1,  prob = nodu_demo[,nodu.region.ind[i]])
     sex        <- v.demo.sex[demo.ind]
     race       <- v.demo.race[demo.ind]
     age.ind    <- v.demo.age[demo.ind]
@@ -141,7 +141,7 @@ pop.initiation <- function(initials, seed = 2021){
     init.pop$sex[i+total.oud]        <- sex
     init.pop$race[i+total.oud]       <- race
     init.pop$age[i+total.oud]        <- age
-    init.pop$residence[i+total.oud]  <- v.rgn[nodu.rgn.ind[i]]
+    init.pop$residence[i+total.oud]  <- v.region[nodu.region.ind[i]]
     init.pop$curr.state[i+total.oud] <- curr.state
     init.pop$OU.state[i+total.oud]   <- OU.state
     init.pop$init.age[i+total.oud]   <- init.age
