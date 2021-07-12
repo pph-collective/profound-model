@@ -13,17 +13,17 @@ for (ss in 1:nrow(calib.result.mx)){
     assign(nm.calp[pp], calib.result.mx[ss,nm.calp[pp]])
   }
   ## Fentanyl use status for initial population determined externally (allow to vary) ##
-  # TO_REVIEW is there ever a population variable like this that isn't the initial population? Can we change the variable name to just pop (ppl) instead of init.pop (init_ppl)
-  n.opioid <- sum(init.pop$curr.state != "NODU")
-  n.noud   <- sum(init.pop$curr.state == "NODU")
+  # TO_REVIEW is there ever a population variable like this that isn't the initial population? Can we change the variable name to just pop (ppl) instead of init_ppl (init_ppl)
+  n.opioid <- sum(init_ppl$curr.state != "NODU")
+  n.noud   <- sum(init_ppl$curr.state == "NODU")
   # determine fentanyl use among initial population who use opioids 
   set.seed(calib.seed)
   fx         <- sample(0:1, size = n.opioid, prob = c(1-ini.OUD.fx, ini.OUD.fx), replace = T)
-  init.pop$fx[init.pop$curr.state != "NODU"] <- fx
+  init_ppl$fx[init_ppl$curr.state != "NODU"] <- fx
   # determine fentanyl use among initial population who use stimulants (non-opioid)
   set.seed(calib.seed * 2)
   fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
-  init.pop$fx[init.pop$curr.state == "NODU"] <- fx
+  init_ppl$fx[init_ppl$curr.state == "NODU"] <- fx
   
   # Overdose probability matrix (per month)
   # TO_REVIEW sub/subs?
@@ -37,7 +37,7 @@ for (ss in 1:nrow(calib.result.mx)){
   od.matrix[ , "first"]       <- od.matrix[ , "subs"] / multi.sub
   # TO_REVIEW sim_sq status quo?
   # run status quo simulation
-  sim_sq    <- MicroSim(init.pop, timesteps, agent_states, d.c, PT.out = TRUE, Str = "SQ", seed = calib.seed)        # run for no treatment
+  sim_sq    <- MicroSim(init_ppl, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = calib.seed)        # run for no treatment
 
   ODdeaths16[, ss] <- colSums(sim_sq$m.oddeath[1:12, ])
   ODdeaths17[, ss] <- colSums(sim_sq$m.oddeath[13:24, ])

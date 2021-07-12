@@ -125,7 +125,7 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   
   ## Initialize the study population - people who are at risk of opioid overdose
   ppl_info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-  init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
+  init_ppl  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
   
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], params = Calibration.data.ls[[ss]])
 }

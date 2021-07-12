@@ -19,7 +19,7 @@ WB            <- loadWorkbook("Inputs/MasterTable.xlsx")
 
 ## Parameters for initial cohort ##
 InitialPop    <- read.xlsx(WB, sheet="InitialPop")
-pop.size      <- round(with(InitialPop, pe[par == "pop.size"]) * with(InitialPop, pe[par == "prop.12older"]), 0)   #size of initial population 12 and older
+ppl.size      <- round(with(InitialPop, pe[par == "ppl.size"]) * with(InitialPop, pe[par == "prop.12older"]), 0)   #size of initial population 12 and older
 prev.oud      <- with(InitialPop, pe[par == "prev.oud"])                 #prevalence of OUD (or at risk for OUD)
 prev.NODU.m   <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"])   #prevalence of non-opioid drug use among males, in addition to OUD
 prev.NODU.f   <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"])   #prevalence of non-opioid drug use among females, in addition to OUD
@@ -42,10 +42,10 @@ StimDemo      <- read.xlsx(WB, sheet="StimPrevNSDUH")$pe
 # REVIEWED init = initial, lr/hr lowrisk/highrisk, il = illegal, inact = inactive, gw = annual growth rate of fx exposure, preb = prescription, opioid_use_patterns
 # why create all these variables and then put them into a dataframe? Wastes memory
 OpioidPattern <- read.xlsx(WB, sheet="OpioidPattern")
-ini.il.m      <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"])   # % of illicite opioid use among OUD pop
-ini.il.f      <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"])   # % of illicite opioid use among OUD pop
-ini.il.hr.m   <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"])# % of high-risk among illicit opioid pop
-ini.il.hr.f   <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"])# % of high-risk among illicit opioid pop
+ini.il.m      <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"])   # % of illicite opioid use among OUD ppl
+ini.il.f      <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"])   # % of illicite opioid use among OUD ppl
+ini.il.hr.m   <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"])# % of high-risk among illicit opioid ppl
+ini.il.hr.f   <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"])# % of high-risk among illicit opioid ppl
 ini.inact     <- with(OpioidPattern, pe[par == "ini.inact"])
 ini.OUD.fx    <- with(OpioidPattern, pe[par == "ini.OUD.fx"])
 gw.fx         <- with(OpioidPattern, pe[par == "gw.fx"])
@@ -58,7 +58,7 @@ ini.NOUD.fx      <- with(StimulantPattern, pe[par == "ini.NOUD.fx"])
 ini.everod.sti   <- with(StimulantPattern, pe[par == "ini.everod"])
 
 # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
-initials      <- list(pop.size = pop.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo, 
+initials      <- list(ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo, 
                       ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, ini.inact = ini.inact,
                       # ini.OUD.fx = ini.OUD.fx, ini.NOUD.fx = ini.NOUD.fx,
                       ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr)

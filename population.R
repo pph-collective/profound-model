@@ -13,7 +13,7 @@
 #################        Population creation function      #############################
 ########################################################################################
 
-pop.initiation <- function(initials, seed = 2021){
+initiate_ppl <- function(initials, seed = 2021){
   list2env(initials, environment())
   ## opioid population
   # TO_REVIEW opioid population means population of people who use opioids? nsduh? region?
@@ -31,9 +31,9 @@ pop.initiation <- function(initials, seed = 2021){
   ## initialize the population matrix
   total.oud     <- round(sum(oud_pop), 0)
   total.nodu    <- round(sum(stim_pop), 0)
-  init.pop      <- data.frame(matrix(0, (total.oud + total.nodu), length(ppl_info)+1))                 # initial population matrix
-  dimnames(init.pop)[[2]] <- c("ind", ppl_info)
-  init.pop$ind            <- 1:(total.oud + total.nodu)
+  init_ppl      <- data.frame(matrix(0, (total.oud + total.nodu), length(ppl_info)+1))                 # initial population matrix
+  dimnames(init_ppl)[[2]] <- c("ind", ppl_info)
+  init_ppl$ind            <- 1:(total.oud + total.nodu)
   
   set.seed(seed)
   oud.region.ind   <- sample(1:length(v.region), size = total.oud,  prob = prop.oud.region,  replace = TRUE)
@@ -94,16 +94,16 @@ pop.initiation <- function(initials, seed = 2021){
     }
 
     
-    init.pop$sex[i]        <- sex
-    init.pop$race[i]       <- race
-    init.pop$age[i]        <- age
-    init.pop$residence[i]  <- v.region[oud.region.ind[i]]
-    init.pop$curr.state[i] <- curr.state
-    init.pop$OU.state[i]   <- OU.state
-    init.pop$init.age[i]   <- init.age
-    init.pop$init.state[i] <- init.state
-    init.pop$ever.od[i]    <- ever.od
-    # init.pop$fx[i]         <- fx
+    init_ppl$sex[i]        <- sex
+    init_ppl$race[i]       <- race
+    init_ppl$age[i]        <- age
+    init_ppl$residence[i]  <- v.region[oud.region.ind[i]]
+    init_ppl$curr.state[i] <- curr.state
+    init_ppl$OU.state[i]   <- OU.state
+    init_ppl$init.age[i]   <- init.age
+    init_ppl$init.state[i] <- init.state
+    init_ppl$ever.od[i]    <- ever.od
+    # init_ppl$fx[i]         <- fx
   }
   
   ## NON-OPIOID USE POPULATION
@@ -138,16 +138,16 @@ pop.initiation <- function(initials, seed = 2021){
     ever.od    <- sample(0:1, size = 1, prob = c(1-ini.everod.sti, ini.everod.sti))
     
     
-    init.pop$sex[i+total.oud]        <- sex
-    init.pop$race[i+total.oud]       <- race
-    init.pop$age[i+total.oud]        <- age
-    init.pop$residence[i+total.oud]  <- v.region[nodu.region.ind[i]]
-    init.pop$curr.state[i+total.oud] <- curr.state
-    init.pop$OU.state[i+total.oud]   <- OU.state
-    init.pop$init.age[i+total.oud]   <- init.age
-    init.pop$init.state[i+total.oud] <- init.state
-    init.pop$ever.od[i+total.oud]    <- ever.od
-    # init.pop$fx[i+total.oud]         <- fx
+    init_ppl$sex[i+total.oud]        <- sex
+    init_ppl$race[i+total.oud]       <- race
+    init_ppl$age[i+total.oud]        <- age
+    init_ppl$residence[i+total.oud]  <- v.region[nodu.region.ind[i]]
+    init_ppl$curr.state[i+total.oud] <- curr.state
+    init_ppl$OU.state[i+total.oud]   <- OU.state
+    init_ppl$init.age[i+total.oud]   <- init.age
+    init_ppl$init.state[i+total.oud] <- init.state
+    init_ppl$ever.od[i+total.oud]    <- ever.od
+    # init_ppl$fx[i+total.oud]         <- fx
   }
-  return(init.pop)
+  return(init_ppl)
 }

@@ -39,18 +39,18 @@
 # 2. Decision tree function
 #############################################################################
 
-decisiotimestepsree  <- function(od.pop, n.nlx, ou.pop.resid, params, seed){
+decisiotimestepsree  <- function(od.ppl, n.nlx, ou.ppl.resid, params, seed){
   # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
   list2env(params, environment())
   set.seed(seed)
-  n.od                   <- nrow(od.pop)
-  residence              <- od.pop$residence
+  n.od                   <- nrow(od.ppl)
+  residence              <- od.ppl$residence
   out.colnames           <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
   decntree.out           <- matrix(0, nrow = n.od, ncol = length(out.colnames))
   colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used")
   # REVIEWED ind = index; id
-  decntree.out[ , "ind"] <- od.pop$ind
-  p.nlx.avail.mx         <- nlx.avail.algm(n.nlx, ou.pop.resid, OD_loc, Low2Priv, nlx.adj, cap)
+  decntree.out[ , "ind"] <- od.ppl$ind
+  p.nlx.avail.mx         <- nlx.avail.algm(n.nlx, ou.ppl.resid, OD_loc, Low2Priv, nlx.adj, cap)
 
   for (d in 1:n.od){
     loc    <- sample(c("priv", "pub"), size = 1, prob = OD_loc[ , residence[d]])

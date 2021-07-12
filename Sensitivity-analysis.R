@@ -75,10 +75,10 @@ m.oddeath.hr <- rep(0, times = timesteps)                                       
 ## Initialize the study population - people who are at risk of opioid overdose
 pop.info  <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if(file.exists(paste0("Inputs/InitialPopulation.rds"))){
-  init.pop  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
+  init_ppl  <- readRDS(paste0("Inputs/InitialPopulation.rds"))
 } else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))){
-  init.pop  <- pop.initiation(initials = initials, seed=seed)
-  saveRDS(init.pop, paste0("Inputs/InitialPopulation.rds"))
+  init_ppl  <- initiate_ppl(initials = initials, seed=seed)
+  saveRDS(init_ppl, paste0("Inputs/InitialPopulation.rds"))
 }
 
 sim.data.ls <- readRDS(file = paste0("calibration/CalibratedData.rds"))
@@ -98,7 +98,7 @@ for (ss in 1:length(sim.seed)){
   params.temp<- sim.data.ls[[ss]]
   params.temp$NxDataPharm$pe  <- 0
   params.temp$mor_Nx <- params.temp$mor_bl * (1-0.9)
-  sim_sq          <- MicroSim(init.pop, params = params.temp, timesteps, v.state, d.c, PT.out = FALSE, Str = "SQ", seed = sim.seed[ss])        # run for status quo
+  sim_sq          <- MicroSim(init_ppl, params = params.temp, timesteps, v.state, d.c, PT.out = FALSE, strategy = "SQ", seed = sim.seed[ss])        # run for status quo
   # sq.dh.mx[ , ss] <- colSums(sim_sq$m.oddeath[(timesteps-11):timesteps, ])
   # sq.nx.mx[ , ss] <- colSums(sim_sq$n.nlx.OEND.str)
   # nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$v.nlxused[(timesteps-11):timesteps])
@@ -107,7 +107,7 @@ for (ss in 1:length(sim.seed)){
   
   for (ll in 1:dim(pg.add.array)[1]){
     params.temp$pg.add <- pg.add.array[ll, , ]
-    sim_pg  <- MicroSim(init.pop, params = params.temp, timesteps, v.state, d.c, PT.out = FALSE, Str = "program", seed = sim.seed[ss]) # run for program scenario
+    sim_pg  <- MicroSim(init_ppl, params = params.temp, timesteps, v.state, d.c, PT.out = FALSE, strategy = "program", seed = sim.seed[ss]) # run for program scenario
     # pg.dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(timesteps-11):timesteps, ])
     # pg.nx.ar[ll, , ss] <- colSums(sim_pg$n.nlx.OEND.str)
     # nlx.used.mx[ss, scenario.name[ll+1]] <- sum(sim_pg$v.nlxused[(timesteps-11):timesteps])
@@ -116,7 +116,7 @@ for (ss in 1:length(sim.seed)){
   }
 }
 
-# pop.region  <- colSums(Demographic[ , -c(1:3)])
+# ppl_region  <- colSums(Demographic[ , -c(1:3)])
 # 
 # preliminary.NoDeaths <- data.frame(matrix(nrow = n.region * (1+dim(pg.add.array)[1]), ncol = 5))
 # x <- c("location", "scenario", "mean", "upper", "lower")
@@ -138,7 +138,7 @@ for (ss in 1:length(sim.seed)){
 # }
 # 
 # #Rate of deaths
-# preliminary.RateDeaths[ , c("mean", "upper", "lower")] <- preliminary.NoDeaths[ , c("mean", "upper", "lower")] / pop.region * 100000
+# preliminary.RateDeaths[ , c("mean", "upper", "lower")] <- preliminary.NoDeaths[ , c("mean", "upper", "lower")] / ppl_region * 100000
 # 
 # #Number of Naloxone kits
 # preliminary.NoNlx$mean[preliminary.NoNlx$scenario == "Status Quo"]  <- apply(sq.nx.mx, 1, mean)
@@ -152,7 +152,7 @@ for (ss in 1:length(sim.seed)){
 # }
 # 
 # #Rate of Naloxone kits
-# preliminary.RateNlx[ , c("mean", "upper", "lower")] <- preliminary.NoNlx[ , c("mean", "upper", "lower")] / pop.region * 100000
+# preliminary.RateNlx[ , c("mean", "upper", "lower")] <- preliminary.NoNlx[ , c("mean", "upper", "lower")] / ppl_region * 100000
 # 
 # write.csv(preliminary.NoDeaths, file = ("Ignore/preliminary.Number.Deaths.csv"), row.names = F)
 # write.csv(preliminary.RateDeaths, file = ("Ignore/preliminary.Rate.Deaths.csv"), row.names = F)
