@@ -44,7 +44,6 @@ args <- add_argument(args, "--seed", help="seed for random number", default=2021
 args <- add_argument(args, "--regional", help="flag to run regional model", flag=TRUE)
 args <- add_argument(args, "--outfile", help="file to store outputs", default="OverdoseDeath_RIV1_0.csv")
 args <- add_argument(args, "--ppl", help="file with initial ppl info", default="Inputs/InitialPopulation.rds")
-args <- add_argument(args, "--new_pop", help="file to save ppl info if no ppl file provided", default="Inputs/InitialPopulation.rds")
 argv <- parse_args(args)
 seed <- as.integer(argv$seed)
 
@@ -108,7 +107,8 @@ if(file.exists(init.pop.file)){
   print(paste0("Population loaded from file: ", init.pop.file))
 } else {
   init.pop  <- pop.initiation(initials = initials, seed=seed)
-  saveRDS(init.pop, paste0(ppl_outfile))
+  saveRDS(init.pop, paste0(init.pop.file))
+  print(paste0("Population saved to file: ", init.pop.file))
 }
 
 

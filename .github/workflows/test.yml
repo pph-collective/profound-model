@@ -22,16 +22,16 @@ jobs:
           restore-keys: ${{ runner.os }}-${{ hashFiles('install.r') }}
       - name: Check initial pop doesn't exist
         run: |
-          [ ! -f Inputs/InitialPopulation.rds ]
+          [ ! -f Inputs/init_pop.rds ]
       - name: Install dependencies
         run: Rscript install.r
       - name: Run PROFOUND without inital pop
-        run: Rscript main.R -p Inputs/InitialPopulation.rds
+        run: Rscript main.R -p Inputs/init_pop.rds
       - name: Check initial pop exists
         run: |
-          [ -f Inputs/InitialPopulation.rds ]
+          [ -f Inputs/init_pop.rds ]
       - name: Run PROFOUND with input pop
-        run: Rscript main.R -p Inputs/InitialPopulation.rds
+        run: Rscript main.R -p Inputs/init_pop.rds
       - name: Check results exists
         run: |
           [ -f OverdoseDeath.csv ]
