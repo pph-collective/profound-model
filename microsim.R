@@ -31,7 +31,6 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
   n.opioid <- sum(init_ppl$curr.state != "NODU")
   n.noud   <- sum(init_ppl$curr.state == "NODU")
   init_ppl.residence   <- (init_ppl %>% count(residence))$n
-  print(NxDataPharm)
   # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
   NxPharm.mx      <- NxDataPharm$pe[NxDataPharm$year>=(yr_start-1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array   <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))

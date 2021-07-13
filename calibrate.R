@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 ###############################################################################################
 #######################        Model calibration runs         #################################
 ###############################################################################################
@@ -30,6 +32,7 @@ library(dplyr)
 library(openxlsx)
 library(abind)
 library(FME)
+library(tictoc)
 #Load packages for parallel performance
 library(foreach)
 library(doParallel)
@@ -75,14 +78,14 @@ if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
 # generate stepwise seeds for calibration starting at initial seed
 calib.seed.vt  <- seed + c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
 # initialize calibratiobration_results table
-calib.rs.table <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15) 
-colnames(calib.rs.table) <- c("index", "seed",
+calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15) 
+colnames(calibration_results) <- c("index", "seed",
                               "od.death16", "od.death17", "od.death18", "od.death19",
                               "fx.death16", "fx.death17", "fx.death18", "fx.death19", 
                               "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19", 
                               "gof")
-calib.rs.table[ , "index"] <- c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
-calib.rs.table[ , "seed"]  <- calib.seed.vt
+calibration_results[ , "index"] <- c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
+calibration_results[ , "seed"]  <- calib.seed.vt
 
 #initializbration_results matrix to savbration_results from parallel simulation
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
@@ -130,7 +133,7 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], params = Calibration.data.ls[[ss]])
 }
 
-calib.rs.table[,3:14] <- calibration_results   #pass calibratiobration_results tbration_results table
-saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibratiobration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
+calibration_results[,3:14] <- calibration_results   #pass calibratiobration_results tbration_results table
+saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibratiobration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
 # stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)

@@ -28,42 +28,41 @@ source("parallel.R")
 source("data_input.R")
 
 
-# REVIEWED rs = results; temp just used to combine with the last result
-calib.rs.table <- NULL
+calibration_results <- NULL
 
 for (batch.ind in 1:10){
-  calib.rs.temp  <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
-  calib.rs.table <- rbind(calib.rs.table, calib.rs.temp)
+  temp_results  <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
+  calibration_results <- rbind(calibration_results, temp_results)
 }
-rm(calib.rs.temp)
+rm(temp_results)
 
 calibration_params <- readRDS(paste0("calibration/Calib_par_table.rds"))
 
-calib.rs.table <- cbind(calib.rs.table, calibration_params)
+calibration_results <- cbind(calibration_results, calibration_params)
 
-# REVIEWED WB=workbook
+# read in workbook
 WB       <- loadWorkbook("Inputs/MasterTable.xlsx")
 Target   <- read.xlsx(WB, sheet="Target")
 tar.data <- Target$pe
 
-for (ss in 1:nrow(calib.rs.table)){
-  # REVIEWED model_prediction
-  model.pred <- calib.rs.table[ss, c("od.death16", "od.death17", "od.death18", "od.death19",
+for (ss in 1:nrow(calibration_results)){
+  
+  prediction <- calibration_results[ss, c("od.death16", "od.death17", "od.death18", "od.death19",
                                      "fx.death16", "fx.death17", "fx.death18", "fx.death19", 
                                      "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")]
   gof <- 0
-  # REVIEWED calculate goodness of fit; needs to be less hardcoded at some point
+  # TODO needs to be less hardcoded at some point
   for (j in 1:length(tar.data)){
     if (j %in% c(5:8)){  # 5:8 is proportion that involves fx
-      gof <- gof + (abs(model.pred[j]*100 - tar.data[j]*100)/(tar.data[j]*100))/length(tar.data)
+      gof <- gof + (abs(prediction[j]*100 - tar.data[j]*100)/(tar.data[j]*100))/length(tar.data)
     } else {
-      gof <- gof + (abs(model.pred[j] - tar.data[j])/tar.data[j])/length(tar.data)
+      gof <- gof + (abs(prediction[j] - tar.data[j])/tar.data[j])/length(tar.data)
     }
   }
-  calib.rs.table[ss, "gof"] <- gof
+  calibration_results[ss, "gof"] <- gof
 }
 
-sorted.mx <- calib.rs.table[order(calib.rs.table[ , "gof"], decreasing = F), ]
+sorted.mx <- calibration_results[order(calibration_results[ , "gof"], decreasing = F), ]
 
 # REVIEWED sp=sample, choosing top samples. calib.sp. We seem to also use "sp" to refer to region-specific
 calib.sp <- 100
