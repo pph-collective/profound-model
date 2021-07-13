@@ -1,11 +1,12 @@
 # run this file to install all the dependencies for profound
 to_install <- c(
-    "abind",
-    "dplyr",
-    "tictoc",
-    "openxlsx",
-    "here",
-    "argparser")
+  "abind",
+  "dplyr",
+  "tictoc",
+  "openxlsx",
+  "here",
+  "argparser"
+)
 
 for (i in to_install) {
   message(paste("looking for ", i))
