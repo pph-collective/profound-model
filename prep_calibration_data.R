@@ -48,8 +48,8 @@ calib.parameters <- list()
 
 tic("outer loop")
 for (bb in 1:(sample.size/batch.size)){
-  batch.bgn <- (bb-1)*batch.size + 1
-  batch.end <- bb*batch.size
+  batch.bgn <- (bb - 1) * batch.size + 1
+  batch.end <- bb * batch.size
   ii <- 1
   tic("inner loop")
   for (cc in batch.bgn:batch.end){

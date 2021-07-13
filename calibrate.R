@@ -11,10 +11,23 @@
 #
 
 rm(list=ls())
+print("Loading required packages")
+library(dplyr)
+library(openxlsx)
+library(abind)
+library(FME)
+library(tictoc)
+#Load packages for parallel performance
+library(foreach)
+library(doParallel)
+library("argparser")
 
 # ## Model setup parameters ##
-seed         <- 2021    #define the initial seed, will draw different seeds based on the initial for calibration simulations
-args <- commandArgs(trailingOnly=TRUE)
+args <- arg_parser("arguments")
+args <- add_argument(args, "--seed", help="seed for random numbers", default=2021)
+args <- add_argument(args, "--outfile", help="file to store outputs", default="OverdoseDeath_RIV1_0.csv")
+args <- add_argument(args, "--params", help="name of the file with calibration params", default="Inputs/CalibrationSampleData1.rds")
+
 if (length(args) == 0){
   batch.ind <- 1
   outpath <- getwd()
@@ -26,16 +39,7 @@ if (length(args) == 0){
 }
 batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
-#Load required packages
-print("Loading required packages")
-library(dplyr)
-library(openxlsx)
-library(abind)
-library(FME)
-library(tictoc)
-#Load packages for parallel performance
-library(foreach)
-library(doParallel)
+
 # make and register the cluster given the provided number of cores
 c1 = makeCluster(cores, outfile="")
 registerDoParallel(c1)
@@ -72,11 +76,10 @@ if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
 
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
-  rm(calib.par)
 }
 
 # generate stepwise seeds for calibration starting at initial seed
-calib.seed.vt  <- seed + c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
+calib.seed.vt  <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 # initialize calibratiobration_results table
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15) 
 colnames(calibration_results) <- c("index", "seed",
@@ -84,7 +87,7 @@ colnames(calibration_results) <- c("index", "seed",
                               "fx.death16", "fx.death17", "fx.death18", "fx.death19", 
                               "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19", 
                               "gof")
-calibration_results[ , "index"] <- c(((batch.ind-1)*batch.size + 1):(batch.ind*batch.size))
+calibration_results[ , "index"] <- c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 calibration_results[ , "seed"]  <- calib.seed.vt
 
 #initializbration_results matrix to savbration_results from parallel simulation

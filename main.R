@@ -47,7 +47,7 @@ d.c         <- 0.03        # discounting of costs by 3%
 source("io_setup.R")
 
 args = arg_parser("arguments")
-args <- add_argument(args, "--seed", help="seed for random number", default=2021)
+args <- add_argument(args, "--seed", help="seed for random numbers", default=2021)
 args <- add_argument(args, "--regional", help="flag to run regional model", flag=TRUE)
 args <- add_argument(args, "--outfile", help="file to store outputs", default="OverdoseDeath_RIV1_0.csv")
 args <- add_argument(args, "--ppl", help="file with initial ppl info", default="Inputs/InitialPopulation.rds")

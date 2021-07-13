@@ -20,6 +20,7 @@ batch.size   <- 100000  #define the size of each batch of calibration simulation
 
 #Load required packages
 print("Loading required packages")
+library(tictoc)
 library(dplyr)
 library(openxlsx)
 library(abind)
@@ -44,10 +45,10 @@ source("parallel.R")
 ## load or create calibration parameter sets for calibration simulation 
 #(TO SAM: all rds files were saved in Google Drive, may need to update the path, i.e. Inputs)
 print("loading calibration parameters")
-if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
+if(file.exists(paste0("Inputs/Calib_par_table2.rds"))){
   #only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds")) 
-} else if (!file.exists(paste0("Inputs/Calib_par_table.rds"))){
+} else if (!file.exists(paste0("Inputs/Calib_par_table2.rds"))){
   ## Specify the number of calibration random parameter sets
   sample.size <- 1000000  #total number of calibration samples
   batch.size  <- 100000   #number of samples per calibration batch
@@ -63,7 +64,6 @@ if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
   source("prep_calibration_data.R")                  #prepare calibration data (as lists) and save them in rds files
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
-  rm(calib.par)
 }
 
 #generate seeds for calibration (incremental by 1 from the initial seed)
