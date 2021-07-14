@@ -63,7 +63,7 @@ if (isTRUE(argv$regional)) {
 }
 
 ## Initialize the study population - people who are at risk of opioid overdose
-ppl_info <- c("sex", "race", "age", "residence", "current_state", "OU.state", "init.age", "init.state", "ever.od", "fx")
+ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if (file.exists(init_ppl.file)) {
   init_ppl <- readRDS(init_ppl.file)
   print(paste0("Population loaded from file: ", init_ppl.file))

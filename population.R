@@ -66,19 +66,19 @@ initiate_ppl <- function(initials, seed = 2021) {
     oud.prob.m <- c((1 - ini.inact) * (1 - ini.il.m), (1 - ini.inact) * ini.il.m * (1 - ini.il.hr.m), (1 - ini.inact) * ini.il.m * ini.il.hr.m, ini.inact)
     oud.prob.f <- c((1 - ini.inact) * (1 - ini.il.f), (1 - ini.inact) * ini.il.f * (1 - ini.il.hr.f), (1 - ini.inact) * ini.il.f * ini.il.hr.f, ini.inact)
     if (sex == "m") {
-      current_state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.m)]
+      curr.state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.m)]
     } else {
-      current_state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.f)]
+      curr.state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.f)]
     }
 
-    if (current_state == "inact") {
+    if (curr.state == "inact") {
       if (sex == "m") {
         OU.state <- oud.state[sample(1:length(oud.state[1:3]), size = 1, prob = oud.prob.m[1:3] / sum(oud.prob.m[1:3]))]
       } else {
         OU.state <- oud.state[sample(1:length(oud.state[1:3]), size = 1, prob = oud.prob.f[1:3] / sum(oud.prob.f[1:3]))]
       }
     } else {
-      OU.state <- current_state
+      OU.state <- curr.state
     }
 
     # # determine fentanyl use
@@ -98,7 +98,7 @@ initiate_ppl <- function(initials, seed = 2021) {
     init_ppl$race[i] <- race
     init_ppl$age[i] <- age
     init_ppl$residence[i] <- v.region[oud.region.ind[i]]
-    init_ppl$current_state[i] <- current_state
+    init_ppl$curr.state[i] <- curr.state
     init_ppl$OU.state[i] <- OU.state
     init_ppl$init.age[i] <- init.age
     init_ppl$init.state[i] <- init.state
@@ -110,7 +110,7 @@ initiate_ppl <- function(initials, seed = 2021) {
   for (i in 1:total.nodu) {
     set.seed(seed + i)
 
-    current_state <- init.state <- OU.state <- "NODU"
+    curr.state <- init.state <- OU.state <- "NODU"
 
     # determine demographic
     demo.ind <- sample(1:nrow(nodu_demo), size = 1, prob = nodu_demo[, nodu.region.ind[i]])
@@ -142,7 +142,7 @@ initiate_ppl <- function(initials, seed = 2021) {
     init_ppl$race[i + total.oud] <- race
     init_ppl$age[i + total.oud] <- age
     init_ppl$residence[i + total.oud] <- v.region[nodu.region.ind[i]]
-    init_ppl$current_state[i + total.oud] <- current_state
+    init_ppl$curr.state[i + total.oud] <- curr.state
     init_ppl$OU.state[i + total.oud] <- OU.state
     init_ppl$init.age[i + total.oud] <- init.age
     init_ppl$init.state[i + total.oud] <- init.state

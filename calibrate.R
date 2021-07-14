@@ -24,19 +24,20 @@ library("argparser")
 
 # ## Model setup parameters ##
 args <- arg_parser("arguments")
-args <- add_argument(args, "--seed", help = "seed for random numbers", default = 2021, type = "int")
+args <- add_argument(args, "--seed", help = "seed for random numbers", default = 2021)
 args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")
 args <- add_argument(args, "--params", help = "name of the file with calibration params", default = "Inputs/CalibrationSampleData1.rds")
-args <- add_argument(args, "--batch_size", help = "size of batch for calibration", default = 100000, type = "int")
-args <- add_argument(args, "--cores", help = "number of cores for parallelization", default = 1, type = "int")
 
-argv <- parse_args(args)
-seed <- argv$seed
-input_file <- argv$params
-outpath <- argv$outfile
-cores <- argv$cores
-batch.size <-  argv$batch_size # define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
-batch_index <- as.integer(gregexpr("[0-9]+", input_file))  # extract numeric batch index from input file name
+if (length(args) == 0) {
+  batch.ind <- 1
+  outpath <- getwd()
+  cores <- 1
+} else {
+  batch.ind <- strtoi(args[1])
+  outpath <- strtoi(args[2])
+  cores <- strtoi(args[3])
+}
+batch.size <- 100000 # define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
 
 
 # make and register the cluster given the provided number of cores
@@ -57,9 +58,9 @@ source("prep_calibration_data.R")
 
 # REVIEWED - check for both / is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
 ## load or create calibration parameter sets for calibration simulation
-if (file.exists("Inputs/Calib_par_table.rds")) {
+if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
   # only load the indexed parameter set batch for calibration simulation
-  Calibration.data.ls <- readRDS(paste0(input_file))
+  Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
 } else {
   ## Specify the number of calibration random parameter sets
   sample.size <- 1000000 # total number of calibration samples
@@ -73,13 +74,12 @@ if (file.exists("Inputs/Calib_par_table.rds")) {
   set.seed(5112021)
   calib.par <- Latinhyper(parRange, sample.size) %>% data.frame()
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds")) # save sampled calibration parameter values
-  # Need to change prep calibraiton data to be a function so it can be run instead of sourced
-  source("prep_calibration_data.R")
-  Calibration.data.ls <- readRDS(input_file)
+
+  Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
 }
 
 # generate stepwise seeds for calibration starting at initial seed
-calib.seed.vt <- seed + c(((batch_index - 1) * batch.size + 1):(batch_index * batch.size))
+calib.seed.vt <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 # initialize calibratiobration_results table
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15)
 colnames(calibration_results) <- c(
@@ -89,7 +89,7 @@ colnames(calibration_results) <- c(
   "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19",
   "gof"
 )
-calibration_results[, "index"] <- c(((batch_index - 1) * batch.size + 1):(batch_index * batch.size))
+calibration_results[, "index"] <- c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 calibration_results[, "seed"] <- calib.seed.vt
 
 # initializbration_results matrix to savbration_results from parallel simulation
@@ -103,7 +103,7 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   yr_start <- 2016 # simulation first year
   yr_end <- 2020 # simulation last year
   ppl_info <- c(
-    "sex", "race", "age", "residence", "current_state",
+    "sex", "race", "age", "residence", "curr.state",
     "OU.state", "init.age", "init.state", "ever.od", "fx"
   ) # information for each model individual
   agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
@@ -134,13 +134,13 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   m.oddeath.hr <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
 
   ## Initialize the study population - people who are at risk of opioid overdose
-  ppl_info <- c("sex", "race", "age", "residence", "current_state", "OU.state", "init.age", "init.state", "ever.od", "fx")
+  ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
   init_ppl <- readRDS(paste0("Inputs/InitialPopulation.rds"))
 
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], params = Calibration.data.ls[[ss]])
 }
 
 calibration_results[, 3:14] <- calibration_results # pass calibratiobration_results tbration_results table
-saveRDS(calibration_results, paste0("CalibrationOutputs", batch_index, ".rds")) # save calibratiobration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
+saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds")) # save calibratiobration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
 # stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)

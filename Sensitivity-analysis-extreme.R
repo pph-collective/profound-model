@@ -28,7 +28,7 @@ source("cost_effectiveness.R")
 yr_start <- 2016
 yr_end <- 2022
 pop.info <- c(
-  "sex", "race", "age", "residence", "current_state",
+  "sex", "race", "age", "residence", "curr.state",
   "OU.state", "init.age", "init.state", "ever.od", "fx"
 ) # information for each model individual
 agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
@@ -60,7 +60,7 @@ m.EDvisits <- rep(0, times = timesteps) # count of opioid overdose-related ED vi
 m.oddeath.hr <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
 
 ## Initialize the study population - people who are at risk of opioid overdose
-pop.info <- c("sex", "race", "age", "residence", "current_state", "OU.state", "init.age", "init.state", "ever.od", "fx")
+pop.info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if (file.exists(paste0("Inputs/InitialPopulation.rds"))) {
   init_ppl <- readRDS(paste0("Inputs/InitialPopulation.rds"))
 } else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))) {
@@ -83,8 +83,8 @@ colnames(od.death.mx.last) <- colnames(od.death.mx.totl) <- scenario.name
 for (ss in 1:length(sim.seed)) {
   print(paste0("Parameter set: ", ss))
   params.temp <- sim.data.ls[[ss]]
-  params.temp$pharmacy_data$pe <- 0
-  params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
+  params.temp$NxDataPharm$pe <- 0
+  params.temp$mor_Nx <- params.temp$mor_bl * (1 - 0.9)
   sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = sim.seed[ss]) # run for status quo
   # sq.dh.mx[ , ss] <- colSums(sim_sq$m.oddeath[(timesteps-11):timesteps, ])
   # sq.nx.mx[ , ss] <- colSums(sim_sq$n.nlx.OEND.str)
