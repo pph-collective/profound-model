@@ -30,7 +30,7 @@ d.c <- 0.03 # discounting of costs by 3%
 source("io_setup.R")
 
 ## Initialize the study population - people who are at risk of opioid overdose
-pop.info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
+pop.info <- c("sex", "race", "age", "residence", "current_state", "OU.state", "init.age", "init.state", "ever.od", "fx")
 if (file.exists(paste0("Inputs/InitialPopulation.rds"))) {
   init_ppl <- readRDS(paste0("Inputs/InitialPopulation.rds"))
 } else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))) {
@@ -50,8 +50,8 @@ colnames(od.death.mx.last) <- colnames(od.death.mx.wtns) <- scenario.name
 for (ss in 1:length(sim.seed)) {
   print(paste0("Parameter set: ", ss))
   params.temp <- sim.data.ls[[ss]]
-  params.temp$NxDataPharm$pe <- 0
-  params.temp$mor_Nx <- params.temp$mor_bl * (1 - 0.9)
+  params.temp$pharmacy_data$pe <- 0
+  params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
   sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "SQ", seed = sim.seed[ss]) # run for status quo
   od.death.mx.last[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
   od.death.mx.wtns[ss, "Status Quo"] <- sum(sim_sq$v.oddeath.w[(timesteps - 11):timesteps])

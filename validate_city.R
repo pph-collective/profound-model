@@ -14,16 +14,16 @@ for (ss in 1:nrow(calib.result.mx)) {
   }
   ## Fentanyl use status for initial population determined externally (allow to vary) ##
   # TO_REVIEW is there ever a population variable like this that isn't the initial population? Can we change the variable name to just pop (ppl) instead of init_ppl (init_ppl)
-  n.opioid <- sum(init_ppl$curr.state != "NODU")
-  n.noud <- sum(init_ppl$curr.state == "NODU")
+  n.opioid <- sum(init_ppl$current_state != "NODU")
+  n.noud <- sum(init_ppl$current_state == "NODU")
   # determine fentanyl use among initial population who use opioids
   set.seed(calib.seed)
   fx <- sample(0:1, size = n.opioid, prob = c(1 - ini.OUD.fx, ini.OUD.fx), replace = T)
-  init_ppl$fx[init_ppl$curr.state != "NODU"] <- fx
+  init_ppl$fx[init_ppl$current_state != "NODU"] <- fx
   # determine fentanyl use among initial population who use stimulants (non-opioid)
   set.seed(calib.seed * 2)
   fx <- sample(0:1, size = n.noud, prob = c(1 - ini.NOUD.fx, ini.NOUD.fx), replace = T)
-  init_ppl$fx[init_ppl$curr.state == "NODU"] <- fx
+  init_ppl$fx[init_ppl$current_state == "NODU"] <- fx
 
   # Overdose probability matrix (per month)
   # TO_REVIEW sub/subs?

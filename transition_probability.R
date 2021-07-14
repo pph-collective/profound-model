@@ -16,8 +16,8 @@
 trans.prob <- function(pop.t, params) {
   list2env(params, environment())
   # initialize a matrix to store transition probabilities of each individual
-  trans.prob.matrix <- matrix(NA, num_states + 1, nrow(pop.t)) # add one row for OD
-  rownames(trans.prob.matrix) <- c(agent_states, "od")
+  transition_probs <- matrix(NA, num_states + 1, nrow(pop.t)) # add one row for OD
+  rownames(transition_probs) <- c(agent_states, "overdose")
 
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))
@@ -31,35 +31,34 @@ trans.prob <- function(pop.t, params) {
   mor.rate[filter(pop.t, age >= 65)$ind] <- mor.matrix["drug", "65over"]
 
   # create a vector to store probability of overdose for each individual according to ever overdosed and fentanyl
-  # TO_REVIEW what does "multi" mean here
   od.rate <- numeric(nrow(pop.t))
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 0 & fx == 0)$ind] <- od.matrix["preb", "first"]
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 1 & fx == 0)$ind] <- od.matrix["preb", "subs"]
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 0 & fx == 1)$ind] <- od.matrix["preb", "first"] * multi.fx
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 1 & fx == 1)$ind] <- od.matrix["preb", "subs"] * multi.fx
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 0 & fx == 0)$ind] <- od.matrix["il.lr", "first"]
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 1 & fx == 0)$ind] <- od.matrix["il.lr", "subs"]
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 0 & fx == 1)$ind] <- od.matrix["il.lr", "first"] * multi.fx
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 1 & fx == 1)$ind] <- od.matrix["il.lr", "subs"] * multi.fx
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 0 & fx == 0)$ind] <- od.matrix["il.hr", "first"]
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 1 & fx == 0)$ind] <- od.matrix["il.hr", "subs"]
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 0 & fx == 1)$ind] <- od.matrix["il.hr", "first"] * multi.fx
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 1 & fx == 1)$ind] <- od.matrix["il.hr", "subs"] * multi.fx
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 0)$ind] <- od.matrix["NODU", "first"]
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 0)$ind] <- od.matrix["NODU", "subs"]
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 1)$ind] <- od.matrix["il.lr", "first"] * multi.NODU.fx * multi.fx
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 1)$ind] <- od.matrix["il.lr", "subs"] * multi.NODU.fx * multi.fx
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "preb")$ind] <- od.matrix["preb", "first"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind] <- od.matrix["preb", "subs"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- od.matrix["il.lr", "first"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- od.matrix["il.lr", "subs"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- od.matrix["il.hr", "first"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- od.matrix["il.hr", "subs"] * multi.relap
+  od.rate[filter(pop.t, current_state == "preb" & ever.od == 0 & fx == 0)$ind] <- od.matrix["preb", "first"]
+  od.rate[filter(pop.t, current_state == "preb" & ever.od == 1 & fx == 0)$ind] <- od.matrix["preb", "subs"]
+  od.rate[filter(pop.t, current_state == "preb" & ever.od == 0 & fx == 1)$ind] <- od.matrix["preb", "first"] * multi.fx
+  od.rate[filter(pop.t, current_state == "preb" & ever.od == 1 & fx == 1)$ind] <- od.matrix["preb", "subs"] * multi.fx
+  od.rate[filter(pop.t, current_state == "il.lr" & ever.od == 0 & fx == 0)$ind] <- od.matrix["il.lr", "first"]
+  od.rate[filter(pop.t, current_state == "il.lr" & ever.od == 1 & fx == 0)$ind] <- od.matrix["il.lr", "subs"]
+  od.rate[filter(pop.t, current_state == "il.lr" & ever.od == 0 & fx == 1)$ind] <- od.matrix["il.lr", "first"] * multi.fx
+  od.rate[filter(pop.t, current_state == "il.lr" & ever.od == 1 & fx == 1)$ind] <- od.matrix["il.lr", "subs"] * multi.fx
+  od.rate[filter(pop.t, current_state == "il.hr" & ever.od == 0 & fx == 0)$ind] <- od.matrix["il.hr", "first"]
+  od.rate[filter(pop.t, current_state == "il.hr" & ever.od == 1 & fx == 0)$ind] <- od.matrix["il.hr", "subs"]
+  od.rate[filter(pop.t, current_state == "il.hr" & ever.od == 0 & fx == 1)$ind] <- od.matrix["il.hr", "first"] * multi.fx
+  od.rate[filter(pop.t, current_state == "il.hr" & ever.od == 1 & fx == 1)$ind] <- od.matrix["il.hr", "subs"] * multi.fx
+  od.rate[filter(pop.t, current_state == "NODU" & ever.od == 0 & fx == 0)$ind] <- od.matrix["NODU", "first"]
+  od.rate[filter(pop.t, current_state == "NODU" & ever.od == 1 & fx == 0)$ind] <- od.matrix["NODU", "subs"]
+  od.rate[filter(pop.t, current_state == "NODU" & ever.od == 0 & fx == 1)$ind] <- od.matrix["il.lr", "first"] * multi.NODU.fx * multi.fx
+  od.rate[filter(pop.t, current_state == "NODU" & ever.od == 1 & fx == 1)$ind] <- od.matrix["il.lr", "subs"] * multi.NODU.fx * multi.fx
+  od.rate[filter(pop.t, current_state == "relap" & ever.od == 0 & OU.state == "preb")$ind] <- od.matrix["preb", "first"] * multi.relap
+  od.rate[filter(pop.t, current_state == "relap" & ever.od == 1 & OU.state == "preb")$ind] <- od.matrix["preb", "subs"] * multi.relap
+  od.rate[filter(pop.t, current_state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- od.matrix["il.lr", "first"] * multi.relap
+  od.rate[filter(pop.t, current_state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- od.matrix["il.lr", "subs"] * multi.relap
+  od.rate[filter(pop.t, current_state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- od.matrix["il.hr", "first"] * multi.relap
+  od.rate[filter(pop.t, current_state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- od.matrix["il.hr", "subs"] * multi.relap
 
   # update the trans.prob matrix with the corresponding probabilities
-  ind.preb <- pop.t$curr.state == "preb"
+  ind.preb <- pop.t$current_state == "preb"
   if (sum(ind.preb) != 0) {
-    trans.prob.matrix[, ind.preb] <- rbind(
+    transition_probs[, ind.preb] <- rbind(
       1 - p.preb2il.lr - p.preb2inact - mor.rate[ind.preb] - od.rate[ind.preb],
       rep(p.preb2il.lr, sum(ind.preb)),
       rep(0, sum(ind.preb)),
@@ -71,9 +70,9 @@ trans.prob <- function(pop.t, params) {
     )
   }
 
-  ind.il.lr <- pop.t$curr.state == "il.lr"
+  ind.il.lr <- pop.t$current_state == "il.lr"
   if (sum(ind.il.lr) != 0) {
-    trans.prob.matrix[, ind.il.lr] <- rbind(
+    transition_probs[, ind.il.lr] <- rbind(
       rep(0, sum(ind.il.lr)),
       1 - p.il.lr2il.hr - p.il.lr2inact - mor.rate[ind.il.lr] - od.rate[ind.il.lr],
       rep(p.il.lr2il.hr, sum(ind.il.lr)),
@@ -85,9 +84,9 @@ trans.prob <- function(pop.t, params) {
     )
   }
 
-  ind.il.hr <- pop.t$curr.state == "il.hr"
+  ind.il.hr <- pop.t$current_state == "il.hr"
   if (sum(ind.il.hr) != 0) {
-    trans.prob.matrix[, ind.il.hr] <- rbind(
+    transition_probs[, ind.il.hr] <- rbind(
       rep(0, sum(ind.il.hr)),
       rep(p.il.hr2il.lr, sum(ind.il.hr)),
       1 - p.il.hr2il.lr - p.il.hr2inact - mor.rate[ind.il.hr] - od.rate[ind.il.hr],
@@ -99,9 +98,9 @@ trans.prob <- function(pop.t, params) {
     )
   }
 
-  ind.inact <- pop.t$curr.state == "inact"
+  ind.inact <- pop.t$current_state == "inact"
   if (sum(ind.inact) != 0) {
-    trans.prob.matrix[, ind.inact] <- rbind(
+    transition_probs[, ind.inact] <- rbind(
       rep(0, sum(ind.inact)),
       rep(0, sum(ind.inact)),
       rep(0, sum(ind.inact)),
@@ -113,9 +112,9 @@ trans.prob <- function(pop.t, params) {
     )
   }
 
-  ind.NODU <- pop.t$curr.state == "NODU"
+  ind.NODU <- pop.t$current_state == "NODU"
   if (sum(ind.NODU) != 0) {
-    trans.prob.matrix[, ind.NODU] <- rbind(
+    transition_probs[, ind.NODU] <- rbind(
       rep(0, sum(ind.NODU)),
       rep(0, sum(ind.NODU)),
       rep(0, sum(ind.NODU)),
@@ -127,21 +126,21 @@ trans.prob <- function(pop.t, params) {
     )
   }
 
-  ind.relap <- pop.t$curr.state == "relap"
+  ind.relap <- pop.t$current_state == "relap"
   if (sum(ind.relap) != 0) {
-    OU.v <- filter(pop.t, curr.state == "relap")$OU.state
+    OU.v <- filter(pop.t, current_state == "relap")$OU.state
     relap.m <- matrix(0, num_states + 1, sum(ind.relap))
     for (r in 1:sum(ind.relap)) {
       relap.m[which(OU.v[r] == agent_states), r] <- 1 - mor.rate[ind.relap][r] - od.rate[ind.relap][r]
       relap.m[which("dead" == agent_states), r] <- mor.rate[ind.relap][r]
       relap.m[num_states + 1, r] <- od.rate[ind.relap][r]
     }
-    trans.prob.matrix[, ind.relap] <- relap.m
+    transition_probs[, ind.relap] <- relap.m
   }
 
-  trans.prob.matrix[, pop.t$curr.state == "dead"] <- c(0, 0, 0, 0, 0, 0, 1, 0)
+  transition_probs[, pop.t$current_state == "dead"] <- c(0, 0, 0, 0, 0, 0, 1, 0)
 
-  return(t(trans.prob.matrix))
+  return(t(transition_probs))
 }
 
 # TO_REVIEW what does samplev mean?

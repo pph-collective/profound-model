@@ -12,7 +12,7 @@
 
 # INPUT setup
 pop.info <- c(
-  "sex", "race", "age", "residence", "curr.state",
+  "sex", "race", "age", "residence", "current_state",
   "OU.state", "init.age", "init.state", "ever.od", "fx"
 ) # information for each model individual
 agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
