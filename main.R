@@ -56,7 +56,7 @@ seed <- as.integer(argv$seed)
 
 init_ppl.file <- argv$ppl
 ## Model setup parameters ##
-sw.EMS.ODloc <- "ov"
+sw.EMS.ODloc <- "overall"
 out.file <- argv$outfile
 if (isTRUE(argv$regional)) {
   sw.EMS.ODloc <- "sp"

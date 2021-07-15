@@ -65,10 +65,9 @@ for (ss in 1:nrow(calibration_results)) {
 
 sorted.mx <- calibration_results[order(calibration_results[, "gof"], decreasing = F), ]
 
-# REVIEWED sp=sample, choosing top samples. calib.sp. We seem to also use "sp" to refer to region-specific
-calib.sp <- 100
-calib.result.mx <- sorted.mx[1:calib.sp, ]
-write.xlsx(calib.result.mx,
+cal_sample <- 100
+calibration_results <- sorted.mx[1:cal_sample, ]
+write.xlsx(calibration_results,
   file = paste0("calibration/Calibrated_results.xlsx"),
   col.names = T, row.names = F
 )
@@ -76,8 +75,8 @@ write.xlsx(calib.result.mx,
 
 ## save calibrated results as parameter lists (prepare for main analysis)##
 # INPUT PARAMETERS
-# REVIEWED change ov and sp to "overall" and "regional"? sw.EMS.ODloc?
-sw.EMS.ODloc <- "ov" # Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+# REVIEWED change overall and sp to "overall" and "regional"? sw.EMS.ODloc?
+sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 # REVIEWED nm.calp = parameter_names?
 nm.calp <- names(calibration_params)
 calibrated.parameters <- list()
@@ -85,9 +84,9 @@ calibrated.parameters <- list()
 
 # REVIEWED: random sampling, save list of parameters
 # for each selected calibration run, determine the run's parameters
-for (cc in 1:nrow(calib.result.mx)) {
+for (cc in 1:nrow(calibration_results)) {
   for (pp in 1:length(nm.calp)) {
-    params[[nm.calp[pp]]] <- calib.result.mx[cc, nm.calp[pp]]
+    params[[nm.calp[pp]]] <- calibration_results[cc, nm.calp[pp]]
   }
   # Overdose probability parameter matrix (per month)
   od.matrix <- matrix(0, nrow = 4, ncol = 2)
@@ -112,24 +111,24 @@ for (cc in 1:nrow(calib.result.mx)) {
   calibrated.parameters[[cc]] <- params
 }
 
-# alibrated.seed <- calib.result.mx[,"seed"]
+# alibrated.seed <- calibration_results[,"seed"]
 saveRDS(calibrated.parameters, file = paste0("calibration/CalibratedData.rds"))
-saveRDS(calib.result.mx[, "seed"], file = paste0("calibration/CalibratedSeed.rds"))
+saveRDS(calibration_results[, "seed"], file = paste0("calibration/CalibratedSeed.rds"))
 
 
 
 ## Plot ##
 par(mfrow = c(1, 3))
 # REVIEWED md = median, change to mean
-mean_oddeath <- apply(calib.result.mx[, c("od.death16", "od.death17", "od.death18", "od.death19")], 2, mean)
-ymax <- max(calib.result.mx[, c("od.death16", "od.death17", "od.death18", "od.death19")])
+mean_oddeath <- apply(calibration_results[, c("od.death16", "od.death17", "od.death18", "od.death19")], 2, mean)
+ymax <- max(calibration_results[, c("od.death16", "od.death17", "od.death18", "od.death19")])
 plot(
   x = 2016:2019, tar.data[1:4], col = "black", pch = 18, xlab = "Year", ylab = "Number of opioid overdose deaths", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", ylim = c(0, 500), frame.plot = FALSE
 )
 # title("A", adj = 0, line =-0.5)
-for (i in 1:calib.sp) {
-  lines(x = 2016:2019, y = calib.result.mx[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 3)
+for (i in 1:cal_sample) {
+  lines(x = 2016:2019, y = calibration_results[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 3)
 }
 lines(x = 2016:2019, y = mean_oddeath, col = "red", lwd = 4)
 points(x = 2016:2019, tar.data[1:4], col = "black", pch = 16, cex = 1.2, cex.axis = 0.95)
@@ -153,15 +152,15 @@ legend("top",
 #        lwd=c(1.2, 1, 0.5), lty = c(1, NA, NA), pch=c(16, 16,16), pt.cex = c(1,1.1,1), cex = 0.8, bty = "n")
 
 
-md.fxoddeath <- apply(calib.result.mx[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
+md.fxoddeath <- apply(calibration_results[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
 # REVIEWED: change from hardcoded ylim; mean instead of median for everything
 plot(
   x = 2016:2019, tar.data[5:8], col = "black", pch = 18, xlab = "Year", ylab = "Proportion of OOD deaths with fentanyl present", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", yaxt = "n", ylim = c(0, 1), frame.plot = FALSE
 )
 # title("A", adj = 0, line =-0.5)
-for (i in 1:calib.sp) {
-  lines(x = 2016:2019, y = calib.result.mx[i, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
+for (i in 1:cal_sample) {
+  lines(x = 2016:2019, y = calibration_results[i, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
 }
 lines(x = 2016:2019, y = md.fxoddeath, col = "red", lwd = 3)
 points(x = 2016:2019, tar.data[5:8], col = "black", pch = 16, cex = 1.2, cex.axis = 0.95)
@@ -171,14 +170,14 @@ axis(2, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), labels = c("0", "20%", "40%", "60%", "
 abline(h = 0)
 
 
-md.edvisits <- apply(calib.result.mx[, c("ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")], 2, median)
+md.edvisits <- apply(calibration_results[, c("ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")], 2, median)
 plot(
   x = 2016:2019, tar.data[9:12], col = "black", pch = 18, xlab = "Year", ylab = "Number of ED visists for opioid overdose", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", ylim = c(0, 2500), frame.plot = FALSE
 )
 
-for (i in 1:calib.sp) {
-  lines(x = 2016:2019, y = calib.result.mx[i, c("ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
+for (i in 1:cal_sample) {
+  lines(x = 2016:2019, y = calibration_results[i, c("ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
 }
 lines(x = 2016:2019, y = md.edvisits, col = "red", lwd = 3)
 points(x = 2016:2019, tar.data[9:12], col = "black", pch = 16, cex = 1.2, cex.axis = 1.2)
@@ -203,7 +202,7 @@ legend("bottom",
 nm.calp <- names(calibration_params)
 
 
-calib.post <- calib.result.mx[, (dim(calib.result.mx)[2] - length(nm.calp) + 1):dim(calib.result.mx)[2]]
+calib.post <- calibration_results[, (dim(calibration_results)[2] - length(nm.calp) + 1):dim(calibration_results)[2]]
 # REVIEWED par -> param
 par <- rep(colnames(calib.post), 2)
 # REVIEWED pe = point estimate, lend = lower end, uend = upper end

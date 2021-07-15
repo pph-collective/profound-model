@@ -31,7 +31,7 @@
 # p.911               # probability of seeking help from 911
 # p.hosp              # probability of transporting to hospital care
 # mor_bl              # baseline mortality rate (from overdose) given no witness, no naloxone used, no hospital care
-# mor_Nx              # mortality if naloxone is administered
+# mortality_nx              # mortality if naloxone is administered
 # rr_mor_EMS          # relative risk of mortality with EMS if no naloxone is used
 # p.od2inact          # probability to inactive (cessasion of opioid use) after surviving an overdose event
 
@@ -59,7 +59,6 @@ decisiontimesteptree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
     p.911 <- ifelse(loc == "priv", OD_911_priv, OD_911_pub)
     p.hosp <- OD_hosp
     p.od2inact <- OD_cess
-
     wtns <- sample.dic(p.wtns)
     p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
 
@@ -70,12 +69,12 @@ decisiontimesteptree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
         if (EMS == 1) { # if EMS reached (witnessed, available, naloxone used by witness )
           hospcare <- sample.dic(p.hosp)
           if (hospcare == 1) { # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mor_Nx)
+            od.death <- sample.dic(mortality_nx)
           } else { # if not hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mor_Nx)
+            od.death <- sample.dic(mortality_nx)
           }
         } else { # if EMS not reached (witnessed, available, naloxone used by witness )
-          od.death <- sample.dic(mor_Nx)
+          od.death <- sample.dic(mortality_nx)
           hospcare <- 0
         }
       } else { # if naloxone not used (unavailable) by witness (witnessed)

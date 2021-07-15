@@ -6,7 +6,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 ## Model setup parameters ##
 seed <- 2021
-sw.EMS.ODloc <- "ov" # Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 
 # Program data
 library(openxlsx)
@@ -69,7 +69,7 @@ for (ss in 1:length(sim.seed)) {
   print(paste0("Parameter set: ", ss))
   params.temp <- sim.data.ls[[ss]]
   params.temp$NxDataPharm$pe <- 0
-  params.temp$mor_Nx <- params.temp$mor_bl * (1 - 0.9)
+  params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
   sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "SQ", seed = sim.seed[ss]) # run for status quo
   sq.dh.mx[, ss] <- colSums(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
   sq.nx.mx[, ss] <- colSums(sim_sq$n.nlx.OEND.str)

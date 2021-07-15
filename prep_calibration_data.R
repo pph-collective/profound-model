@@ -22,7 +22,7 @@ library(openxlsx)
 
 source("data_input.R")
 # INPUT PARAMETERS
-sw.EMS.ODloc <- "ov" # Please choose from "ov" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "ov"
+sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 sample.size <- 10
 batch.size <- 5
 

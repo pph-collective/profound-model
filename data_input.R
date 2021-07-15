@@ -11,8 +11,7 @@
 #
 #############################################################################
 
-# REVIEWED empirical data
-## Define input excel file ##
+## Define input excel file for empirical data##
 library(openxlsx)
 params <- list()
 WB <- loadWorkbook("Inputs/MasterTable.xlsx")
@@ -47,7 +46,7 @@ ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"]) # % of illicit
 ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"]) # % of high-risk among illicit opioid ppl
 ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"]) # % of high-risk among illicit opioid ppl
 ini.inact <- with(OpioidPattern, pe[par == "ini.inact"])
-ini.OUD.fx <- with(OpioidPattern, pe[par == "ini.OUD.fx"])
+init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
 gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
 ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
 ini.everod.il.lr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.lr"])
@@ -61,12 +60,12 @@ ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
 initials <- list(
   ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
   ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, ini.inact = ini.inact,
-  # ini.OUD.fx = ini.OUD.fx, ini.NOUD.fx = ini.NOUD.fx,
+  # init_oud_fx = init_oud_fx, ini.NOUD.fx = ini.NOUD.fx,
   ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr
 )
 
 # REVIEWED add these straight to list, no intermediary
-params$ini.OUD.fx <- ini.OUD.fx
+params$init_oud_fx <- init_oud_fx
 params$gw.fx <- gw.fx
 params$ini.NOUD.fx <- ini.NOUD.fx
 
@@ -131,7 +130,7 @@ params$OD_cess <- with(DecisionTree, pe[par == "OD_cess"])
 
 Mortality <- read.xlsx(WB, sheet = "Mortality")
 params$mor_bl <- with(Mortality, pe[par == "mor_bl"])
-params$mor_Nx <- with(Mortality, pe[par == "mor_Nx"])
+params$mortality_nx <- with(Mortality, pe[par == "mortality_nx"])
 params$rr_mor_EMS <- with(Mortality, pe[par == "rr_mor_EMS"])
 
 ## Parameters for naloxone kits ##

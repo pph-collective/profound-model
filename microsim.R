@@ -64,7 +64,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     n.nlx.yr <- array.Nx[floor((t - 1) / 12) + 1, , ]
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
-      OUD.fx <- ini.OUD.fx
+      OUD.fx <- init_oud_fx
       # determine fentanyl use among population who use opioids
       set.seed(seed)
       fx <- sample(0:1, size = n.opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
@@ -78,7 +78,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     } else {
       ppl_list[[t]] <- ppl_list[[t - 1]]
       if (t %% 12 == 0) {
-        OUD.fx <- min(ini.OUD.fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
+        OUD.fx <- min(init_oud_fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
         # determine fentanyl use among population who use opioids
         set.seed(seed)
         fx <- sample(0:1, size = n.opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
