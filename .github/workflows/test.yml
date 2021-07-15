@@ -19,7 +19,7 @@ jobs:
         with:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-${{ matrix.R }}-${{ hashFiles('install.r') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('install.r') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.r }}-${{ hashFiles('install.r') }}
       - name: Check initial pop doesn't exist
         run: |
           [ ! -f Inputs/init_pop.rds ]
