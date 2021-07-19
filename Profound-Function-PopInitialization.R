@@ -10,7 +10,8 @@
 # Last update: May 30, 2020
 #
 ########################################################################################
-#################        Population creation function      #############################
+#################        Population creation/initialization function      ##############
+# To initialize study population at time = 0, define all individual attributes
 ########################################################################################
 
 pop.initiation <- function(initials, seed = 2021){
@@ -80,8 +81,8 @@ pop.initiation <- function(initials, seed = 2021){
       OU.state <- curr.state
     }
     
-    # determine fentanyl use
-    fx         <- sample(0:1, size = 1, prob = c(1-ini.OUD.fx, ini.OUD.fx))
+    # # determine fentanyl use
+    # fx         <- sample(0:1, size = 1, prob = c(1-ini.OUD.fx, ini.OUD.fx))
     
     # determine ever overdosed
     if (OU.state == "preb"){
@@ -102,7 +103,7 @@ pop.initiation <- function(initials, seed = 2021){
     init.pop$init.age[i]   <- init.age
     init.pop$init.state[i] <- init.state
     init.pop$ever.od[i]    <- ever.od
-    init.pop$fx[i]         <- fx
+    # init.pop$fx[i]         <- fx
   }
   
   ## NON-OPIOID USE POPULATION
@@ -130,11 +131,11 @@ pop.initiation <- function(initials, seed = 2021){
       age <- init.age <- 65
     }
     
-    # determine fentanyl use
-    fx         <- sample(0:1, size = 1, prob = c(1-ini.NOUD.fx, ini.NOUD.fx))
+    # # determine fentanyl use
+    # fx         <- sample(0:1, size = 1, prob = c(1-ini.NOUD.fx, ini.NOUD.fx))
     
     # determine ever overdosed
-    ever.od    <- 0
+    ever.od    <- sample(0:1, size = 1, prob = c(1-ini.everod.sti, ini.everod.sti))
     
     
     init.pop$sex[i+total.oud]        <- sex
@@ -146,7 +147,7 @@ pop.initiation <- function(initials, seed = 2021){
     init.pop$init.age[i+total.oud]   <- init.age
     init.pop$init.state[i+total.oud] <- init.state
     init.pop$ever.od[i+total.oud]    <- ever.od
-    init.pop$fx[i+total.oud]         <- fx
+    # init.pop$fx[i+total.oud]         <- fx
   }
   return(init.pop)
 }

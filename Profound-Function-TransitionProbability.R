@@ -13,7 +13,8 @@
 #################        Transistion probability function      #########################
 ########################################################################################
 
-trans.prob <- function(pop.t){
+trans.prob <- function(pop.t, vparameters){
+  list2env(vparameters, environment())
   # initialize a matrix to store transition probabilities of each individual
   n.state <- n.state
   trans.prob.matrix <- matrix(NA, n.state + 1, nrow(pop.t)) #add one row for OD
@@ -21,20 +22,6 @@ trans.prob <- function(pop.t){
   
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))                                 
-  # mor.rate[filter(pop.t, age %in% c(10:14) & curr.state != "inact")$ind] <- mor.matrix["drug", "10to14"]
-  # mor.rate[filter(pop.t, age %in% c(15:24) & curr.state != "inact")$ind] <- mor.matrix["drug", "15to24"]
-  # mor.rate[filter(pop.t, age %in% c(25:34) & curr.state != "inact")$ind] <- mor.matrix["drug", "25to34"]
-  # mor.rate[filter(pop.t, age %in% c(35:44) & curr.state != "inact")$ind] <- mor.matrix["drug", "35to44"]
-  # mor.rate[filter(pop.t, age %in% c(45:54) & curr.state != "inact")$ind] <- mor.matrix["drug", "45to54"]
-  # mor.rate[filter(pop.t, age %in% c(55:64) & curr.state != "inact")$ind] <- mor.matrix["drug", "55to64"]
-  # mor.rate[filter(pop.t, age >= 65         & curr.state != "inact")$ind] <- mor.matrix["drug", "65over"]
-  # mor.rate[filter(pop.t, age %in% c(10:14) & curr.state == "inact")$ind] <- mor.matrix["bg", "10to14"]
-  # mor.rate[filter(pop.t, age %in% c(15:24) & curr.state == "inact")$ind] <- mor.matrix["bg", "15to24"]
-  # mor.rate[filter(pop.t, age %in% c(25:34) & curr.state == "inact")$ind] <- mor.matrix["bg", "25to34"]
-  # mor.rate[filter(pop.t, age %in% c(35:44) & curr.state == "inact")$ind] <- mor.matrix["bg", "35to44"]
-  # mor.rate[filter(pop.t, age %in% c(45:54) & curr.state == "inact")$ind] <- mor.matrix["bg", "45to54"]
-  # mor.rate[filter(pop.t, age %in% c(55:64) & curr.state == "inact")$ind] <- mor.matrix["bg", "55to64"]
-  # mor.rate[filter(pop.t, age >= 65         & curr.state == "inact")$ind] <- mor.matrix["bg", "65over"]
   mor.rate[filter(pop.t, age %in% c(10:14))$ind] <- mor.matrix["drug", "10to14"]
   mor.rate[filter(pop.t, age %in% c(15:24))$ind] <- mor.matrix["drug", "15to24"]
   mor.rate[filter(pop.t, age %in% c(25:34))$ind] <- mor.matrix["drug", "25to34"]
@@ -59,7 +46,8 @@ trans.prob <- function(pop.t){
   od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 1 & fx == 1)$ind]  <- od.matrix["il.hr", "subs"]  * multi.fx
   od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 0 & fx == 0)$ind]  <- od.matrix["NODU", "first"]
   od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 1 & fx == 0)$ind]  <- od.matrix["NODU", "subs"]
-  od.rate[filter(pop.t, curr.state == "NODU"                 & fx == 1)$ind]  <- (od.matrix["il.hr", "first"] * multi.NODU.fx + od.matrix["il.lr", "first"] * (1-multi.NODU.fx)) * multi.fx
+  od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 0 & fx == 1)$ind]  <- od.matrix["il.lr", "first"] * multi.NODU.fx * multi.fx
+  od.rate[filter(pop.t, curr.state == "NODU"  & ever.od == 1 & fx == 1)$ind]  <- od.matrix["il.lr", "subs"]  * multi.NODU.fx * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "preb")$ind]  <- od.matrix["preb",  "first"] * multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind]  <- od.matrix["preb",  "subs"] * multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- od.matrix["il.lr", "first"] * multi.relap

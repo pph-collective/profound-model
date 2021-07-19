@@ -10,4 +10,10 @@
 # model outputs
 *.rds
 Archive
+Outputs
+Ignore
+preliminary calibration
+*.Rproj
+*.png
 *.csv
+Inputs/Calib*
