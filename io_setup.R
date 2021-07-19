@@ -1,14 +1,9 @@
-###############################################################################################
-#########################       Input and Output setup     ####################################
-###############################################################################################
+###########################################################################################
+#########################       Input and Output setup     ################################
+###########################################################################################
 
-###############################################################################################
-####    Microsimulation to determine health states and number of overdoses                 ####
-####    6 health states: prescribed, illicit (L/H), inactive, non-opioid, relapsed, death  ####
-####    1 health event:  Overdose                                                          ####
-####    Attributes:      state, age, sex, fentanyl, overdosed, pre.state,                  ####
-####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
-###############################################################################################
+###########################################################################################
+# This is to define all the input and output variables required in the model (consistent across all scenarios)
 
 # INPUT setup
 pop.info <- c(

@@ -45,6 +45,8 @@ WB <- loadWorkbook("Inputs/MasterTable.xlsx")
 Target <- read.xlsx(WB, sheet = "Target")
 tar.data <- Target$pe
 
+
+# Calculate goodness of fit (gof)
 for (ss in 1:nrow(calibration_results)) {
   prediction <- calibration_results[ss, c(
     "od.death16", "od.death17", "od.death18", "od.death19",
@@ -63,8 +65,8 @@ for (ss in 1:nrow(calibration_results)) {
   calibration_results[ss, "gof"] <- gof
 }
 
+# sort by goodness of fit and select top 100 fits
 sorted.mx <- calibration_results[order(calibration_results[, "gof"], decreasing = F), ]
-
 cal_sample <- 100
 calibration_results <- sorted.mx[1:cal_sample, ]
 write.xlsx(calibration_results,
@@ -75,9 +77,7 @@ write.xlsx(calibration_results,
 
 ## save calibrated results as parameter lists (prepare for main analysis)##
 # INPUT PARAMETERS
-# REVIEWED change overall and sp to "overall" and "regional"? sw.EMS.ODloc?
-sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
-# REVIEWED cal_param_names = parameter_names?
+sw.EMS.ODloc <- "overall" # Please choose from "overgit all" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 cal_param_names <- names(calibration_params)
 calibrated_parameters <- list()
 

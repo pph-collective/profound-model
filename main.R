@@ -5,21 +5,24 @@
 ###############################################################################################
 # Main module for the microsimulation of the Profound Naloxone distribution model:
 #
-# Author: Xiao Zang, PhD; Shayla Nolen, MPH
+# Author: Xiao Zang, PhD; Shayla Nolen, MPH; Sam Bessy, MSc
 # Marshall Lab, Department of Epidemiology, Brown University
-#
 # Created: May 06, 2020
-# Last update: April 08, 2021
-#
-###############################################################################################
-#######################           Microsimulation           ###################################
+# Last update: July 17, 2021
+# ATTN: currently not used but will incorporate other main analysis modules here later
 ###############################################################################################
 
 ###############################################################################################
 ####    Individual-based microsimulation                                                   ####
-####    6 health states: prescribed, illicit (L/H), inactive, non-opioid, relapsed, death  ####
+####    7 health states: prescribed (preb), unregulated-injection (unreg.inj)              ####
+####                     unregulated-noninjection (unreg.nin)                              ####
+####                     inactive (inact),  non-opioid drug use (NODU) - stimulant,        ####
+####                     relapsed (relap), death (dead)                                    ####
 ####    1 health event:  Overdose                                                          ####
-####    Attributes:      state, age, sex, fentanyl, overdosed, pre.state,                  ####
+####    Attributes:      age, sex, residence, race,                                        ####
+####                     current state (curr.state), opioid use state (OU.state),          #### 
+####                     initial state (init.state), initial age (inits.age),              ####
+####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
 ####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
 ###############################################################################################
 
@@ -80,27 +83,6 @@ tic("Simulation time: ") # calculate simulation time
 # run for status quo (no intervention)
 sim_sq <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = seed)
 # run for expansion (with intervention)
-exp.lv <- 2 # double all OEND programs
-sim_ep <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
+exp.lv    <- 2  #double all OEND programs
+sim_ep    <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
 toc()
-
-write.csv(sim_sq$m.oddeath, file = out.file, row.names = T)
-
-
-results <- data.frame(matrix(nrow = num_regions * 2, ncol = 6))
-colnames(results) <- c("location", "scenario", "nlx_avail_rate", "nlx_avail", "overdose_deaths_rate", "overdose_deaths")
-
-results$location <- rep(v.region, 2)
-results$scenario <- rep(c("Status Quo", "Double"), each = length(v.region))
-ppl_region <- colSums(Demographic[, -c(1:3)])
-
-results$nlx_avail_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$avail_nlx) / ppl_region * 100000
-results$nlx_avail[results$scenario == "Status Quo"] <- colSums(sim_sq$avail_nlx)
-results$overdose_deaths_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / ppl_region * 100000
-results$overdose_deaths[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ])
-results$nlx_avail_rate[results$scenario == "Double"] <- colSums(sim_ep$avail_nlx) / ppl_region * 100000
-results$nlx_avail[results$scenario == "Double"] <- colSums(sim_ep$avail_nlx)
-results$overdose_deaths_rate[results$scenario == "Double"] <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / ppl_region * 100000
-results$overdose_deaths[results$scenario == "Double"] <- round(colSums(sim_ep$m.oddeath[49:60, ] * 0.8), 0)
-
-write.csv(results, file = ("overdose_deaths.csv"))

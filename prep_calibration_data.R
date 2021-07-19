@@ -9,6 +9,8 @@
 # Created: Dec 30, 2020
 # Last update: June 23, 2021
 #
+# Purpose: Prepares all data required for calibration script
+#
 ##################################################################################
 ###################        Cost effectiveness analysis      ######################
 ##################################################################################
@@ -53,8 +55,6 @@ for (bb in 1:(sample.size / batch.size)) {
   ii <- 1
   tic("inner loop")
   for (cc in batch.bgn:batch.end) {
-    stopifnot(ii + batch.bgn - 1 == cc)
-    stopifnot(ii == cc - batch.bgn + 1)
     for (pp in 1:length(cal_param_names)) {
       params[[cal_param_names[pp]]] <- calib.par[cc, pp]
     }

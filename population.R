@@ -10,7 +10,8 @@
 # Last update: May 30, 2020
 #
 ########################################################################################
-#################        Population creation function      #############################
+#################        Population creation/initialization function      ##############
+# To initialize study population at time = 0, define all individual attributes
 ########################################################################################
 
 initiate_ppl <- function(initials, seed = 2021) {

@@ -3,6 +3,18 @@
 ###############################################################################################
 #######################        Model calibration runs         #################################
 ###############################################################################################
+###############################################################################################
+####    1st step of Calibration: create random parameter samples and simulate over them    ####
+####    3 sets of targets:  annual # overdose deaths:       od.deathYR (YR for year)       ####
+####                        % of overdose death with fentanyl present:    fx.deathYR       ####
+####                        annual # ED visits due to overdose:           ed.visitYR       ####
+####    Calibrate multiple parameters (calib.par) simultaneously                           ####
+####    Targets at the state level, 2016-2019                                              ####
+####    Method: random calibration with Latin hypercube sampling                           ####
+####    DUE to large samples, run calibration simulation with parallel in batches          ####
+####    AFTER finishing all batches, run ResultAnalysis.R for the next step                ####
+###############################################################################################
+rm(list=ls())
 # Module for running model with uncalibrated data in parallel over calibration period
 #
 # Authors: Xiao Zang, PhD, Sam Bessey, MS
@@ -37,7 +49,7 @@ if (length(args) == 0) {
   outpath <- strtoi(args[2])
   cores <- strtoi(args[3])
 }
-batch.size <- 100000 # define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
+batch.size   <- 1000000  #define the size of each batch of calibration simulations (default: 1 million), by default we have 10 batches, each with 100000 simulations
 
 
 # make and register the cluster given the provided number of cores

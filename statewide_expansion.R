@@ -1,4 +1,7 @@
-
+#######################################################################################################
+#####################            Sensitivity analysis - statewide program             #################
+#######################################################################################################
+# To assess the impact of statewide program (naloxone increase by the same multiplier in all regions)
 
 #############################################################################
 # 1. SET directory and workspace
@@ -10,7 +13,7 @@ args <- commandArgs(trailingOnly = TRUE)
 seed <- 2021
 sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 
-# LOAD packages and functions
+## LOAD packages and functions
 library(openxlsx)
 library(dplyr)
 library(abind)
@@ -42,6 +45,7 @@ simulation_data <- readRDS(file = paste0("calibration/CalibratedData.rds"))
 simulation_seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
 simulation_seed <- simulation_seed[1:50]
 
+#define different statewide program expansion scenarios, including a 0 level and a saturation level
 scenario.name <- c("Zero", "Status Quo", "Double", "Five times", "Ten times", "Saturation")
 expand.level <- c(0, 1, 2, 5, 10, 10000)
 od.death.mx.last <- od.death.mx.wtns <- matrix(0, nrow = length(simulation_seed), ncol = length(scenario.name))
@@ -50,6 +54,7 @@ colnames(od.death.mx.last) <- colnames(od.death.mx.wtns) <- scenario.name
 for (ss in 1:length(simulation_seed)) {
   print(paste0("Parameter set: ", ss))
   params.temp <- simulation_data[[ss]]
+  # ATTN: These two lines are temporary, to remove pharm nx and make nx effect 90%
   params.temp$NxDataPharm$pe <- 0
   params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
   sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
