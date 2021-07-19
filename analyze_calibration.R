@@ -77,42 +77,41 @@ write.xlsx(calibration_results,
 # INPUT PARAMETERS
 # REVIEWED change overall and sp to "overall" and "regional"? sw.EMS.ODloc?
 sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
-# REVIEWED nm.calp = parameter_names?
-nm.calp <- names(calibration_params)
-calibrated.parameters <- list()
+# REVIEWED cal_param_names = parameter_names?
+cal_param_names <- names(calibration_params)
+calibrated_parameters <- list()
 
 
-# REVIEWED: random sampling, save list of parameters
 # for each selected calibration run, determine the run's parameters
 for (cc in 1:nrow(calibration_results)) {
-  for (pp in 1:length(nm.calp)) {
-    params[[nm.calp[pp]]] <- calibration_results[cc, nm.calp[pp]]
+  for (pp in 1:length(cal_param_names)) {
+    params[[cal_param_names[pp]]] <- calibration_results[cc, cal_param_names[pp]]
   }
   # Overdose probability parameter matrix (per month)
-  od.matrix <- matrix(0, nrow = 4, ncol = 2)
-  rownames(od.matrix) <- c("preb", "il.lr", "il.hr", "NODU")
-  colnames(od.matrix) <- c("first", "subs")
-  od.matrix["preb", "subs"] <- params$od.preb.sub
-  od.matrix["il.lr", "subs"] <- params$od.il.lr.sub
-  od.matrix["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-  od.matrix["NODU", "subs"] <- params$od.NODU.sub
-  od.matrix[, "first"] <- od.matrix[, "subs"] / params$multi.sub
-  params$od.matrix <- od.matrix
+  overdose_probs <- matrix(0, nrow = 4, ncol = 2)
+  rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+  colnames(overdose_probs) <- c("first", "subs")
+  overdose_probs["preb", "subs"] <- params$od.preb.sub
+  overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
+  overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
+  overdose_probs["NODU", "subs"] <- params$od.NODU.sub
+  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+  params$overdose_probs <- overdose_probs
 
   # Baseline mortality parameters, excluding overdose (per month)
-  mor.matrix <- matrix(0, nrow = 2, ncol = length(mor.gp))
-  rownames(mor.matrix) <- c("bg", "drug")
-  colnames(mor.matrix) <- mor.gp
-  mor.matrix["bg", ] <- params$mor.bg
-  mor.matrix["drug", ] <- params$mor.drug
-  params$mor.matrix <- mor.matrix
+  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  rownames(mortality_probs) <- c("bg", "drug")
+  colnames(mortality_probs) <- mor.gp
+  mortality_probs["bg", ] <- params$mor.bg
+  mortality_probs["drug", ] <- params$mor.drug
+  params$mortality_probs <- mortality_probs
   params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
 
-  calibrated.parameters[[cc]] <- params
+  calibrated_parameters[[cc]] <- params
 }
 
 # alibrated.seed <- calibration_results[,"seed"]
-saveRDS(calibrated.parameters, file = paste0("calibration/CalibratedData.rds"))
+saveRDS(calibrated_parameters, file = paste0("calibration/CalibratedData.rds"))
 saveRDS(calibration_results[, "seed"], file = paste0("calibration/CalibratedSeed.rds"))
 
 
@@ -152,7 +151,7 @@ legend("top",
 #        lwd=c(1.2, 1, 0.5), lty = c(1, NA, NA), pch=c(16, 16,16), pt.cex = c(1,1.1,1), cex = 0.8, bty = "n")
 
 
-md.fxoddeath <- apply(calibration_results[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
+mean_fxdeath <- apply(calibration_results[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
 # REVIEWED: change from hardcoded ylim; mean instead of median for everything
 plot(
   x = 2016:2019, tar.data[5:8], col = "black", pch = 18, xlab = "Year", ylab = "Proportion of OOD deaths with fentanyl present", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
@@ -162,7 +161,7 @@ plot(
 for (i in 1:cal_sample) {
   lines(x = 2016:2019, y = calibration_results[i, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
 }
-lines(x = 2016:2019, y = md.fxoddeath, col = "red", lwd = 3)
+lines(x = 2016:2019, y = mean_fxdeath, col = "red", lwd = 3)
 points(x = 2016:2019, tar.data[5:8], col = "black", pch = 16, cex = 1.2, cex.axis = 0.95)
 axis(1, at = 2016:2019, pos = 0, lwd.ticks = 0, cex.axis = 1.2)
 axis(2, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), labels = c("0", "20%", "40%", "60%", "80%", "100%"), cex.axis = 1.2)
@@ -199,17 +198,17 @@ legend("bottom",
 )
 
 
-nm.calp <- names(calibration_params)
+cal_param_names <- names(calibration_params)
 
 
-calib.post <- calibration_results[, (dim(calibration_results)[2] - length(nm.calp) + 1):dim(calibration_results)[2]]
+calib.post <- calibration_results[, (dim(calibration_results)[2] - length(cal_param_names) + 1):dim(calibration_results)[2]]
 # REVIEWED par -> param
 par <- rep(colnames(calib.post), 2)
 # REVIEWED pe = point estimate, lend = lower end, uend = upper end
-case <- c(rep("prior", length(nm.calp)), rep("posterior", length(nm.calp)))
-pe <- rep(0, length(nm.calp) * 2)
-lend <- rep(0, length(nm.calp) * 2)
-uend <- rep(0, length(nm.calp) * 2)
+case <- c(rep("prior", length(cal_param_names)), rep("posterior", length(cal_param_names)))
+pe <- rep(0, length(cal_param_names) * 2)
+lend <- rep(0, length(cal_param_names) * 2)
+uend <- rep(0, length(cal_param_names) * 2)
 
 ggplot.data <- data.frame(par = par, case = case, pe = pe, lend = lend, uend = uend)
 CalibPar <- read.xlsx("Inputs/MasterTable.xlsx", sheet = "CalibPar")

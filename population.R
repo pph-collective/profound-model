@@ -44,7 +44,8 @@ initiate_ppl <- function(initials, seed = 2021) {
     set.seed(seed + i)
     # determine demographic
     demo.ind <- sample(1:nrow(oud_demo), size = 1, prob = oud_demo[, oud.region.ind[i]])
-    sex <- v.demo.sex[demo.ind]
+    sex <- Demographic$sex[demo.ind]
+    # sex <- v.demo.sex[demo.ind]
     race <- v.demo.race[demo.ind]
     age.ind <- v.demo.age[demo.ind]
     if (age.ind == "12to17") {
@@ -63,8 +64,8 @@ initiate_ppl <- function(initials, seed = 2021) {
 
     # determine opioid use state
     oud.state <- agent_states[1:4]
-    oud.prob.m <- c((1 - ini.inact) * (1 - ini.il.m), (1 - ini.inact) * ini.il.m * (1 - ini.il.hr.m), (1 - ini.inact) * ini.il.m * ini.il.hr.m, ini.inact)
-    oud.prob.f <- c((1 - ini.inact) * (1 - ini.il.f), (1 - ini.inact) * ini.il.f * (1 - ini.il.hr.f), (1 - ini.inact) * ini.il.f * ini.il.hr.f, ini.inact)
+    oud.prob.m <- c((1 - init_inactive) * (1 - ini.il.m), (1 - init_inactive) * ini.il.m * (1 - ini.il.hr.m), (1 - init_inactive) * ini.il.m * ini.il.hr.m, init_inactive)
+    oud.prob.f <- c((1 - init_inactive) * (1 - ini.il.f), (1 - init_inactive) * ini.il.f * (1 - ini.il.hr.f), (1 - init_inactive) * ini.il.f * ini.il.hr.f, init_inactive)
     if (sex == "m") {
       curr.state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.m)]
     } else {
@@ -114,7 +115,8 @@ initiate_ppl <- function(initials, seed = 2021) {
 
     # determine demographic
     demo.ind <- sample(1:nrow(nodu_demo), size = 1, prob = nodu_demo[, nodu.region.ind[i]])
-    sex <- v.demo.sex[demo.ind]
+    # sex <- v.demo.sex[demo.ind]
+    sex <- Demographic$sex[demo.ind]
     race <- v.demo.race[demo.ind]
     age.ind <- v.demo.age[demo.ind]
     if (age.ind == "12to17") {

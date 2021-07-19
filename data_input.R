@@ -30,14 +30,13 @@ demo.mx <- data.matrix(Demographic[, 4:ncol(Demographic)])
 v.region <- colnames(Demographic)[-c(1:3)] # region names (city/town)
 # REVIEWED don't need to create new variable \ ditto, why not just use Demographics$* when you want these things?
 params$v.region <- v.region
-v.demo.sex <- Demographic$sex
+# v.demo.sex <- Demographic$sex
 v.demo.race <- Demographic$race
 v.demo.age <- Demographic$age
 
 OUDDemo <- read.xlsx(WB, sheet = "OUDPrevNSDUH")$pe
 StimDemo <- read.xlsx(WB, sheet = "StimPrevNSDUH")$pe
 
-# initials <- list() initials$<> <- <>
 # REVIEWED init = initial, lr/hr lowrisk/highrisk, il = illegal, inact = inactive, gw = annual growth rate of fx exposure, preb = prescription, opioid_use_patterns
 # why create all these variables and then put them into a dataframe? Wastes memory
 OpioidPattern <- read.xlsx(WB, sheet = "OpioidPattern")
@@ -45,7 +44,7 @@ ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"]) # % of illicit
 ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"]) # % of illicite opioid use among OUD ppl
 ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"]) # % of high-risk among illicit opioid ppl
 ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"]) # % of high-risk among illicit opioid ppl
-ini.inact <- with(OpioidPattern, pe[par == "ini.inact"])
+init_inactive <- with(OpioidPattern, pe[par == "init_inactive"])
 init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
 gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
 ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
@@ -59,7 +58,7 @@ ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
 # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
 initials <- list(
   ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
-  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, ini.inact = ini.inact,
+  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
   # init_oud_fx = init_oud_fx, ini.NOUD.fx = ini.NOUD.fx,
   ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr
 )
@@ -174,20 +173,20 @@ params$c.EMS <- with(Cost, pe[par == "c.EMS"])
 params$c.hospcare <- with(Cost, pe[par == "c.hospcare"])
 
 # Overdose probability matrix (per month)
-od.matrix <- matrix(0, nrow = 4, ncol = 2)
-rownames(od.matrix) <- c("preb", "il.lr", "il.hr", "NODU")
-colnames(od.matrix) <- c("first", "subs")
-od.matrix["preb", "subs"] <- params$od.preb.sub
-od.matrix["il.lr", "subs"] <- params$od.il.lr.sub
-od.matrix["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-od.matrix["NODU", "subs"] <- params$od.NODU.sub
-od.matrix[, "first"] <- od.matrix[, "subs"] / params$multi.sub
-params$od.matrix <- od.matrix
+overdose_probs <- matrix(0, nrow = 4, ncol = 2)
+rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+colnames(overdose_probs) <- c("first", "subs")
+overdose_probs["preb", "subs"] <- params$od.preb.sub
+overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
+overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
+overdose_probs["NODU", "subs"] <- params$od.NODU.sub
+overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+params$overdose_probs <- overdose_probs
 
 # Baseline mortality excluding overdose (per month)
-mor.matrix <- matrix(0, nrow = 2, ncol = length(mor.gp))
-rownames(mor.matrix) <- c("bg", "drug")
-colnames(mor.matrix) <- mor.gp
-mor.matrix["bg", ] <- params$mor.bg
-mor.matrix["drug", ] <- params$mor.drug
-params$mor.matrix <- mor.matrix
+mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+rownames(mortality_probs) <- c("bg", "drug")
+colnames(mortality_probs) <- mor.gp
+mortality_probs["bg", ] <- params$mor.bg
+mortality_probs["drug", ] <- params$mor.drug
+params$mortality_probs <- mortality_probs

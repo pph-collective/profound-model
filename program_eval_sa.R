@@ -53,24 +53,24 @@ if (file.exists(paste0("Inputs/InitialPopulation.rds"))) {
   saveRDS(init_ppl, paste0("Inputs/InitialPopulation.rds"))
 }
 
-sim.data.ls <- readRDS(file = paste0("calibration/CalibratedData.rds"))
-sim.seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
-sim.seed <- sim.seed[1:100]
+simulation_data <- readRDS(file = paste0("calibration/CalibratedData.rds"))
+simulation_seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
+simulation_seed <- simulation_seed[1:100]
 
-sq.dh.mx <- sq.nx.mx <- matrix(0, nrow = length(v.region), ncol = length(sim.seed))
-pg.dh.ar <- pg.nx.ar <- array(0, dim = c(dim(pg.add.array)[1], length(v.region), length(sim.seed)))
-nlx.used.mx <- matrix(0, nrow = length(sim.seed), ncol = 1 + length(pg.levels))
-od.death.mx <- matrix(0, nrow = length(sim.seed), ncol = 1 + length(pg.levels))
+sq.dh.mx <- sq.nx.mx <- matrix(0, nrow = length(v.region), ncol = length(simulation_seed))
+pg.dh.ar <- pg.nx.ar <- array(0, dim = c(dim(pg.add.array)[1], length(v.region), length(simulation_seed)))
+nlx.used.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(pg.levels))
+od.death.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(pg.levels))
 scenario.name <- c("Status Quo", "100% increase", "500% increase", "1000% increase", "2000% increase", "5000% increase")
 colnames(nlx.used.mx) <- scenario.name
 colnames(od.death.mx) <- scenario.name
 
-for (ss in 1:length(sim.seed)) {
+for (ss in 1:length(simulation_seed)) {
   print(paste0("Parameter set: ", ss))
-  params.temp <- sim.data.ls[[ss]]
+  params.temp <- simulation_data[[ss]]
   params.temp$NxDataPharm$pe <- 0
   params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
-  sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "SQ", seed = sim.seed[ss]) # run for status quo
+  sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "SQ", seed = simulation_seed[ss]) # run for status quo
   sq.dh.mx[, ss] <- colSums(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
   sq.nx.mx[, ss] <- colSums(sim_sq$n.nlx.OEND.str)
   nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$v.nlxused[(timesteps - 11):timesteps])
@@ -78,7 +78,7 @@ for (ss in 1:length(sim.seed)) {
 
   for (ll in 1:dim(pg.add.array)[1]) {
     params.temp$pg.add <- pg.add.array[ll, , ]
-    sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "program", seed = sim.seed[ss]) # run for program scenario
+    sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, Str = "program", seed = simulation_seed[ss]) # run for program scenario
     pg.dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
     pg.nx.ar[ll, , ss] <- colSums(sim_pg$n.nlx.OEND.str)
     nlx.used.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$v.nlxused[(timesteps - 11):timesteps])

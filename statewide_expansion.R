@@ -38,32 +38,32 @@ if (file.exists(paste0("Inputs/InitialPopulation.rds"))) {
   saveRDS(init_ppl, paste0("Inputs/InitialPopulation.rds"))
 }
 
-sim.data.ls <- readRDS(file = paste0("calibration/CalibratedData.rds"))
-sim.seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
-sim.seed <- sim.seed[1:50]
+simulation_data <- readRDS(file = paste0("calibration/CalibratedData.rds"))
+simulation_seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
+simulation_seed <- simulation_seed[1:50]
 
 scenario.name <- c("Zero", "Status Quo", "Double", "Five times", "Ten times", "Saturation")
 expand.level <- c(0, 1, 2, 5, 10, 10000)
-od.death.mx.last <- od.death.mx.wtns <- matrix(0, nrow = length(sim.seed), ncol = length(scenario.name))
+od.death.mx.last <- od.death.mx.wtns <- matrix(0, nrow = length(simulation_seed), ncol = length(scenario.name))
 colnames(od.death.mx.last) <- colnames(od.death.mx.wtns) <- scenario.name
 
-for (ss in 1:length(sim.seed)) {
+for (ss in 1:length(simulation_seed)) {
   print(paste0("Parameter set: ", ss))
-  params.temp <- sim.data.ls[[ss]]
+  params.temp <- simulation_data[[ss]]
   params.temp$NxDataPharm$pe <- 0
   params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
-  sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = sim.seed[ss]) # run for status quo
+  sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
   od.death.mx.last[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
   od.death.mx.wtns[ss, "Status Quo"] <- sum(sim_sq$v.oddeath.w[(timesteps - 11):timesteps])
 
   exp.lv <- 0
-  sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "expand", seed = sim.seed[ss]) # run for program scenario
+  sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "expand", seed = simulation_seed[ss]) # run for program scenario
   od.death.mx.last[ss, "Zero"] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
   od.death.mx.wtns[ss, "Zero"] <- sum(sim_pg$v.oddeath.w[(timesteps - 11):timesteps])
 
   for (jj in 3:length(expand.level)) {
     exp.lv <- expand.level[jj]
-    sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "expand", seed = sim.seed[ss]) # run for program scenario
+    sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "expand", seed = simulation_seed[ss]) # run for program scenario
     od.death.mx.last[ss, jj] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
     od.death.mx.wtns[ss, jj] <- sum(sim_pg$v.oddeath.w[(timesteps - 11):timesteps])
   }

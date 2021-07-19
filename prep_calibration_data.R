@@ -42,7 +42,7 @@ saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))
 # }
 toc()
 
-nm.calp <- names(calib.par)
+cal_param_names <- names(calib.par)
 
 calib.parameters <- list()
 
@@ -55,27 +55,27 @@ for (bb in 1:(sample.size / batch.size)) {
   for (cc in batch.bgn:batch.end) {
     stopifnot(ii + batch.bgn - 1 == cc)
     stopifnot(ii == cc - batch.bgn + 1)
-    for (pp in 1:length(nm.calp)) {
-      params[[nm.calp[pp]]] <- calib.par[cc, pp]
+    for (pp in 1:length(cal_param_names)) {
+      params[[cal_param_names[pp]]] <- calib.par[cc, pp]
     }
     # Overdose probability matrix (per month)
-    od.matrix <- matrix(0, nrow = 4, ncol = 2)
-    rownames(od.matrix) <- c("preb", "il.lr", "il.hr", "NODU")
-    colnames(od.matrix) <- c("first", "subs")
-    od.matrix["preb", "subs"] <- params$od.preb.sub
-    od.matrix["il.lr", "subs"] <- params$od.il.lr.sub
-    od.matrix["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-    od.matrix["NODU", "subs"] <- params$od.NODU.sub
-    od.matrix[, "first"] <- od.matrix[, "subs"] / params$multi.sub
-    params$od.matrix <- od.matrix
+    overdose_probs <- matrix(0, nrow = 4, ncol = 2)
+    rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+    colnames(overdose_probs) <- c("first", "subs")
+    overdose_probs["preb", "subs"] <- params$od.preb.sub
+    overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
+    overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
+    overdose_probs["NODU", "subs"] <- params$od.NODU.sub
+    overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+    params$overdose_probs <- overdose_probs
 
     # Baseline mortality excluding overdose (per month)
-    mor.matrix <- matrix(0, nrow = 2, ncol = length(mor.gp))
-    rownames(mor.matrix) <- c("bg", "drug")
-    colnames(mor.matrix) <- mor.gp
-    mor.matrix["bg", ] <- params$mor.bg
-    mor.matrix["drug", ] <- params$mor.drug
-    params$mor.matrix <- mor.matrix
+    mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+    rownames(mortality_probs) <- c("bg", "drug")
+    colnames(mortality_probs) <- mor.gp
+    mortality_probs["bg", ] <- params$mor.bg
+    mortality_probs["drug", ] <- params$mor.drug
+    params$mortality_probs <- mortality_probs
     params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
 
     calib.parameters[[ii]] <- params
@@ -92,28 +92,28 @@ calib.par$batch_number <- (as.integer(rownames(calib.par)) - 1) / (batch.size) +
 calib.par$batch_number <- trunc(calib.par$batch_number)
 
 prep_data <- function(cc) {
-  for (pp in 1:length(nm.calp)) {
-    params[[nm.calp[pp]]] <- calib.par[cc, pp]
+  for (pp in 1:length(cal_param_names)) {
+    params[[cal_param_names[pp]]] <- calib.par[cc, pp]
   }
   ii <- cc - batch.bgn + 1
   # Overdose probability matrix (per month)
-  od.matrix <- matrix(0, nrow = 4, ncol = 2)
-  rownames(od.matrix) <- c("preb", "il.lr", "il.hr", "NODU")
-  colnames(od.matrix) <- c("first", "subs")
-  od.matrix["preb", "subs"] <- params$od.preb.sub
-  od.matrix["il.lr", "subs"] <- params$od.il.lr.sub
-  od.matrix["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-  od.matrix["NODU", "subs"] <- params$od.NODU.sub
-  od.matrix[, "first"] <- od.matrix[, "subs"] / params$multi.sub
-  params$od.matrix <- od.matrix
+  overdose_probs <- matrix(0, nrow = 4, ncol = 2)
+  rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+  colnames(overdose_probs) <- c("first", "subs")
+  overdose_probs["preb", "subs"] <- params$od.preb.sub
+  overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
+  overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
+  overdose_probs["NODU", "subs"] <- params$od.NODU.sub
+  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+  params$overdose_probs <- overdose_probs
 
   # Baseline mortality excluding overdose (per month)
-  mor.matrix <- matrix(0, nrow = 2, ncol = length(mor.gp))
-  rownames(mor.matrix) <- c("bg", "drug")
-  colnames(mor.matrix) <- mor.gp
-  mor.matrix["bg", ] <- params$mor.bg
-  mor.matrix["drug", ] <- params$mor.drug
-  params$mor.matrix <- mor.matrix
+  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  rownames(mortality_probs) <- c("bg", "drug")
+  colnames(mortality_probs) <- mor.gp
+  mortality_probs["bg", ] <- params$mor.bg
+  mortality_probs["drug", ] <- params$mor.drug
+  params$mortality_probs <- mortality_probs
   params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
 
   calib.parameters[[ii]] <- params
