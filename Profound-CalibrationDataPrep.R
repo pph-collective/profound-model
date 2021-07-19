@@ -1,3 +1,11 @@
+################################################################################################
+#########################       Calibration data preparation     ###############################
+################################################################################################
+
+################################################################################################
+# This is to prepare all the data required by the calibration procedure
+# Load random samples for model parameters (based on latin hypercube sampling) and combine other parameters (uncalibrated) and save as parameter lists
+
 #Load required packages
 library(dplyr)
 library(abind)

@@ -4,9 +4,15 @@
 
 ###############################################################################################
 ####    Microsimulation to determine health states and number of overdoses                 ####
-####    6 health states: prescribed, illicit (L/H), inactive, non-opioid, relapsed, death  ####
+####    7 health states: prescribed (preb), unregulated-injection (unreg.inj)              ####
+####                     unregulated-noninjection (unreg.nin)                              ####
+####                     inactive (inact),  non-opioid drug use (NODU) - stimulant,        ####
+####                     relapsed (relap), death (dead)                                    ####
 ####    1 health event:  Overdose                                                          ####
-####    Attributes:      state, age, sex, fentanyl, overdosed, pre.state,                  ####
+####    Attributes:      age, sex, residence, race,                                        ####
+####                     current state (curr.state), opioid use state (OU.state),          #### 
+####                     initial state (init.state), initial age (inits.age),              ####
+####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
 ####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
 ###############################################################################################
 
@@ -21,7 +27,6 @@ MicroSim <- function(init.pop, vparameters, n.t, v.state, d.c, PT.out = TRUE, St
   # PT.out:        should the output include a Microsimulation trace? (default is TRUE)
   # Str:           simulating strategy
   # seed:          starting seed number for random number generator (default is 1)
-  # Makes use of:
   # trans.prob:    function for the estimation of transition probabilities
   # Costs:         function for the estimation of cost state values
   # decision.tree: function for the decision tree module

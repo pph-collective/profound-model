@@ -22,20 +22,6 @@ trans.prob <- function(pop.t, vparameters){
   
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))                                 
-  # mor.rate[filter(pop.t, age %in% c(10:14) & curr.state != "inact")$ind] <- mor.matrix["drug", "10to14"]
-  # mor.rate[filter(pop.t, age %in% c(15:24) & curr.state != "inact")$ind] <- mor.matrix["drug", "15to24"]
-  # mor.rate[filter(pop.t, age %in% c(25:34) & curr.state != "inact")$ind] <- mor.matrix["drug", "25to34"]
-  # mor.rate[filter(pop.t, age %in% c(35:44) & curr.state != "inact")$ind] <- mor.matrix["drug", "35to44"]
-  # mor.rate[filter(pop.t, age %in% c(45:54) & curr.state != "inact")$ind] <- mor.matrix["drug", "45to54"]
-  # mor.rate[filter(pop.t, age %in% c(55:64) & curr.state != "inact")$ind] <- mor.matrix["drug", "55to64"]
-  # mor.rate[filter(pop.t, age >= 65         & curr.state != "inact")$ind] <- mor.matrix["drug", "65over"]
-  # mor.rate[filter(pop.t, age %in% c(10:14) & curr.state == "inact")$ind] <- mor.matrix["bg", "10to14"]
-  # mor.rate[filter(pop.t, age %in% c(15:24) & curr.state == "inact")$ind] <- mor.matrix["bg", "15to24"]
-  # mor.rate[filter(pop.t, age %in% c(25:34) & curr.state == "inact")$ind] <- mor.matrix["bg", "25to34"]
-  # mor.rate[filter(pop.t, age %in% c(35:44) & curr.state == "inact")$ind] <- mor.matrix["bg", "35to44"]
-  # mor.rate[filter(pop.t, age %in% c(45:54) & curr.state == "inact")$ind] <- mor.matrix["bg", "45to54"]
-  # mor.rate[filter(pop.t, age %in% c(55:64) & curr.state == "inact")$ind] <- mor.matrix["bg", "55to64"]
-  # mor.rate[filter(pop.t, age >= 65         & curr.state == "inact")$ind] <- mor.matrix["bg", "65over"]
   mor.rate[filter(pop.t, age %in% c(10:14))$ind] <- mor.matrix["drug", "10to14"]
   mor.rate[filter(pop.t, age %in% c(15:24))$ind] <- mor.matrix["drug", "15to24"]
   mor.rate[filter(pop.t, age %in% c(25:34))$ind] <- mor.matrix["drug", "25to34"]

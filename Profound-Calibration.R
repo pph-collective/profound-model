@@ -1,6 +1,18 @@
 ###############################################################################################
 #######################           Model calibration           #################################
 ###############################################################################################
+
+###############################################################################################
+####    1st step of Calibration: create random parameter samples and simulate over them    ####
+####    3 sets of targets:  annual # overdose deaths:       od.deathYR (YR for year)       ####
+####                        % of overdose death with fentanyl present:    fx.deathYR       ####
+####                        annual # ED visits due to overdose:           ed.visitYR       ####
+####    Calibrate multiple parameters (calib.par) simultaneously                           ####
+####    Targets at the state level, 2016-2019                                              ####
+####    Method: random calibration with Latin hypercube sampling                           ####
+####    DUE to large samples, run calibration simulation with parallel in batches          ####
+####    AFTER finishing all batches, run ResultAnalysis.R for the next step                ####
+###############################################################################################
 rm(list=ls())
 
 # ## Model setup parameters ##
@@ -16,7 +28,7 @@ if (length(args) == 0){
   outpath <- strtoi(args[2])
   cores <- strtoi(args[3])
 }
-batch.size   <- 100000  #define the size of each batch of calibration simulations, default we have 10 batches, each with 100000 simulations
+batch.size   <- 1000000  #define the size of each batch of calibration simulations (default: 1 million), by default we have 10 batches, each with 100000 simulations
 
 #Load required packages
 print("Loading required packages")
@@ -59,7 +71,7 @@ if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
   row.names(parRange) <- CalibPar$par
   set.seed(5112021)
   calib.par <- Latinhyper(parRange, sample.size)            #use latin hypercube to draw random samples for parameters
-  calib.par <- data.frame(calib.par)
+  calib.par <- data.frame(calib.par)                        #convert calib.par into a data frame
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds"))  #save sampled calibration parameter values
   source("Profound-CalibrationDataPrep.R")                  #prepare calibration data (as lists) and save them in rds files
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
@@ -99,7 +111,7 @@ calib.results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .
   outcomes
 }
 
-calib.rs.table[,3:14] <- calib.results   #pass calibration results to results table
+calib.rs.table[,3:14] <- calib.results   #pass calibration results (correspond to targets) to results table
 saveRDS(calib.rs.table, paste0("CalibrationOutputs", batch.ind, ".rds")) #save calibration results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
 # stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)
