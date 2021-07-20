@@ -31,9 +31,7 @@ batch.size <- 5
 
 ## Model parameter updates for calibration process ##
 tic("parameter updates")
-# if(file.exists(paste0("Inputs/Calib_par_table.rds"))){
-#   calib.par  <- readRDS(paste0("Inputs/Calib_par_table.rds"))
-# } else {
+
 CalibPar <- read.xlsx(WB, sheet = "CalibPar")
 parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
 row.names(parRange) <- CalibPar$par

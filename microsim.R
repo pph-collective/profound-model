@@ -10,7 +10,7 @@
 ####                     relapsed (relap), death (dead)                                    ####
 ####    1 health event:  Overdose                                                          ####
 ####    Attributes:      age, sex, residence, race,                                        ####
-####                     current state (curr.state), opioid use state (OU.state),          #### 
+####                     current state (curr.state), opioid use state (OU.state),          ####
 ####                     initial state (init.state), initial age (inits.age),              ####
 ####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
 ####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####

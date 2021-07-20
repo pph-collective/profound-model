@@ -43,9 +43,9 @@ if (file.exists(paste0("Inputs/InitialPopulation.rds"))) {
 
 simulation_data <- readRDS(file = paste0("calibration/CalibratedData.rds"))
 simulation_seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
-simulation_seed <- simulation_seed[1:50]
+simulation_seed <- simulation_seed[1:1]
 
-#define different statewide program expansion scenarios, including a 0 level and a saturation level
+# define different statewide program expansion scenarios, including a 0 level and a saturation level
 scenario.name <- c("Zero", "Status Quo", "Double", "Five times", "Ten times", "Saturation")
 expand.level <- c(0, 1, 2, 5, 10, 10000)
 od.death.mx.last <- od.death.mx.wtns <- matrix(0, nrow = length(simulation_seed), ncol = length(scenario.name))

@@ -93,43 +93,43 @@ for (ss in 1:length(simulation_seed)) {
   }
 }
 
-pop.rgn  <- colSums(Demographic[ , -c(1:3)])   #population in each region (for calculation of rate)
+pop.rgn <- colSums(Demographic[, -c(1:3)]) # population in each region (for calculation of rate)
 
-NoDeaths <- data.frame(matrix(nrow = n.rgn * (1+dim(pg.add.array)[1]), ncol = 5))
+NoDeaths <- data.frame(matrix(nrow = n.rgn * (1 + dim(pg.add.array)[1]), ncol = 5))
 x <- c("location", "scenario", "mean", "upper", "lower")
 colnames(NoDeaths) <- x
-NoDeaths$location <- rep(v.rgn, 1+dim(pg.add.array)[1])
+NoDeaths$location <- rep(v.rgn, 1 + dim(pg.add.array)[1])
 
-NoDeaths$scenario <- rep(scenario.name, each  = length(v.rgn))
+NoDeaths$scenario <- rep(scenario.name, each = length(v.rgn))
 
 RateNlx <- NoNlx <- RateDeaths <- NoDeaths
-#Number of deaths
-NoDeaths$mean[NoDeaths$scenario == "Status Quo"]  <- apply(sq.dh.mx, 1, mean)
+# Number of deaths
+NoDeaths$mean[NoDeaths$scenario == "Status Quo"] <- apply(sq.dh.mx, 1, mean)
 NoDeaths$upper[NoDeaths$scenario == "Status Quo"] <- apply(sq.dh.mx, 1, quantile, probs = 0.975)
 NoDeaths$lower[NoDeaths$scenario == "Status Quo"] <- apply(sq.dh.mx, 1, quantile, probs = 0.025)
 
-for (sc in 2:length(scenario.name)){
-  NoDeaths$mean[NoDeaths$scenario == scenario.name[sc]]  <- apply(pg.dh.ar[sc-1,,], 1, mean)
-  NoDeaths$upper[NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc-1,,], 1, quantile, probs = 0.975)
-  NoDeaths$lower[NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc-1,,], 1, quantile, probs = 0.025)
+for (sc in 2:length(scenario.name)) {
+  NoDeaths$mean[NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc - 1, , ], 1, mean)
+  NoDeaths$upper[NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc - 1, , ], 1, quantile, probs = 0.975)
+  NoDeaths$lower[NoDeaths$scenario == scenario.name[sc]] <- apply(pg.dh.ar[sc - 1, , ], 1, quantile, probs = 0.025)
 }
 
-#Rate of deaths
-RateDeaths[ , c("mean", "upper", "lower")] <- NoDeaths[ , c("mean", "upper", "lower")] / pop.rgn * 100000
+# Rate of deaths
+RateDeaths[, c("mean", "upper", "lower")] <- NoDeaths[, c("mean", "upper", "lower")] / pop.rgn * 100000
 
-#Number of Naloxone kits
-NoNlx$mean[NoNlx$scenario == "Status Quo"]  <- apply(sq.nx.mx, 1, mean)
+# Number of Naloxone kits
+NoNlx$mean[NoNlx$scenario == "Status Quo"] <- apply(sq.nx.mx, 1, mean)
 NoNlx$upper[NoNlx$scenario == "Status Quo"] <- apply(sq.nx.mx, 1, quantile, probs = 0.975)
 NoNlx$lower[NoNlx$scenario == "Status Quo"] <- apply(sq.nx.mx, 1, quantile, probs = 0.025)
 
-for (sc in 2:length(scenario.name)){
-  NoNlx$mean[NoNlx$scenario == scenario.name[sc]]  <- apply(pg.nx.ar[sc-1,,], 1, mean)
-  NoNlx$upper[NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc-1,,], 1, quantile, probs = 0.975)
-  NoNlx$lower[NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc-1,,], 1, quantile, probs = 0.025)
+for (sc in 2:length(scenario.name)) {
+  NoNlx$mean[NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc - 1, , ], 1, mean)
+  NoNlx$upper[NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc - 1, , ], 1, quantile, probs = 0.975)
+  NoNlx$lower[NoNlx$scenario == scenario.name[sc]] <- apply(pg.nx.ar[sc - 1, , ], 1, quantile, probs = 0.025)
 }
 
-#Rate of Naloxone kits
-RateNlx[ , c("mean", "upper", "lower")] <- NoNlx[ , c("mean", "upper", "lower")] / pop.rgn * 100000
+# Rate of Naloxone kits
+RateNlx[, c("mean", "upper", "lower")] <- NoNlx[, c("mean", "upper", "lower")] / pop.rgn * 100000
 
 write.csv(NoDeaths, file = ("Outputs/Program/Number.Deaths.csv"), row.names = F)
 write.csv(RateDeaths, file = ("Outputs/Program//Rate.Deaths.csv"), row.names = F)

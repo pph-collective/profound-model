@@ -14,7 +14,7 @@
 ####    DUE to large samples, run calibration simulation with parallel in batches          ####
 ####    AFTER finishing all batches, run ResultAnalysis.R for the next step                ####
 ###############################################################################################
-rm(list=ls())
+rm(list = ls())
 # Module for running model with uncalibrated data in parallel over calibration period
 #
 # Authors: Xiao Zang, PhD, Sam Bessey, MS
@@ -36,21 +36,21 @@ library("argparser")
 
 # ## Model setup parameters ##
 args <- arg_parser("arguments")
-args <- add_argument(args, "--seed", help = "seed for random numbers", default = 2021)
+args <- add_argument(args, "--seed", help = "seed for random numbers", default = 5112021)
 args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")
 args <- add_argument(args, "--params", help = "name of the file with calibration params", default = "Inputs/CalibrationSampleData1.rds")
+args <- add_argument(args, "--cores", help = "number of cores for parallel processing", default = 1)
+args <- add_argument(args, "--index", help = "index of batch", default = 1)
+args <- add_argument(args, "--size", help = "batch size", default = 10000)
 
-if (length(args) == 0) {
-  batch.ind <- 1
-  outpath <- getwd()
-  cores <- 1
-} else {
-  batch.ind <- strtoi(args[1])
-  outpath <- strtoi(args[2])
-  cores <- strtoi(args[3])
-}
-batch.size   <- 1000000  #define the size of each batch of calibration simulations (default: 1 million), by default we have 10 batches, each with 100000 simulations
+argv <- parse_args(args)
+seed <- as.integer(argv$seed)
+cores <- as.integer(argv$cores)
+batch.ind <- as.integer(argv$index)
+# note: outfile, params not used
 
+batch.size <- as.integer(argv$index) # define the size of each batch of calibration simulations (default: 1 million), by default we have 10 batches, each with 100000 simulations
+print(batch.size)
 
 # make and register the cluster given the provided number of cores
 c1 <- makeCluster(cores, outfile = "")
@@ -73,6 +73,7 @@ source("prep_calibration_data.R")
 if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
   # only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
+  Calibration.data.ls <- Calibration.data.ls[1:1]
 } else {
   ## Specify the number of calibration random parameter sets
   sample.size <- 1000000 # total number of calibration samples
@@ -83,11 +84,12 @@ if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
   row.names(parRange) <- CalibPar$par
 
   # create and save calibration parameters using latin hypercube sampling with a set seed
-  set.seed(5112021)
+  set.seed(seed)
   calib.par <- Latinhyper(parRange, sample.size) %>% data.frame()
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds")) # save sampled calibration parameter values
 
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
+  
 }
 
 # generate stepwise seeds for calibration starting at initial seed

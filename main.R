@@ -20,7 +20,7 @@
 ####                     relapsed (relap), death (dead)                                    ####
 ####    1 health event:  Overdose                                                          ####
 ####    Attributes:      age, sex, residence, race,                                        ####
-####                     current state (curr.state), opioid use state (OU.state),          #### 
+####                     current state (curr.state), opioid use state (OU.state),          ####
 ####                     initial state (init.state), initial age (inits.age),              ####
 ####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
 ####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
@@ -83,6 +83,6 @@ tic("Simulation time: ") # calculate simulation time
 # run for status quo (no intervention)
 sim_sq <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = seed)
 # run for expansion (with intervention)
-exp.lv    <- 2  #double all OEND programs
-sim_ep    <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
+exp.lv <- 2 # double all OEND programs
+sim_ep <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
 toc()
