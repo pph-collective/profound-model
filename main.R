@@ -85,4 +85,20 @@ sim_sq <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE
 exp.lv <- 2 # double all OEND programs
 sim_ep <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
 
+
+results <- data.frame(matrix(nrow = num_regions * 2, ncol = 6))
+colnames(results) <- c("location", "scenario", "nlx_avail_rate", "nlx_avail", "overdose_deaths_rate", "overdose_deaths")
+
+results$location <- rep(v.region, 2)
+results$scenario <- rep(c("Status Quo", "Double"), each = length(v.region))
+ppl_region <- colSums(Demographic[, -c(1:3)])
+
+results$nlx_avail_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$avail_nlx) / ppl_region * 100000
+results$nlx_avail[results$scenario == "Status Quo"] <- colSums(sim_sq$avail_nlx)
+results$overdose_deaths_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / ppl_region * 100000
+results$overdose_deaths[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ])
+results$nlx_avail_rate[results$scenario == "Double"] <- colSums(sim_ep$avail_nlx) / ppl_region * 100000
+results$nlx_avail[results$scenario == "Double"] <- colSums(sim_ep$avail_nlx)
+results$overdose_deaths_rate[results$scenario == "Double"] <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / ppl_region * 100000
+results$overdose_deaths[results$scenario == "Double"] <- round(colSums(sim_ep$m.oddeath[49:60, ] * 0.8), 0)
 write.csv(results, file = ("overdose_deaths.csv"))
