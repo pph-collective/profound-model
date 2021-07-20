@@ -51,11 +51,11 @@ source("io_setup.R")
 
 ## Initialize the study population - people who are at risk of opioid overdose
 ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-if (file.exists(paste0("Inputs/InitialPopulation.rds"))) {
-  init_ppl <- readRDS(paste0("Inputs/InitialPopulation.rds"))
-} else if (!file.exists(paste0("Inputs/InitialPopulation.rds"))) {
+if (file.exists(paste0("Inputs/init_pop.rds"))) {
+  init_ppl <- readRDS(paste0("Inputs/init_pop.rds"))
+} else if (!file.exists(paste0("Inputs/init_pop.rds"))) {
   init_ppl <- ppl.initiation(initials = initials, seed = seed)
-  saveRDS(init_ppl, paste0("Inputs/InitialPopulation.rds"))
+  saveRDS(init_ppl, paste0("Inputs/init_pop.rds"))
 }
 
 # REVIEWED ls = list
