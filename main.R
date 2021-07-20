@@ -79,10 +79,10 @@ if (file.exists(init_ppl.file)) {
 
 ##################################### Run the simulation ##################################
 # START SIMULATION
-tic("Simulation time: ") # calculate simulation time
 # run for status quo (no intervention)
 sim_sq <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = seed)
 # run for expansion (with intervention)
 exp.lv <- 2 # double all OEND programs
 sim_ep <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
-toc()
+
+write.csv(results, file = ("overdose_deaths.csv"))
