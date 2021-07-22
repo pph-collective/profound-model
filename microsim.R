@@ -30,7 +30,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
   # Makes use of:
   # trans.prob:     function for the estimation of transition probabilities
   # Costs:          function for the estimation of cost state values
-  # decisiontimesteptree:  function for the decision tree module
+  # decision_tree:  function for the decision tree module
   # TODO: actual docstring description
   list2env(params, environment())
   # Find number of opioid and non-opioid users
@@ -105,7 +105,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     v.od[t] <- nrow(od_ppl)
     ou.pop.resid <- ppl_list[[t]] %>% count(residence)
 
-    decntree.out <- decisiontimesteptree(od_ppl, n.nlx = n.nlx.mn, ou.pop.resid, params, seed = seed + t)
+    decntree.out <- decision_tree(od_ppl, n.nlx = n.nlx.mn, ou.pop.resid, params, seed = seed + t)
 
     v.oddeath[t] <- sum(decntree.out[, "od.death"])
     v.odpriv[t] <- sum(decntree.out[, "locpriv"])

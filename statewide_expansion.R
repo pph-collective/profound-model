@@ -17,12 +17,12 @@ sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall)
 library(openxlsx)
 library(dplyr)
 library(abind)
-source("population.R")
+source("population_initialization.R")
 source("transition_probability.R")
 source("microsim.R")
 source("decision_tree.R")
 source("data_input.R")
-source("naloxone_available.R")
+source("naloxone_availability.R")
 source("cost_effectiveness.R")
 
 # INPUT PARAMETERS
@@ -43,7 +43,7 @@ if (file.exists(paste0("Inputs/init_pop.rds"))) {
 
 simulation_data <- readRDS(file = paste0("calibration/CalibratedData.rds"))
 simulation_seed <- readRDS(file = paste0("calibration/CalibratedSeed.rds"))
-simulation_seed <- simulation_seed[1:1]
+simulation_seed <- simulation_seed[1:50]
 
 # define different statewide program expansion scenarios, including a 0 level and a saturation level
 scenario.name <- c("Zero", "Status Quo", "Double", "Five times", "Ten times", "Saturation")

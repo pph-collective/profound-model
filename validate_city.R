@@ -26,7 +26,7 @@ for (ss in 1:nrow(calib.result.mx)) {
   init_ppl$fx[init_ppl$curr.state == "NODU"] <- fx
 
   # Overdose probability matrix (per month)
-  # TO_REVIEW sub/subs?
+  # REVIEWED: subs = subsequent
   overdose_probs <- matrix(0, nrow = 4, ncol = 2)
   rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
   colnames(overdose_probs) <- c("first", "subs")

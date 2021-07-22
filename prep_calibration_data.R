@@ -25,12 +25,8 @@ library(openxlsx)
 source("data_input.R")
 # INPUT PARAMETERS
 sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
-sample.size <- 10
-batch.size <- 5
-
 
 ## Model parameter updates for calibration process ##
-tic("parameter updates")
 
 CalibPar <- read.xlsx(WB, sheet = "CalibPar")
 parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)

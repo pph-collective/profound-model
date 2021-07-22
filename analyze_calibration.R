@@ -18,11 +18,11 @@ library(ggplot2)
 library(xlsx)
 
 # Load scripts
-source("population.R")
+source("population_initialization.R")
 source("transition_probability.R")
 source("microsim.R")
 source("decision_tree.R")
-source("naloxone_available.R")
+source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parallel.R")
 source("data_input.R")

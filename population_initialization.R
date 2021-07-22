@@ -17,7 +17,7 @@
 initiate_ppl <- function(initials, seed = 2021) {
   list2env(initials, environment())
   ## opioid population
-  # TO_REVIEW opioid population means population of people who use opioids? nsduh? region?
+  # Determine people with opioid use disorder as estimated by NSDUH
   oud_pop_nsduh <- demo.mx * OUDDemo # number of OUD population estimates for each subgroup in each region according to NSDUH prevalence estimates
   oud.adj <- prev.oud / (sum(oud_pop_nsduh) / sum(demo.mx)) # adjuster for OUD population according to overall oud prevalence and estimated one from the previous step
   oud_pop <- oud_pop_nsduh * oud.adj

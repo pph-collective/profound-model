@@ -28,7 +28,6 @@ library(dplyr)
 library(openxlsx)
 library(abind)
 library(FME)
-library(tictoc)
 # Load packages for parallel performance
 library(foreach)
 library(doParallel)
@@ -36,7 +35,7 @@ library("argparser")
 
 # ## Model setup parameters ##
 args <- arg_parser("arguments")
-args <- add_argument(args, "--seed", help = "seed for random numbers", default = 5112021)
+args <- add_argument(args, "--seed", help = "seed for latin hypercube sampling", default = 5112021)
 args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")
 args <- add_argument(args, "--params", help = "name of the file with calibration params", default = "Inputs/CalibrationSampleData1.rds")
 args <- add_argument(args, "--cores", help = "number of cores for parallel processing", default = 1)
@@ -50,7 +49,6 @@ batch.ind <- as.integer(argv$index)
 # note: outfile, params not used
 
 batch.size <- as.integer(argv$index) # define the size of each batch of calibration simulations (default: 1 million), by default we have 10 batches, each with 100000 simulations
-print(batch.size)
 
 # make and register the cluster given the provided number of cores
 c1 <- makeCluster(cores, outfile = "")
@@ -58,11 +56,11 @@ registerDoParallel(c1)
 
 
 # Load required scripts and functions
-source("population.R")
+source("population_initialization.R")
 source("transition_probability.R")
 source("microsim.R")
 source("decision_tree.R")
-source("naloxone_available.R")
+source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parallel.R")
 source("prep_calibration_data.R")
@@ -73,7 +71,6 @@ source("prep_calibration_data.R")
 if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
   # only load the indexed parameter set batch for calibration simulation
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
-  Calibration.data.ls <- Calibration.data.ls[1:1]
 } else {
   ## Specify the number of calibration random parameter sets
   sample.size <- 1000000 # total number of calibration samples
@@ -154,7 +151,7 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], params = Calibration.data.ls[[ss]])
 }
 
-calibration_results[, 3:14] <- calibration_results # pass calibratiobration_results tbration_results table
-saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds")) # save calibratiobration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
+calibration_results[, 3:14] <- calibration_results # subset calibration results
+saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds")) # save calibration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
 
 # stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)

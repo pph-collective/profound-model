@@ -39,7 +39,7 @@
 # 2. Decision tree function
 #############################################################################
 
-decisiontimesteptree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
+decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
   # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
   list2env(params, environment())
   set.seed(seed)
@@ -62,7 +62,8 @@ decisiontimesteptree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
     wtns <- sample.dic(p.wtns)
     p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
 
-    if (sample.dic(p.wtns) == 1) { # if witnessed
+    if (wtns == 1) { # if witnessed
+      p.nlx.avail <- sample.dic(p.nlx.avail)
       if (sample.dic(p.nlx.avail) == 1) { # if naloxone available by witness (witnessed)
         nlx.used <- 1
         EMS <- sample.dic(p.911)
