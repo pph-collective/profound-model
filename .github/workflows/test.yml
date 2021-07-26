@@ -18,20 +18,20 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('install.r') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('install.r') }}
+          key: ${{ runner.os }}-${{ matrix.R }}-${{ hashFiles('install.r') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.r }}-${{ hashFiles('install.r') }}
       - name: Check initial pop doesn't exist
         run: |
           [ ! -f Inputs/init_pop.rds ]
       - name: Install dependencies
         run: Rscript install.r
       - name: Run PROFOUND without inital pop
-        run: Rscript Profound-Main.R -p Inputs/init_pop.rds
+        run: Rscript main.R -p Inputs/init_pop.rds
       - name: Check initial pop exists
         run: |
           [ -f Inputs/init_pop.rds ]
       - name: Run PROFOUND with input pop
-        run: Rscript Profound-Main.R -p Inputs/init_pop.rds
+        run: Rscript main.R -p Inputs/init_pop.rds
       - name: Check results exists
         run: |
-          [ -f OverdoseDeath.csv ]
+          [ -f overdose_deaths.csv ]

@@ -4,5 +4,5 @@ The model uses Excel to manage inputs.  Make a copy of <file> and edit it to mat
 
 When you are ready to run the model, do:
 ```
-Rscript Profound-Microsimulation.r <input file path/name>
+Rscript microsim.r <input file path/name>
 ```
