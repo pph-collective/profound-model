@@ -5,7 +5,8 @@ to_install <- c(
   "tictoc",
   "openxlsx",
   "here",
-  "argparser"
+  "argparser",
+  "yaml"
 )
 
 for (i in to_install) {

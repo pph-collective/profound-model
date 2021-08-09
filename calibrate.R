@@ -63,8 +63,6 @@ source("decision_tree.R")
 source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parallel.R")
-source("prep_calibration_data.R")
-
 
 # REVIEWED - check for both / is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
 ## load or create calibration parameter sets for calibration simulation
@@ -74,7 +72,7 @@ if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
 } else {
   ## Specify the number of calibration random parameter sets
   sample.size <- 1000000 # total number of calibration samples
-
+  source("prep_calibration_data.R")
   # load calibration parameter bounds and values
   CalibPar <- read.xlsx("Inputs/MasterTable.xlsx", "CalibPar")
   parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
@@ -86,9 +84,9 @@ if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds")) # save sampled calibration parameter values
 
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
-  
 }
 
+Calibration.data.ls <- Calibration.data.ls[1:batch.size]
 # generate stepwise seeds for calibration starting at initial seed
 calib.seed.vt <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 # initialize calibratiobration_results table
@@ -110,7 +108,8 @@ v.region <- Calibration.data.ls[[1]]$v.region # load vector for regions (require
 
 # parallel calibration simulation
 # TODO: look into apply functions for parallel
-calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages = c("dplyr", "abind")) %dopar% {
+ss = 1 #DEBUG
+# calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages = c("dplyr", "abind")) %dopar% {
   yr_start <- 2016 # simulation first year
   yr_end <- 2020 # simulation last year
   ppl_info <- c(
@@ -149,7 +148,7 @@ calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rb
   init_ppl <- readRDS(paste0("Inputs/init_pop.rds"))
 
   outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], params = Calibration.data.ls[[ss]])
-}
+# }
 
 calibration_results[, 3:14] <- calibration_results # subset calibration results
 saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds")) # save calibration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process

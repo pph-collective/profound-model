@@ -17,7 +17,7 @@
 ###############################################################################################
 
 
-MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, PT.out = TRUE, strategy = "SQ", seed = 1) {
+MicroSim <- function(init_ppl, params, output, agent_states, discount.rate, PT.out = TRUE, strategy = "SQ", seed = 1) {
   # Arguments:
   # init_ppl:       matrix of initial states for individuals
   # params:    model parameters
@@ -49,15 +49,15 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
 
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
   if (strategy == "SQ") {
-    n.nlx.mx.str <- n.nlx.mx.lst
+    output$avail_nlx <- n.nlx.mx.lst
   } else if (strategy == "expand") {
-    n.nlx.mx.str <- NxOEND.array[dim(NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
+    output$avail_nlx <- NxOEND.array[dim(NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
   } else if (strategy == "program") {
-    n.nlx.mx.str <- n.nlx.mx.lst + pg.add
+    output$avail_nlx <- n.nlx.mx.lst + pg.add
   }
 
   for (aa in 1:(num_years - dim(array.Nx)[1])) {
-    array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
+    array.Nx <- abind(array.Nx, output$avail_nlx, along = 1)
   }
 
   v.dwc <- rep(1 / (1 + discount.rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
@@ -66,7 +66,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
   ppl_list <- list()
   set.seed(seed) # set the seed for every individual for the random number generator
 
-  for (t in 1:timesteps) {
+  for (t in 1:params$timesteps) {
     nx_avail_yr <- array.Nx[floor((t - 1) / 12) + 1, , ]
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
@@ -102,36 +102,36 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
 
     od_ppl <- ppl_list[[t]][ppl_list[[t]]$curr.state == "od", ]
-    v.od[t] <- nrow(od_ppl)
+    output$v.od[t] <- nrow(od_ppl)
     ou.pop.resid <- ppl_list[[t]] %>% count(residence)
 
     decntree.out <- decision_tree(od_ppl, n.nlx = n.nlx.mn, ou.pop.resid, params, seed = seed + t)
 
-    v.oddeath[t] <- sum(decntree.out[, "od.death"])
-    v.odpriv[t] <- sum(decntree.out[, "locpriv"])
-    v.odpubl[t] <- v.od[t] - v.odpriv[t]
-    v.deathpriv[t] <- sum(decntree.out[decntree.out[, "od.death"] == 1, "locpriv"])
-    v.deathpubl[t] <- sum(decntree.out[, "od.death"] == 1) - v.deathpriv[t]
-    v.nlxused[t] <- sum(decntree.out[, "nlx.used"])
-    n.EMS <- sum(decntree.out[, "EMS"])
-    n.hospcare <- sum(decntree.out[, "hospcare"])
+    output$v.oddeath[t] <- sum(decntree.out[, "od.death"])
+    output$v.odpriv[t] <- sum(decntree.out[, "locpriv"])
+    output$v.odpubl[t] <- output$v.od[t] - output$v.odpriv[t]
+    output$v.deathpriv[t] <- sum(decntree.out[decntree.out[, "od.death"] == 1, "locpriv"])
+    output$v.deathpubl[t] <- sum(decntree.out[, "od.death"] == 1) - output$v.deathpriv[t]
+    output$v.nlxused[t] <- sum(decntree.out[, "nlx.used"])
+    output$n.EMS <- sum(decntree.out[, "EMS"])
+    output$n.hospcare <- sum(decntree.out[, "hospcare"])
     od_ppl$curr.state[decntree.out[, "od.death"] == 1] <- "dead"
     od_ppl$ever.od[decntree.out[, "od.death"] != 1] <- 1
     od_ppl$curr.state[decntree.out[, "inact"] == 1] <- "inact"
     od_ppl$curr.state[od_ppl$curr.state == "od"] <- od_ppl$OU.state[od_ppl$curr.state == "od"]
 
-    m.oddeath.fx[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx == 1, ])
-    m.oddeath.op[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU", ])
-    m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "preb", ])
-    m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
-    m.EDvisits[t] <- n.hospcare
+    output$m.oddeath.fx[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx == 1, ])
+    output$m.oddeath.op[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU", ])
+    output$m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "preb", ])
+    output$m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
+    output$m.EDvisits[t] <- output$n.hospcare
 
     od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
     for (dd in 1:nrow(od.death.sum)) {
-      m.oddeath[t, od.death.sum$residence[dd]] <- od.death.sum$n[dd]
+      output$m.oddeath[t, od.death.sum$residence[dd]] <- od.death.sum$n[dd]
     }
     ppl_list[[t]][od_ppl$ind, ] <- od_ppl
-    cost.matrix[t, ] <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = n.EMS, n.hospcare = n.hospcare), params)
+    output$cost.matrix[t, ] <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), params)
 
     ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
 
@@ -142,11 +142,10 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state == "inact"] <- ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state == "inact"]
     ppl_list[[t]]$curr.state[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead"]
 
-    # cat('\r', paste(round(t/timesteps * 100), "% done", sep = " "))       # display the progress of the simulation
   } # end the loop for the time steps
 
 
-  total.cost <- sum(cost.matrix[, "TotalCost"] * v.dwc) # total (discounted) cost
+  total.cost <- sum(output$cost.matrix[, "TotalCost"] * v.dwc) # total (discounted) cost
 
   if (PT.out == TRUE) {
     pop.trace <- ppl_list
@@ -154,11 +153,11 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     pop.trace <- NULL
   }
   print("Saving results")
-  results <- list(
-    v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od,
-    cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1], , ]), avail_nlx = n.nlx.mx.str,
-    m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr = m.oddeath.hr, m.EDvisits = m.EDvisits,
-    v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused
-  ) # store the results from the simulation in a list
-  return(results) # return the results
+  # results <- list(
+  #   output$v.oddeath = output$v.oddeath, output$m.oddeath = output$m.oddeath, output$v.od = output$v.od,
+  #   cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1], , ]), avail_nlx = n.nlx.mx.str,
+  #   m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr = m.oddeath.hr, m.EDvisits = m.EDvisits,
+  #   output$v.odpriv = output$v.odpriv, output$v.odpubl = output$v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused
+  # ) # store the results from the simulation in a list
+  return(output) # return the results
 } # end of the MicroSim function

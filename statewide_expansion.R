@@ -7,30 +7,22 @@
 # 1. SET directory and workspace
 #############################################################################
 rm(list = ls())
-args <- commandArgs(trailingOnly = TRUE)
 
 ## Model setup parameters ##
 seed <- 2021
 sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 
 ## LOAD packages and functions
-library(openxlsx)
-library(dplyr)
-library(abind)
-source("population_initialization.R")
-source("transition_probability.R")
-source("microsim.R")
-source("decision_tree.R")
-source("data_input.R")
-source("naloxone_availability.R")
-source("cost_effectiveness.R")
+source("main.R")
+library(commandArgs)
 
-# INPUT PARAMETERS
-yr_start <- 2016 # starting year of simulation
-yr_end <- 2022 # end year of simulation (also the year for evaluation)
-d.c <- 0.03 # discounting of costs by 3%
+# # INPUT PARAMETERS
+# args <- commandArgs(trailingOnly = TRUE)
+# yr_start <- 2016 # starting year of simulation
+# yr_end <- 2022 # end year of simulation (also the year for evaluation)
+# d.c <- 0.03 # discounting of costs by 3%
 
-source("io_setup.R")
+# source("io_setup.R")
 
 ## Initialize the study population - people who are at risk of opioid overdose
 pop.info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
@@ -52,6 +44,7 @@ od.death.mx.last <- od.death.mx.wtns <- matrix(0, nrow = length(simulation_seed)
 colnames(od.death.mx.last) <- colnames(od.death.mx.wtns) <- scenario.name
 
 for (ss in 1:length(simulation_seed)) {
+  # is this all in main??
   print(paste0("Parameter set: ", ss))
   params.temp <- simulation_data[[ss]]
   # ATTN: These two lines are temporary, to remove pharm nx and make nx effect 90%

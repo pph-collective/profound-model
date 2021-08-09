@@ -5,35 +5,44 @@
 ###########################################################################################
 # This is to define all the input and output variables required in the model (consistent across all scenarios)
 
+library("yaml")
 # INPUT setup
-pop.info <- c(
-  "sex", "race", "age", "residence", "curr.state",
-  "OU.state", "init.age", "init.state", "ever.od", "fx"
-) # information for each model individual
-agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
-v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
-num_states <- length(agent_states) # number of states
-num_years <- yr_end - yr_start + 1
-timesteps <- 12 * num_years # number of time cycles (in month)
-num_regions <- length(v.region) # number of regions
+input_setup <- function(params){
+  print(class(params))
+  params$pop.info <- c(
+    "sex", "race", "age", "residence", "curr.state",
+    "OU.state", "init.age", "init.state", "ever.od", "fx"
+  ) # information for each model individual
+  params$agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
+  params$v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
+  num_states <- length(params$agent_states) # number of states
+  params$num_years <- yr_end - yr_start + 1
+  params$timesteps <- 12 * params$num_years # number of time cycles (in month)
+  num_regions <- length(v.region) # number of regions
+  return(params)
+}
 
 # OUTPUT matrices and vectors
-v.od <- rep(0, times = timesteps) # count of overdose events at each time step
-v.oddeath <- rep(0, times = timesteps) # count of overdose deaths at each time step
-v.oddeath.w <- rep(0, times = timesteps) # count of overdose deaths that were witnessed at each time step
-m.oddeath <- matrix(0, nrow = timesteps, ncol = num_regions)
-colnames(m.oddeath) <- v.region
-v.odpriv <- rep(0, times = timesteps) # count of overdose events occurred at private setting at each time step
-v.odpubl <- rep(0, times = timesteps) # count of overdose events occurred at public setting at each time step
-v.deathpriv <- rep(0, times = timesteps) # count of overdose deaths occurred at private setting at each time step
-v.deathpubl <- rep(0, times = timesteps) # count of overdose deaths occurred at public setting at each time step
-v.nlxused <- rep(0, times = timesteps) # count of naloxone kits used at each time step
-v.str <- c("SQ", "expand", "program") # store the strategy names
-cost.item <- c("TotalCost", "NxCost")
-cost.matrix <- matrix(0, nrow = timesteps, ncol = length(cost.item))
-colnames(cost.matrix) <- cost.item
-m.oddeath.fx <- rep(0, times = timesteps) # count of overdose deaths with fentanyl present at each time step
-m.oddeath.op <- rep(0, times = timesteps) # count of overdose deaths among opioid users at each time step
-m.oddeath.st <- rep(0, times = timesteps) # count of overdose deaths among stimulant users at each time step
-m.EDvisits <- rep(0, times = timesteps) # count of opioid overdose-related ED visits at each time step
-m.oddeath.hr <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+output_setup <- function(params){
+  output <- list();
+  output$v.od <- rep(0, times = params$timesteps) # count of overdose events at each time step
+  output$v.oddeath <- rep(0, times = params$timesteps) # count of overdose deaths at each time step
+  output$v.oddeath.w <- rep(0, times = params$timesteps) # count of overdose deaths that were witnessed at each time step
+  output$m.oddeath <- matrix(0, nrow = params$timesteps, ncol = length(v.region))
+  colnames(output$m.oddeath) <- v.region
+  output$v.odpriv <- rep(0, times = params$timesteps) # count of overdose events occurred at private setting at each time step
+  output$v.odpubl <- rep(0, times = params$timesteps) # count of overdose events occurred at public setting at each time step
+  output$v.deathpriv <- rep(0, times = params$timesteps) # count of overdose deaths occurred at private setting at each time step
+  output$v.deathpubl <- rep(0, times = params$timesteps) # count of overdose deaths occurred at public setting at each time step
+  output$v.nlxused <- rep(0, times = params$timesteps) # count of naloxone kits used at each time step
+  output$strategies <- c("SQ", "expand", "program") # store the strategy names
+  cost_labels <- c("TotalCost", "NxCost")
+  output$cost.matrix <- matrix(0, nrow = params$timesteps, ncol = length(cost_labels))
+  colnames(output$cost.matrix) <- cost_labels
+  output$m.oddeath.fx <- rep(0, times = params$timesteps) # count of overdose deaths with fentanyl present at each time step
+  output$m.oddeath.op <- rep(0, times = params$timesteps) # count of overdose deaths among opioid users at each time step
+  output$m.oddeath.st <- rep(0, times = params$timesteps) # count of overdose deaths among stimulant users at each time step
+  output$m.EDvisits <- rep(0, times = params$timesteps) # count of opioid overdose-related ED visits at each time step
+  output$m.oddeath.hr <- rep(0, times = params$timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+  return(output)
+}
