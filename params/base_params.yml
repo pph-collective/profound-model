@@ -1,0 +1,34 @@
+years:
+  description: start and end years for the simulation
+  year_start: 2016
+  year_end: 2020
+
+discount:
+  description: value of discount rate 
+  val: 0.03
+
+main_table:
+  description: table with data inputs
+  val: Inputs/MasterTable.xlsx
+
+seed:
+  description: random seed for the model run
+  val: 2021
+
+strategy:
+  description: whether regional or overall
+  val: overall
+
+outfolder:
+  description: file to save results
+  val: results/
+
+init_pop:
+  description: initial population if saved
+  val: Inputs/init_ppl.rds
+
+expansion:
+  description: expansion from status quo
+  val: 1
+
+# comment
