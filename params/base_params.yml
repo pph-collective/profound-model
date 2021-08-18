@@ -23,12 +23,20 @@ outfolder:
   description: file to save results
   val: results/
 
-init_pop:
+init_ppl:
   description: initial population if saved
   val: Inputs/init_ppl.rds
 
-expansion:
-  description: expansion from status quo
-  val: 1
+scenarios:
+  SQ:
+    expansion:
+      description: expansion from status quo
+      val: 1
+    program:
+      description: bool of whether this is a program expansion
+      val: false
+    scalar:
+      description: whether the number is a scalar (true) or raw number of kits (false)
+      val: true
 
 # comment
