@@ -92,12 +92,12 @@ out.file <- inputs$outfile
 # init_ppl.file <- inputs$init_ppl
 
 
-
+data <- data_input(main_table)  # empirical
 # add parameters
-params <- input_setup(inputs)
+params <- input_setup(inputs, data)
 # create output table
 output <- output_setup(params)
-data <- data_input(params)  # empirical
+
 ## Initialize the study population - people who are at risk of opioid overdose
 ppl_info <- c(
   "sex",

@@ -58,21 +58,13 @@ trans.prob <- function(pop.t, params, data) {
 
   # update the trans.prob matrix with the corresponding probabilities
   ind.preb <- pop.t$curr.state == "preb"
-  print(sum(ind.preb))
-  print(length(pop.t$curr.state))
-  print(ind.preb[1])
 
   if (sum(ind.preb) != 0) {
-    # trans.prob.matrix [, ind.preb] <- rbind(
-    #   1 - data$p.preb2il.lr - data$p.preb2inact - mor.rate[ind.preb] - od.rate[ind.preb],
-    #   rep(data$p.preb2il.lr, sum(ind.preb)),
-    #   rep(0, sum(ind.preb))
-    # )
     trans.prob.matrix[, ind.preb] <- rbind(
       1 - data$p.preb2il.lr - data$p.preb2inact - mor.rate[ind.preb] - od.rate[ind.preb],
       rep(data$p.preb2il.lr, sum(ind.preb)),
       rep(0, sum(ind.preb)),
-      rep(data$.preb2inact, sum(ind.preb)),
+      rep(data$p.preb2inact, sum(ind.preb)),
       rep(0, sum(ind.preb)),
       rep(0, sum(ind.preb)),
       mor.rate[ind.preb],
@@ -84,9 +76,9 @@ trans.prob <- function(pop.t, params, data) {
   if (sum(ind.il.lr) != 0) {
     trans.prob.matrix[, ind.il.lr] <- rbind(
       rep(0, sum(ind.il.lr)),
-      1 - p.il.lr2il.hr - p.il.lr2inact - mor.rate[ind.il.lr] - od.rate[ind.il.lr],
-      rep(p.il.lr2il.hr, sum(ind.il.lr)),
-      rep(p.il.lr2inact, sum(ind.il.lr)),
+      1 - data$p.il.lr2il.hr - data$p.il.lr2inact - mor.rate[ind.il.lr] - od.rate[ind.il.lr],
+      rep(data$p.il.lr2il.hr, sum(ind.il.lr)),
+      rep(data$p.il.lr2inact, sum(ind.il.lr)),
       rep(0, sum(ind.il.lr)),
       rep(0, sum(ind.il.lr)),
       mor.rate[ind.il.lr],
@@ -98,9 +90,9 @@ trans.prob <- function(pop.t, params, data) {
   if (sum(ind.il.hr) != 0) {
     trans.prob.matrix[, ind.il.hr] <- rbind(
       rep(0, sum(ind.il.hr)),
-      rep(p.il.hr2il.lr, sum(ind.il.hr)),
-      1 - p.il.hr2il.lr - p.il.hr2inact - mor.rate[ind.il.hr] - od.rate[ind.il.hr],
-      rep(p.il.hr2inact, sum(ind.il.hr)),
+      rep(data$p.il.hr2il.lr, sum(ind.il.hr)),
+      1 - data$p.il.hr2il.lr - data$p.il.hr2inact - mor.rate[ind.il.hr] - od.rate[ind.il.hr],
+      rep(data$p.il.hr2inact, sum(ind.il.hr)),
       rep(0, sum(ind.il.hr)),
       rep(0, sum(ind.il.hr)),
       mor.rate[ind.il.hr],
@@ -114,9 +106,9 @@ trans.prob <- function(pop.t, params, data) {
       rep(0, sum(ind.inact)),
       rep(0, sum(ind.inact)),
       rep(0, sum(ind.inact)),
-      1 - p.inact2relap - mor.rate[ind.inact] - od.rate[ind.inact],
+      1 - data$p.inact2relap - mor.rate[ind.inact] - od.rate[ind.inact],
       rep(0, sum(ind.inact)),
-      rep(p.inact2relap, sum(ind.inact)),
+      rep(data$p.inact2relap, sum(ind.inact)),
       mor.rate[ind.inact],
       od.rate[ind.inact]
     )

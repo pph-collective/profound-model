@@ -45,7 +45,7 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
     NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * data$OD_loc, 0)
   }
   array.Nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
-  initial_nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] == year_start - 1, , ] + data$NxPharm.array[1, , ]
+  initial_nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] == year_start - 1, , ] + NxPharm.array[1, , ]
 
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
   if (strategy == "SQ") {
@@ -66,12 +66,11 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
   ppl_list <- list()
   set.seed(seed) # set the seed for every individual for the random number generator
   for (t in 1:params$timesteps) {
-    print(t)
-    print(nrow(init_ppl))
+
     nx_avail_yr <- array.Nx[floor((t - 1) / 12) + 1, , ]
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
-      OUD.fx <- params$init_oud_fx
+      OUD.fx <- data$init_oud_fx
       # determine fentanyl use among population who use opioids
       set.seed(seed)
 
@@ -86,7 +85,7 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
     } else {
       ppl_list[[t]] <- ppl_list[[t - 1]]
       if (t %% 12 == 0) {
-        OUD.fx <- min(init_oud_fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
+        OUD.fx <- min(data$init_oud_fx * (1 + data$gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
         # determine fentanyl use among population who use opioids
         set.seed(seed)
         fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
@@ -97,8 +96,9 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
         # ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
       }
       m.tp <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
-      n.nlx.mn <- n.nlx.mn * (1 - r.LossExp) + nx_avail_yr / 12
+      n.nlx.mn <- n.nlx.mn * (1 - data$r.LossExp) + nx_avail_yr / 12
     }
+
     ppl_list[[t]]$curr.state <- as.vector(samplev(probs = m.tp, m = 1)) # sample the next health state and store that state in matrix m.M
     ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% v.oustate & OU.state != curr.state)$ind
     ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
@@ -129,11 +129,12 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
     output$m.EDvisits[t] <- output$n.hospcare
 
     od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
+
     for (dd in 1:nrow(od.death.sum)) {
       output$m.oddeath[t, od.death.sum$residence[dd]] <- od.death.sum$n[dd]
     }
     ppl_list[[t]][od_ppl$ind, ] <- od_ppl
-    output$cost.matrix[t, ] <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), params)
+    output$cost.matrix[t, ] <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), data)
 
     ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
 
@@ -145,7 +146,6 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
     ppl_list[[t]]$curr.state[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead"]
 
   } # end the loop for the time steps
-
 
   total.cost <- sum(output$cost.matrix[, "TotalCost"] * v.dwc) # total (discounted) cost
 

@@ -50,15 +50,15 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
   colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   # REVIEWED ind = index; id
   decntree.out[, "ind"] <- od_ppl$ind
-  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, OD_loc, Low2Priv, nlx.adj, cap)
+  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, data$OD_loc, data$Low2Priv, data$nlx.adj, data$cap)
 
   for (d in 1:n.od) {
-    loc <- sample(c("priv", "pub"), size = 1, prob = OD_loc[, residence[d]])
+    loc <- sample(c("priv", "pub"), size = 1, prob = data$OD_loc[, residence[d]])
     locpriv <- ifelse(loc == "priv", 1, 0)
-    p.wtns <- ifelse(loc == "priv", OD_wit_priv, OD_wit_pub)
-    p.911 <- ifelse(loc == "priv", OD_911_priv, OD_911_pub)
-    p.hosp <- OD_hosp
-    p.od2inact <- OD_cess
+    p.wtns <- ifelse(loc == "priv", data$OD_wit_priv, data$OD_wit_pub)
+    p.911 <- ifelse(loc == "priv", data$OD_911_priv, data$OD_911_pub)
+    p.hosp <- data$OD_hosp
+    p.od2inact <- data$OD_cess
     wtns <- sample.dic(p.wtns)
     p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
 
@@ -70,12 +70,12 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
         if (EMS == 1) { # if EMS reached (witnessed, available, naloxone used by witness )
           hospcare <- sample.dic(p.hosp)
           if (hospcare == 1) { # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mortality_nx)
+            od.death <- sample.dic(data$mortality_nx)
           } else { # if not hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mortality_nx)
+            od.death <- sample.dic(data$mortality_nx)
           }
         } else { # if EMS not reached (witnessed, available, naloxone used by witness )
-          od.death <- sample.dic(mortality_nx)
+          od.death <- sample.dic(data$mortality_nx)
           hospcare <- 0
         }
       } else { # if naloxone not used (unavailable) by witness (witnessed)
@@ -84,17 +84,17 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
         if (EMS == 1) { # if EMS reached (witnessed, naloxone not used by witness)
           hospcare <- sample.dic(p.hosp)
           if (hospcare == 1) { # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
-            od.death <- sample.dic(mor_bl * rr_mor_EMS)
+            od.death <- sample.dic(data$mor_bl * data$rr_mor_EMS)
           } else { # if not hospitalized (witnessed, naloxone not used by witness, EMS reached)
-            od.death <- sample.dic(mor_bl * rr_mor_EMS)
+            od.death <- sample.dic(data$mor_bl * data$rr_mor_EMS)
           }
         } else { # if EMS not reached (witnessed, naloxone not used by witness)
-          od.death <- sample.dic(mor_bl)
+          od.death <- sample.dic(data$mor_bl)
           hospcare <- 0
         }
       }
     } else { # if not witnessed
-      od.death <- sample.dic(mor_bl)
+      od.death <- sample.dic(data$mor_bl)
       EMS <- 0
       hospcare <- 0
       nlx.used <- 0

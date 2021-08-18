@@ -13,9 +13,10 @@
 
 ## Define input excel file for empirical data##
 library(openxlsx)
-data_input <- function(params) {
+data_input <- function(main_table) {
 
-  WB <- loadWorkbook(params$main_table)
+  params <- list()
+  WB <- loadWorkbook(main_table)
 
   ## Parameters for initial cohort ##
   InitialPop <- read.xlsx(WB, sheet = "InitialPop")
@@ -88,8 +89,6 @@ data_input <- function(params) {
   # transition probability
   TransProb <- read.xlsx(WB, sheet = "TransProb")
   params$p.preb2il.lr <- with(TransProb, pe[par == "p.preb2il.lr"])
-  print(dim(params$p.preb2il.lr))
-  print(params$p.preb2il.lr)
   params$p.preb2inact <- with(TransProb, pe[par == "p.preb2inact"])
   params$p.il.lr2il.hr <- with(TransProb, pe[par == "p.il.lr2il.hr"])
   params$p.il.lr2inact <- with(TransProb, pe[par == "p.il.lr2inact"])

@@ -7,7 +7,7 @@
 
 library("yaml")
 # INPUT setup
-input_setup <- function(params){
+input_setup <- function(params, data){
   params$pop.info <- c(
     "sex", "race", "age", "residence", "curr.state",
     "OU.state", "init.age", "init.state", "ever.od", "fx"
@@ -16,7 +16,8 @@ input_setup <- function(params){
   params$v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
   num_states <- length(params$agent_states) # number of states
   params$num_years <- params$year_end - params$year_start + 1
-  params$timesteps <- 12 * (params$year_end - params$year_start) # number of time cycles (in month)
+  params$timesteps <- 12 * params$num_years # number of time cycles (in month)
+  params$v.region <- data$v.region
   num_regions <- length(params$v.region) # number of regions
   return(params)
 }
