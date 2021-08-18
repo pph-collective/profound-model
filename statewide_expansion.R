@@ -18,7 +18,7 @@ library(commandArgs)
 
 # # INPUT PARAMETERS
 # args <- commandArgs(trailingOnly = TRUE)
-# yr_start <- 2016 # starting year of simulation
+# year_start <- 2016 # starting year of simulation
 # yr_end <- 2022 # end year of simulation (also the year for evaluation)
 # d.c <- 0.03 # discounting of costs by 3%
 

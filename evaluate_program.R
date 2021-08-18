@@ -93,7 +93,7 @@ for (ss in 1:length(simulation_seed)) {
   }
 }
 
-pop.rgn <- colSums(Demographic[, -c(1:3)]) # population in each region (for calculation of rate)
+pop.rgn <- colSums(params$demographic[, -c(1:3)]) # population in each region (for calculation of rate)
 
 NoDeaths <- data.frame(matrix(nrow = n.rgn * (1 + dim(pg.add.array)[1]), ncol = 5))
 x <- c("location", "scenario", "mean", "upper", "lower")

@@ -51,9 +51,10 @@ source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parse_params.R")
 source("io_setup.R")
+source("data_input.R")
 
 # parse command line arguments--------------------------------------------------
-# args <- arg_parser("arguments")
+args <- arg_parser("arguments")
 # args <- add_argument(args,
 #   "--seed",
 #   help = "seed for random numbers",
@@ -79,38 +80,24 @@ source("io_setup.R")
 #   help = "number of cores to run in parallel. If none, do not open socket.",
 #   default = 1
 # )
-# args <- add_argument("--inputs", help = "file containing input values", default = "params/base_params.yml")
-# argv <- parse_args(args)
-# seed <- as.integer(argv$seed)
+args <- add_argument(args, "--inputs", help = "file containing input values", default = "params/base_params.yml")
+argv <- parse_args(args)
 
-# init_ppl.file <- argv$ppl
-# ## Model setup parameters ##
-# sw.EMS.ODloc <- "overall"
-# out.file <- argv$outfile
-# if (isTRUE(argv$regional)) {
-#   sw.EMS.ODloc <- "sp"
-# }
-
-
-inputs <- parse_params()
-yr_start <- inputs$yr_start # starting year of simulation
-yr_end <- inputs$yr_end # end year of simulation (also the year for evaluation)
+inputs <- parse_inputs(argv$inputs)
 d.c <- inputs$discount # discounting of costs by 3%
 main_table <- inputs$main_table
-if (seed == 2021) { seed <- inputs$seed }
+
 sw.EMS.ODloc <- inputs$strat
 out.file <- inputs$outfile
-init_ppl.file <- inputs$init_ppl
+# init_ppl.file <- inputs$init_ppl
 
-data <- data_input(main_table)  # empirical
 
-v.region <- params$v.region
 
 # add parameters
-params <- input_setup(params)
+params <- input_setup(inputs)
 # create output table
 output <- output_setup(params)
-
+data <- data_input(params)  # empirical
 ## Initialize the study population - people who are at risk of opioid overdose
 ppl_info <- c(
   "sex",
@@ -125,13 +112,13 @@ ppl_info <- c(
   "fx"
 )
 
-if (file.exists(init_ppl.file)) { # import pop if possible
-  init_ppl <- readRDS(init_ppl.file)
-  print(paste0("Population loaded from file: ", init_ppl.file))
+if (file.exists(inputs$init_ppl_file)) { # import pop if possible
+  init_ppl <- readRDS(inputs$init_ppl_file)
+  print(paste0("Population loaded from file: ", inputs$init_ppl_file))
 } else { # otherwise, create pop
-  init_ppl <- initiate_ppl(initials = initials, seed = seed)
-  saveRDS(init_ppl, init_ppl.file)
-  print(paste0("Population saved to file: ", init_ppl.file))
+  init_ppl <- initiate_ppl(data, seed = inputs$seed)
+  saveRDS(init_ppl, inputs$init_ppl_file)
+  print(paste0("Population saved to file: ", inputs$init_ppl_file))
 }
 
 
@@ -160,9 +147,11 @@ if (file.exists(init_ppl.file)) { # import pop if possible
 # results$overdose_deaths[results$scenario == "Double"] <- round(colSums(sim_ep$m.oddeath[49:60, ] * 0.8), 0)
 # write.csv(results, file = ("overdose_deaths.csv"))
 
-# what the main function will look like so far for no expansion
-main(init_ppl)
+main <- function(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario){
+  # what I want to do: for each scenario, run the simulation. If it's a program, send it to the program eval to change the probs. Otherwise, scale as needed
 
-main <- function(init_ppl, params, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario){
-  sim_sq <- MicroSim(init_ppl, params, output, agent_states, d.c, TRUE, scenario, seed)
+  sim_sq <- MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, "SQ", seed)
+
 }
+
+main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario)

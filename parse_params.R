@@ -26,17 +26,18 @@ parse_inputs <- function(input_file){
     input_params$discount <- get_item(inputs$discount$val, defaults$input$val)
     input_params$seed <- get_item(inputs$seed$val, defaults$seed$val)
     input_params$strat <- get_item(inputs$strategy$val, defaults$strategy$val)
-    input_params$outdir <- get_item(inputs$outfile$val, defaults$outfile$val)
+    input_params$outdir <- get_item(inputs$outfolder$val, defaults$outfile$val)
     # put the output file in the outdir
-    input_params$outfile <- paste0(outdir, "overdoses.csv")
-    input_params$init_pop <- get_item(inputs$init_ppl$val, inputs$init_ppl$val)
+    input_params$outfile <- paste0(input_params$outdir, "overdoses.csv")
+    input_params$init_ppl_file <- get_item(inputs$init_ppl$val, inputs$init_ppl$val)
+    input_params$scenarios <- inputs$scenarios
 
     # if the desired outfile doesn't exist, create it
     if (!dir.exists(input_params$outdir)) {
         dir.create(input_params$outfile, recursive = TRUE)
     }
     # write constructed params to file
-    write_yaml(input_params, paste0(outdir, "params.yml"))
+    write_yaml(input_params, paste0(input_params$outdir, "params.yml"))
     return(input_params)
 }
 

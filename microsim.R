@@ -17,7 +17,7 @@
 ###############################################################################################
 
 
-MicroSim <- function(init_ppl, params, output, agent_states, discount.rate, PT.out = TRUE, strategy = "SQ", seed = 1) {
+MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate, PT.out = TRUE, strategy = "SQ", seed = 1) {
   # Arguments:
   # init_ppl:       matrix of initial states for individuals
   # params:    model parameters
@@ -38,20 +38,20 @@ MicroSim <- function(init_ppl, params, output, agent_states, discount.rate, PT.o
   n.noud <- sum(init_ppl$curr.state == "NODU")
   init_ppl.residence <- (init_ppl %>% count(residence))$n
   # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
-  NxPharm.mx <- NxDataPharm$pe[NxDataPharm$year >= (yr_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
+  NxPharm.mx <- data$NxDataPharm$pe[data$NxDataPharm$year >= (year_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
-  for (cc in 1:dim(NxPharm.mx)[1]) {
-    NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * OD_loc, 0)
-  }
 
-  array.Nx <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= yr_start, , ] + NxPharm.array[-1, , ]
-  initial_nx <- NxOEND.array[dimnames(NxOEND.array)[[1]] == yr_start - 1, , ] + NxPharm.array[1, , ]
+  for (cc in 1:dim(NxPharm.mx)[1]) {
+    NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * data$OD_loc, 0)
+  }
+  array.Nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
+  initial_nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] == year_start - 1, , ] + data$NxPharm.array[1, , ]
 
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
   if (strategy == "SQ") {
     output$avail_nlx <- n.nlx.mx.lst
   } else if (strategy == "expand") {
-    output$avail_nlx <- NxOEND.array[dim(NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
+    output$avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
   } else if (strategy == "program") {
     output$avail_nlx <- n.nlx.mx.lst + pg.add
   }
@@ -65,21 +65,23 @@ MicroSim <- function(init_ppl, params, output, agent_states, discount.rate, PT.o
   # Create the population list to capture the state/attributes/costs for all individuals at each time point
   ppl_list <- list()
   set.seed(seed) # set the seed for every individual for the random number generator
-
   for (t in 1:params$timesteps) {
+    print(t)
+    print(nrow(init_ppl))
     nx_avail_yr <- array.Nx[floor((t - 1) / 12) + 1, , ]
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
-      OUD.fx <- init_oud_fx
+      OUD.fx <- params$init_oud_fx
       # determine fentanyl use among population who use opioids
       set.seed(seed)
-      fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
+
+      fx <- sample(0:1, size = num_opioid, prob = c(1 - data$init_oud_fx, data$init_oud_fx), replace = T)
       ppl_list[[t]]$fx[init_ppl$curr.state != "NODU"] <- fx
       # determine fentanyl use among population who use stimulants (non-opioid)
       set.seed(seed * 2)
-      fx <- sample(0:1, size = n.noud, prob = c(1 - ini.NOUD.fx, ini.NOUD.fx), replace = T)
+      fx <- sample(0:1, size = n.noud, prob = c(1 - data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
       ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
-      m.tp <- trans.prob(ppl_list[[t]], params) # calculate the transition probabilities at cycle t
+      m.tp <- trans.prob(ppl_list[[t]], params, data) # calculate the transition probabilities at cycle t
       n.nlx.mn <- initial_nx + nx_avail_yr / 12
     } else {
       ppl_list[[t]] <- ppl_list[[t - 1]]
@@ -94,7 +96,7 @@ MicroSim <- function(init_ppl, params, output, agent_states, discount.rate, PT.o
         # fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
         # ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
       }
-      m.tp <- trans.prob(ppl_list[[t - 1]], params) # calculate the transition probabilities at cycle t
+      m.tp <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
       n.nlx.mn <- n.nlx.mn * (1 - r.LossExp) + nx_avail_yr / 12
     }
     ppl_list[[t]]$curr.state <- as.vector(samplev(probs = m.tp, m = 1)) # sample the next health state and store that state in matrix m.M

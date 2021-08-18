@@ -8,7 +8,6 @@
 library("yaml")
 # INPUT setup
 input_setup <- function(params){
-  print(class(params))
   params$pop.info <- c(
     "sex", "race", "age", "residence", "curr.state",
     "OU.state", "init.age", "init.state", "ever.od", "fx"
@@ -16,20 +15,20 @@ input_setup <- function(params){
   params$agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
   params$v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
   num_states <- length(params$agent_states) # number of states
-  params$num_years <- yr_end - yr_start + 1
-  params$timesteps <- 12 * params$num_years # number of time cycles (in month)
-  num_regions <- length(v.region) # number of regions
+  params$num_years <- params$year_end - params$year_start + 1
+  params$timesteps <- 12 * (params$year_end - params$year_start) # number of time cycles (in month)
+  num_regions <- length(params$v.region) # number of regions
   return(params)
 }
 
 # OUTPUT matrices and vectors
 output_setup <- function(params){
-  output <- list();
+  output <- list()
   output$v.od <- rep(0, times = params$timesteps) # count of overdose events at each time step
   output$v.oddeath <- rep(0, times = params$timesteps) # count of overdose deaths at each time step
   output$v.oddeath.w <- rep(0, times = params$timesteps) # count of overdose deaths that were witnessed at each time step
-  output$m.oddeath <- matrix(0, nrow = params$timesteps, ncol = length(v.region))
-  colnames(output$m.oddeath) <- v.region
+  output$m.oddeath <- matrix(0, nrow = params$timesteps, ncol = length(params$v.region))
+  colnames(output$m.oddeath) <- params$v.region
   output$v.odpriv <- rep(0, times = params$timesteps) # count of overdose events occurred at private setting at each time step
   output$v.odpubl <- rep(0, times = params$timesteps) # count of overdose events occurred at public setting at each time step
   output$v.deathpriv <- rep(0, times = params$timesteps) # count of overdose deaths occurred at private setting at each time step

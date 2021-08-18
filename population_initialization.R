@@ -14,7 +14,8 @@
 # To initialize study population at time = 0, define all individual attributes
 ########################################################################################
 
-initiate_ppl <- function(initials, seed = 2021) {
+initiate_ppl <- function(data, seed = 2021) {
+  initials <- data$initials
   list2env(initials, environment())
   ## opioid population
   # Determine people with opioid use disorder as estimated by NSDUH
@@ -45,10 +46,10 @@ initiate_ppl <- function(initials, seed = 2021) {
     set.seed(seed + i)
     # determine demographic
     demo.ind <- sample(1:nrow(oud_demo), size = 1, prob = oud_demo[, oud.region.ind[i]])
-    sex <- Demographic$sex[demo.ind]
+    sex <- data$demographic$sex[demo.ind]
     # sex <- v.demo.sex[demo.ind]
-    race <- v.demo.race[demo.ind]
-    age.ind <- v.demo.age[demo.ind]
+    age.ind <- data$v.demo.age[demo.ind]
+
     if (age.ind == "12to17") {
       age <- init.age <- sample(12:17, size = 1)
     } else if (age.ind == "18to25") {
@@ -64,7 +65,7 @@ initiate_ppl <- function(initials, seed = 2021) {
     }
 
     # determine opioid use state
-    oud.state <- agent_states[1:4]
+    oud.state <- params$agent_states[1:4]
     oud.prob.m <- c((1 - init_inactive) * (1 - ini.il.m), (1 - init_inactive) * ini.il.m * (1 - ini.il.hr.m), (1 - init_inactive) * ini.il.m * ini.il.hr.m, init_inactive)
     oud.prob.f <- c((1 - init_inactive) * (1 - ini.il.f), (1 - init_inactive) * ini.il.f * (1 - ini.il.hr.f), (1 - init_inactive) * ini.il.f * ini.il.hr.f, init_inactive)
     if (sex == "m") {
@@ -97,7 +98,7 @@ initiate_ppl <- function(initials, seed = 2021) {
 
 
     init_ppl$sex[i] <- sex
-    init_ppl$race[i] <- race
+    init_ppl$race[i] <- data$v.demo.race[demo.ind]
     init_ppl$age[i] <- age
     init_ppl$residence[i] <- v.region[oud.region.ind[i]]
     init_ppl$curr.state[i] <- curr.state
@@ -116,10 +117,10 @@ initiate_ppl <- function(initials, seed = 2021) {
 
     # determine demographic
     demo.ind <- sample(1:nrow(nodu_demo), size = 1, prob = nodu_demo[, nodu.region.ind[i]])
-    # sex <- v.demo.sex[demo.ind]
-    sex <- Demographic$sex[demo.ind]
-    race <- v.demo.race[demo.ind]
-    age.ind <- v.demo.age[demo.ind]
+
+    sex <- data$demographic$sex[demo.ind]
+    # race <- v.demo.race[demo.ind]
+    age.ind <- data$v.demo.age[demo.ind]
     if (age.ind == "12to17") {
       age <- init.age <- sample(12:17, size = 1)
     } else if (age.ind == "18to25") {
@@ -142,7 +143,7 @@ initiate_ppl <- function(initials, seed = 2021) {
 
 
     init_ppl$sex[i + total.oud] <- sex
-    init_ppl$race[i + total.oud] <- race
+    init_ppl$race[i + total.oud] <- data$v.demo.race[demo.ind]
     init_ppl$age[i + total.oud] <- age
     init_ppl$residence[i + total.oud] <- v.region[nodu.region.ind[i]]
     init_ppl$curr.state[i + total.oud] <- curr.state
