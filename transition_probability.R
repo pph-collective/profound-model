@@ -56,6 +56,8 @@ trans.prob <- function(pop.t, params, data) {
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.hr", "first"] * data$multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.hr", "subs"] * data$multi.relap
 
+  # DEBUG
+  print(data$overdose_probs)
   # update the trans.prob matrix with the corresponding probabilities
   ind.preb <- pop.t$curr.state == "preb"
 
@@ -147,26 +149,33 @@ trans.prob <- function(pop.t, params, data) {
 }
 
 # random sampling for vector of outcomes
+# TODO rewrite to store stats
 samplev <- function(probs, m) {
+  # get dimensions of probabilities
   d <- dim(probs)
   n <- d[1]
   k <- d[2]
-  lev <- dimnames(probs)[[2]]
-  if (!length(lev)) {
-    lev <- 1:k
+  states <- dimnames(probs)[[2]]
+
+  if (!length(states)) {
+    states <- 1:k
   }
-  ran <- matrix(lev[1], ncol = m, nrow = n)
+  ran <- matrix(states[1], ncol = m, nrow = n)
+
   U <- t(probs)
+
   for (i in 2:k) {
     U[i, ] <- U[i, ] + U[i - 1, ]
   }
+
   if (any((U[k, ] - 1) > 1e-05)) {
     stop("error in multinom: probabilities do not sum to 1")
   }
 
   for (j in 1:m) {
+    # TO_REVIEW what is un?
     un <- rep(runif(n), rep(k, n))
-    ran[, j] <- lev[1 + colSums(un > U)]
+    ran[, j] <- states[1 + colSums(un > U)]
   }
-  ran
+  return(ran)
 }

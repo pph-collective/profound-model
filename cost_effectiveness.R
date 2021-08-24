@@ -38,5 +38,5 @@ Costs <- function(state, OU.state, nlx, count, params) {
     nlx * (c.nlx.dtb + c.nlx.kit)
 
   c.nlx <- nlx * (c.nlx.dtb + c.nlx.kit)
-  return(c(c.TC, c.nlx)) # return the costs
+  return(list(total_cost = c.TC, nlx_cost = c.nlx)) # return the costs
 }

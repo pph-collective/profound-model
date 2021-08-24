@@ -149,9 +149,13 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
 
 main <- function(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario){
   # what I want to do: for each scenario, run the simulation. If it's a program, send it to the program eval to change the probs. Otherwise, scale as needed
-
+  print("simulate")
   sim_sq <- MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, "SQ", seed)
-
+  class(sim_sq)
+  print("finished sim")
+  rownames(sim_sq) <- c()
+  write.csv(sim_sq, inputs$outfile, row.names = FALSE)
 }
 
 main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario)
+

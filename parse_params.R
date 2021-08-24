@@ -34,7 +34,7 @@ parse_inputs <- function(input_file){
 
     # if the desired outfile doesn't exist, create it
     if (!dir.exists(input_params$outdir)) {
-        dir.create(input_params$outfile, recursive = TRUE)
+        dir.create(input_params$outdir, recursive = TRUE)
     }
     # write constructed params to file
     write_yaml(input_params, paste0(input_params$outdir, "params.yml"))
