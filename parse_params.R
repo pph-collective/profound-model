@@ -28,7 +28,7 @@ parse_inputs <- function(input_file){
     input_params$strat <- get_item(inputs$strategy$val, defaults$strategy$val)
     input_params$outdir <- get_item(inputs$outfolder$val, defaults$outfile$val)
     # put the output file in the outdir
-    input_params$outfile <- paste0(input_params$outdir, "overdoses.csv")
+    # input_params$outfile <- paste0(input_params$outdir, "overdoses.csv")
     input_params$init_ppl_file <- get_item(inputs$init_ppl$val, inputs$init_ppl$val)
     input_params$scenarios <- inputs$scenarios
 

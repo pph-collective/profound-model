@@ -50,13 +50,14 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
 
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
 
-  if (strategy == "SQ") {
-    avail_nlx <- n.nlx.mx.lst
-  } else if (strategy == "expand") {
-    avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
-  } else if (strategy == "program") {
-    avail_nlx <- n.nlx.mx.lst + pg.add
-  }
+  # if (strategy == "SQ") {
+  #   avail_nlx <- n.nlx.mx.lst
+  # } else if (strategy == "expand") {
+  #   avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
+  # } else if (strategy == "program") {
+  #   avail_nlx <- n.nlx.mx.lst + pg.add
+  # }
+  if (strategy$)
 
   array.Nx <- array.Nx <- abind(array.Nx, avail_nlx, along = 1)
 

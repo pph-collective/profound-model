@@ -147,15 +147,19 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
 # results$overdose_deaths[results$scenario == "Double"] <- round(colSums(sim_ep$m.oddeath[49:60, ] * 0.8), 0)
 # write.csv(results, file = ("overdose_deaths.csv"))
 
-main <- function(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario){
+main <- function(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed){
   # what I want to do: for each scenario, run the simulation. If it's a program, send it to the program eval to change the probs. Otherwise, scale as needed
   print("simulate")
-  sim_sq <- MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, "SQ", seed)
-  class(sim_sq)
-  print("finished sim")
-  rownames(sim_sq) <- c()
-  write.csv(sim_sq, inputs$outfile, row.names = FALSE)
+  for (scenario in names(params$scenarios)){
+    results <- MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, params$scenarios[scenario], seed)
+    outfile <- paste0(params$outdir, scenario, "_overdose.csv")
+    write.csv(sim_sq, outfile, row.names = FALSE)
+  }
+  # class(sim_sq)
+  # print("finished sim")
+  # rownames(sim_sq) <- c()
+  # write.csv(sim_sq, inputs$outfile, row.names = FALSE)
 }
 
-main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed, scenario)
+main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed)
 

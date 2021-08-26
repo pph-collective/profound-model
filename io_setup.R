@@ -25,30 +25,28 @@ input_setup <- function(params, data){
 
 # OUTPUT matrices and vectors
 output_setup <- function(params){
-  cost_labels = c("TotalCost", "NxCost")
   output <- data.frame(
     v.od = rep(0, times = params$timesteps) # count of overdoses at timestep
   )
 
-  output$v.oddeath = NA # count of overdose deaths at each time step
-  output$v.oddeath.w = NA # count of overdose deaths that were witnessed at each time step
+  output$v.oddeath = NA # count of overdose deaths
+  output$v.oddeath.w = NA # count of witnessed deaths
   output$total_cost = NA
   output$nx_cost = NA
-  output$v.odpriv = NA # count of overdose events occurred at private setting at each time step
-  output$v.odpubl = NA # count of overdose events occurred at public setting at each time step
-  output$v.deathpriv = NA # count of overdose deaths occurred at private setting at each time step
-  output$v.deathpubl = NA # count of overdose deaths occurred at public setting at each time step
-  output$v.nlxused = NA # count of naloxone kits used at each time step
-  output$m.oddeath.fx = NA # count of overdose deaths with fentanyl present at each time step
-  output$m.oddeath.op = NA # count of overdose deaths among opioid users at each time step
-  output$m.oddeath.st = NA # count of overdose deaths among stimulant users at each time step
-  output$m.EDvisits = NA # count of opioid overdose-related ED visits at each time step
-  output$m.oddeath.hr = NA # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+  output$v.odpriv = NA # count of overdose events at private setting
+  output$v.odpubl = NA # count of overdose events at public setting
+  output$v.deathpriv = NA # count of overdose deaths at private setting
+  output$v.deathpubl = NA # count of overdose deaths at public setting
+  output$v.nlxused = NA # count of naloxone kits used
+  output$m.oddeath.fx = NA # count of overdose deaths with fentanyl present
+  output$m.oddeath.op = NA # count of overdose deaths among opioid users
+  output$m.oddeath.st = NA # count of overdose deaths among stimulant users
+  output$m.EDvisits = NA # count of opioid overdose-related ED visits
+  output$m.oddeath.hr = NA # count of overdose deaths among high-risk opioid users (inject heroin)
 
   for (region in params$v.region) {
     output[region] <- NA
   }
-
 
   return(output)
 }

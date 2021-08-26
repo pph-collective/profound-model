@@ -56,8 +56,6 @@ trans.prob <- function(pop.t, params, data) {
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.hr", "first"] * data$multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.hr", "subs"] * data$multi.relap
 
-  # DEBUG
-  print(data$overdose_probs)
   # update the trans.prob matrix with the corresponding probabilities
   ind.preb <- pop.t$curr.state == "preb"
 
