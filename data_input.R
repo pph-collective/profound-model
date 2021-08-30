@@ -13,11 +13,11 @@
 library(openxlsx)
 data_input <- function(main_table) {
   params <- list()
-  WB <- loadWorkbook(main_table)
+  WB <- loadWorkbook(main_table)  # load data table
 
-  ## Parameters for initial cohort ##
+  # Parameters for initial cohort --------------------------
   InitialPop <- read.xlsx(WB, sheet = "InitialPop")
-  ppl.size <- round(with(InitialPop, pe[par == "ppl.size"]) * with(InitialPop, pe[par == "prop.12older"]), 0) # size of initial population 12 and older
+  ppl.size <- round(with(InitialPop, pe[par == "ppl.size"]) * with(InitialPop, pe[par == "prop.12older"]), 0) # size of initial population
   prev.oud <- with(InitialPop, pe[par == "prev.oud"]) # prevalence of OUD (or at risk for OUD)
   prev.NODU.m <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"]) # prevalence of non-opioid drug use among males, in addition to OUD
   prev.NODU.f <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"]) # prevalence of non-opioid drug use among females, in addition to OUD
@@ -25,11 +25,8 @@ data_input <- function(main_table) {
   params$demographic <- read.xlsx(WB, sheet = "Demographic")
 
   demo.mx <- data.matrix(params$demographic[, 4:ncol(params$demographic)])
-
-  v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
-  # REVIEWED don't need to create new variable \ ditto, why not just use Demographic$* when you want these things?
-  params$v.region <- v.region
-  # v.demo.sex <- Demographic$sex
+  
+  params$v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
   params$v.demo.race <- params$demographic$race
   params$v.demo.age <- params$demographic$age
 

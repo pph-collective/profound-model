@@ -18,40 +18,7 @@
 #' outcomes of the simulation
 #'
 
-###############################################################################################
-#########################           Microsimulation        ####################################
-###############################################################################################
-
-###############################################################################################
-####    Microsimulation to determine health states and number of overdoses                 ####
-####    7 health states: prescribed (preb), unregulated-injection (unreg.inj)              ####
-####                     unregulated-noninjection (unreg.nin)                              ####
-####                     inactive (inact),  non-opioid drug use (NODU) - stimulant,        ####
-####                     relapsed (relap), death (dead)                                    ####
-####    1 health event:  Overdose                                                          ####
-####    Attributes:      age, sex, residence, race,                                        ####
-####                     current state (curr.state), opioid use state (OU.state),          ####
-####                     initial state (init.state), initial age (inits.age),              ####
-####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
-####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
-###############################################################################################
-
-
 MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "SQ", seed = 1) {
-  # Arguments:
-  # init_ppl:       matrix of initial states for individuals
-  # params:    model parameters
-  # timesteps:            total number of cycles to run the model
-  # agent_states:        vector of health state names
-  # discount.rate:  discount rate for costs
-  # PT.out:         should the output include a Microsimulation trace? (default is TRUE)
-  # scenario:            simulating strategy
-  # seed:           starting seed number for random number generator (default is 1)
-  # Makes use of:
-  # trans.prob:     function for the estimation of transition probabilities
-  # Costs:          function for the estimation of cost state values
-  # decision_tree:  function for the decision tree module
-  # TODO: actual docstring description
   list2env(params, environment())
   # Find number of opioid and non-opioid users
   num_opioid <- sum(init_ppl$curr.state != "NODU")
@@ -59,7 +26,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
   init_ppl.residence <- (init_ppl %>% count(residence))$n
   output <- data.frame(t = params$timesteps, scenario = scenario, v.od = rep(0, times = params$timesteps))
 
-  # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
+  # Pharmacy data
   NxPharm.mx <- data$NxDataPharm$pe[data$NxDataPharm$year >= (year_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
 
@@ -71,6 +38,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
 
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
 
+  # Change naloxone based on scenario
   scenario <- scenarios[[scenario]]
   output$expansion <- scenario$expansion$val
   if (scenario$program$val) {
@@ -83,13 +51,14 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
     avail_nlx <- n.nlx.mx.lst
   }
 
-  array.Nx <- array.Nx <- abind(array.Nx, avail_nlx, along = 1)
+  array.Nx <- abind(array.Nx, avail_nlx, along = 1)
 
   v.dwc <- rep(1 / (1 + discount_rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
 
   # Create the population list to capture the state/attributes/costs for all individuals at each time point
   ppl_list <- list()
   set.seed(seed) # set the seed for every individual for the random number generator
+  # model step TODO: refactor into separate function
   for (t in 1:params$timesteps) {
     output$t[t] <- t
     nx_avail_yr <- array.Nx[floor((t - 1) / 12) + 1, , ]

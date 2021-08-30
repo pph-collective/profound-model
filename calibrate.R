@@ -22,7 +22,7 @@ library(foreach)
 library(doParallel)
 library("argparser")
 
-# ## Model setup parameters ##
+# Model setup parameters -----------------------------
 args <- arg_parser("arguments")
 args <- add_argument(args, "--seed", help = "seed for latin hypercube sampling", default = 5112021)
 args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")

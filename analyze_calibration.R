@@ -32,18 +32,18 @@ source("data_input.R")
 
 
 calibration_results <- NULL
-
+# read in and bind calibration results
 for (batch.ind in 1:10) {
   temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
   calibration_results <- rbind(calibration_results, temp_results)
 }
 rm(temp_results)
 
+# add the calibration parameters to the calibration results
 calibration_params <- readRDS(paste0("calibration/Calib_par_table.rds"))
-
 calibration_results <- cbind(calibration_results, calibration_params)
 
-# read in workbook
+# read in workbook of targets
 WB <- loadWorkbook("Inputs/MasterTable.xlsx")
 Target <- read.xlsx(WB, sheet = "Target")
 tar.data <- Target$pe
@@ -57,6 +57,7 @@ for (ss in 1:nrow(calibration_results)) {
     "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19"
   )]
   gof <- 0
+  
   # TODO needs to be less hardcoded at some point
   for (j in 1:length(tar.data)) {
     if (j %in% c(5:8)) { # 5:8 is proportion that involves fx
