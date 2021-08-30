@@ -123,43 +123,18 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
 
 
 # Run the simulation =============================
-# run for status quo (no intervention)
-# sim_sq <- MicroSim(init_ppl, params, output, agent_states, d.c, TRUE, "SQ", seed)
-# # run for expansion (with intervention)
-# exp.lv <- 2 # double all OEND programs
-# sim_ep <- MicroSim(init_ppl, params, output, agent_states, d.c, TRUE, "expand", seed)
-
-
-# results <- data.frame(matrix(nrow = length(v.region) * 2, ncol = 6))
-# colnames(results) <- c("location", "scenario", "nlx_avail_rate", "nlx_avail", "overdose_deaths_rate", "overdose_deaths")
-
-# results$location <- rep(v.region, 2)
-# results$scenario <- rep(c("Status Quo", "Double"), each = length(v.region))
-# ppl_region <- colSums(params$Demographic[, -c(1:3)])
-
-# results$nlx_avail_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$avail_nlx) / ppl_region * 100000
-# results$nlx_avail[results$scenario == "Status Quo"] <- colSums(sim_sq$avail_nlx)
-# results$overdose_deaths_rate[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ]) / ppl_region * 100000
-# results$overdose_deaths[results$scenario == "Status Quo"] <- colSums(sim_sq$m.oddeath[49:60, ])
-# results$nlx_avail_rate[results$scenario == "Double"] <- colSums(sim_ep$avail_nlx) / ppl_region * 100000
-# results$nlx_avail[results$scenario == "Double"] <- colSums(sim_ep$avail_nlx)
-# results$overdose_deaths_rate[results$scenario == "Double"] <- colSums(sim_ep$m.oddeath[49:60, ] * 0.8) / ppl_region * 100000
-# results$overdose_deaths[results$scenario == "Double"] <- round(colSums(sim_ep$m.oddeath[49:60, ] * 0.8), 0)
-# write.csv(results, file = ("overdose_deaths.csv"))
 
 main <- function(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed){
   # what I want to do: for each scenario, run the simulation. If it's a program, send it to the program eval to change the probs. Otherwise, scale as needed
   print("simulate")
+  results <- data.frame()
   for (scenario in names(params$scenarios)){
-    results <- MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, params$scenarios[scenario], seed)
-    outfile <- paste0(params$outdir, scenario, "_overdose.csv")
-    write.csv(sim_sq, outfile, row.names = FALSE)
+    results <- rbind(results, MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, scenario, seed))
+    # outfile <- paste0(params$outdir, scenario, "_overdose.csv")
+    outfile <- "overdoses.csv"
+    write.csv(results, paste0(params$outdir, params$outfile), row.names = FALSE, na="0")
   }
-  # class(sim_sq)
-  # print("finished sim")
-  # rownames(sim_sq) <- c()
-  # write.csv(sim_sq, inputs$outfile, row.names = FALSE)
 }
 
-main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed)
+main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, inputs$seed)
 

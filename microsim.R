@@ -17,7 +17,7 @@
 ###############################################################################################
 
 
-MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate, PT.out = TRUE, strategy = "SQ", seed = 1) {
+MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate, PT.out = TRUE, scenario = "SQ", seed = 1) {
   # Arguments:
   # init_ppl:       matrix of initial states for individuals
   # params:    model parameters
@@ -25,7 +25,7 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
   # agent_states:        vector of health state names
   # discount.rate:  discount rate for costs
   # PT.out:         should the output include a Microsimulation trace? (default is TRUE)
-  # strategy:            simulating strategy
+  # scenario:            simulating strategy
   # seed:           starting seed number for random number generator (default is 1)
   # Makes use of:
   # trans.prob:     function for the estimation of transition probabilities
@@ -37,7 +37,8 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
   num_opioid <- sum(init_ppl$curr.state != "NODU")
   n.noud <- sum(init_ppl$curr.state == "NODU")
   init_ppl.residence <- (init_ppl %>% count(residence))$n
-  output <- data.frame(t = params$timesteps, v.od = rep(0, times = params$timesteps))
+  output <- data.frame(t = params$timesteps, scenario = scenario, v.od = rep(0, times = params$timesteps))
+
   # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
   NxPharm.mx <- data$NxDataPharm$pe[data$NxDataPharm$year >= (year_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
@@ -50,14 +51,18 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
 
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
 
-  # if (strategy == "SQ") {
-  #   avail_nlx <- n.nlx.mx.lst
-  # } else if (strategy == "expand") {
-  #   avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
-  # } else if (strategy == "program") {
-  #   avail_nlx <- n.nlx.mx.lst + pg.add
-  # }
-  if (strategy$)
+  scenario <- scenarios[[scenario]]
+  output$expansion <- scenario$expansion$val
+  if (scenario$program$val) {
+    avail_nlx <- n.nlx.mx.lst + evaluate_program()  # TODO make this function work
+  } else if (scenario$expansion$val > 1 && scenario$program$val) {
+     avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
+  } else if (scenario$expansion$val > 1) {
+    avail_nlx <- n.nlx.mx.lst + scenario$expansion$val
+  }
+  else {
+    avail_nlx <- n.nlx.mx.lst 
+  }
 
   array.Nx <- array.Nx <- abind(array.Nx, avail_nlx, along = 1)
 
@@ -91,10 +96,10 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
         set.seed(seed)
         fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
         ppl_list[[t]]$fx[init_ppl$curr.state != "NODU"] <- fx
-        # # determine fentanyl exposure among population who use stimulants (non-opioid)
-        # set.seed(seed*2)
-        # fx         <- sample(0:1, size = n.noud, prob = c(1-ini.NOUD.fx, ini.NOUD.fx), replace = T)
-        # ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
+        # determine fentanyl exposure among population who use stimulants (non-opioid)
+        set.seed(seed*2)
+        fx         <- sample(0:1, size = n.noud, prob = c(1-data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
+        ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
       }
       m.tp <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
       n.nlx.mn <- n.nlx.mn * (1 - data$r.LossExp) + nx_avail_yr / 12
@@ -158,11 +163,5 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
     pop.trace <- NULL
   }
   print("Saving results")
-  # results <- list(
-  #   output$v.oddeath = output$v.oddeath, output$m.oddeath = output$m.oddeath, output$v.od = output$v.od,
-  #   cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1], , ]), avail_nlx = n.nlx.mx.str,
-  #   m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr = m.oddeath.hr, m.EDvisits = m.EDvisits,
-  #   output$v.odpriv = output$v.odpriv, output$v.odpubl = output$v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused
-  # ) # store the results from the simulation in a list
   return(output) # return the results
 } # end of the MicroSim function

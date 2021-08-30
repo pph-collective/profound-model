@@ -17,3 +17,4 @@ preliminary calibration
 *.png
 *.csv
 Inputs/Calib*
+results/

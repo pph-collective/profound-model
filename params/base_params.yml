@@ -19,9 +19,10 @@ strategy:
   description: whether regional or overall
   val: overall
 
-outfolder:
+out:
   description: file to save results
-  val: results/
+  dir: results/
+  file: overdoses.csv
 
 init_ppl:
   description: initial population if saved
@@ -33,8 +34,11 @@ scenarios:
       description: expansion from status quo
       val: 1
     program:
-      description: bool of whether this is a program expansion
+      description: program name if relevant, else false
       val: false
+      file:
+        description: excel file with program data, else false
+        val: false
     scalar:
       description: whether the number is a scalar (true) or raw number of kits (false)
       val: true
