@@ -34,4 +34,4 @@ jobs:
         run: Rscript main.R
       - name: Check results exists
         run: |
-          [ -f overdose_deaths.csv ]
+          [ -f results/SQ_overdose.csv ]
