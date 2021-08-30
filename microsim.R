@@ -33,27 +33,27 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
   for (cc in 1:dim(NxPharm.mx)[1]) {
     NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * data$OD_loc, 0)
   }
-  array.Nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
-  initial_nx <- data$NxOEND.array[dimnames(data$NxOEND.array)[[1]] == year_start - 1, , ] + NxPharm.array[1, , ]
+  nlx_array <- data$NxOEND[dimnames(data$NxOEND)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
+  initial_nx <- data$NxOEND[dimnames(data$NxOEND)[[1]] == year_start - 1, , ] + NxPharm.array[1, , ]
 
-  n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
+  nlx_month <- nlx_array[dim(nlx_array)[1], , ]
 
   # Change naloxone based on scenario
   scenario <- scenarios[[scenario]]
   output$expansion <- scenario$expansion$val
   if (scenario$program$val) {
-    avail_nlx <- n.nlx.mx.lst + evaluate_program() # TODO make this function work
+    avail_nlx <- nlx_month + evaluate_program() # TODO make this function work
   } else if (scenario$expansion$val > 1 && scenario$program$val) {
-    avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
+    avail_nlx <- data$NxOEND[dim(data$NxOEND)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
   } else if (scenario$expansion$val > 1) {
-    avail_nlx <- n.nlx.mx.lst + scenario$expansion$val
+    avail_nlx <- nlx_month + scenario$expansion$val
   } else {
-    avail_nlx <- n.nlx.mx.lst
+    avail_nlx <- nlx_month
   }
 
-  array.Nx <- abind(array.Nx, avail_nlx, along = 1)
+  nlx_array <- abind(nlx_array, avail_nlx, along = 1)
 
-  v.dwc <- rep(1 / (1 + discount_rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
+  cost_discount <- rep(1 / (1 + discount_rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
 
   # Create the population list to capture the state/attributes/costs for all individuals at each time point
   ppl_list <- list()
@@ -61,7 +61,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
   # model step TODO: refactor into separate function
   for (t in 1:params$timesteps) {
     output$t[t] <- t
-    nx_avail_yr <- array.Nx[floor((t - 1) / 12) + 1, , ]
+    nx_avail_yr <- nlx_array[floor((t - 1) / 12) + 1, , ]
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
       OUD.fx <- data$init_oud_fx
@@ -74,7 +74,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
       set.seed(seed * 2)
       fx <- sample(0:1, size = n.noud, prob = c(1 - data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
       ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
-      m.tp <- trans.prob(ppl_list[[t]], params, data) # calculate the transition probabilities at cycle t
+      trans_prob <- trans.prob(ppl_list[[t]], params, data) # calculate the transition probabilities at cycle t
       n.nlx.mn <- initial_nx + nx_avail_yr / 12
     } else {
       ppl_list[[t]] <- ppl_list[[t - 1]]
@@ -89,11 +89,11 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
         fx <- sample(0:1, size = n.noud, prob = c(1 - data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
         ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
       }
-      m.tp <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
+      trans_prob <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
       n.nlx.mn <- n.nlx.mn * (1 - data$r.LossExp) + nx_avail_yr / 12
     }
 
-    samples <- samplev(m.tp, 1)
+    samples <- samplev(trans_prob, 1)
     ppl_list[[t]]$curr.state <- as.vector(samples) # sample the next health state and store that state in matrix m.M
     ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% v.oustate & OU.state != curr.state)$ind
     ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
@@ -143,7 +143,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
     ppl_list[[t]]$curr.state[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead"]
   } # end the loop for the time steps
 
-  total.cost <- sum(output$cost.matrix[, "TotalCost"] * v.dwc) # total (discounted) cost
+  total.cost <- sum(output$cost.matrix[, "TotalCost"] * cost_discount) # total (discounted) cost
 
   print("Saving results")
   return(output) # return the results

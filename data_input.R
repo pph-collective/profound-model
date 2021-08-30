@@ -61,7 +61,6 @@ data_input <- function(main_table) {
     ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr, ini.everod.sti = ini.everod.sti
   )
 
-  # REVIEWED add these straight to list, no intermediary
   params$gw.fx <- gw.fx
 
   ## Parameters for microsimulation ##
@@ -135,14 +134,16 @@ data_input <- function(main_table) {
   params$nlx.adj <- with(NxKit, pe[par == "nlx.adj"])
   params$cap <- with(NxKit, pe[par == "cap"])
   NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")
-  NxOEND.array <- array(0, dim = c(length(unique(NxDataOEND$year)), length(unique(NxDataOEND$risk)), length(v.region)))
-  dimnames(NxOEND.array)[[1]] <- unique(NxDataOEND$year)
-  dimnames(NxOEND.array)[[2]] <- unique(NxDataOEND$risk)
-  dimnames(NxOEND.array)[[3]] <- v.region
+  NxOEND <- array(
+    0,
+    dim = c(length(unique(NxDataOEND$year)), length(unique(NxDataOEND$risk)), length(v.region)))
+  dimnames(NxOEND)[[1]] <- unique(NxDataOEND$year)
+  dimnames(NxOEND)[[2]] <- unique(NxDataOEND$risk)
+  dimnames(NxOEND)[[3]] <- v.region
   for (i in 1:length(unique(NxDataOEND$year))) {
-    NxOEND.array[i, , ] <- data.matrix(subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)])
+    NxOEND[i, , ] <- data.matrix(subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)])
   }
-  params$NxOEND.array <- NxOEND.array
+  params$NxOEND <- NxOEND
   params$NxDataPharm <- read.xlsx(WB, sheet = "NxDataPharm")
   NxMvt <- data.matrix(read.xlsx(WB, sheet = "NxMvt")[, -1])
   row.names(NxMvt) <- v.region
