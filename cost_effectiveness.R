@@ -1,15 +1,15 @@
 #' Calculate costs at each timestep
-#' 
-#' @description 
+#'
+#' @description
 #' `Costs()` finds the total cost of interventions and the naloxone-specific costs
 #' of the scenario.
-#' 
+#'
 #' @param state Vector of current agent states.
 #' @param OU.state Vector of current opioid use states.
 #' @param nlx Total naloxone distributed at the timestep.
 #' @param count Number of EMS and hospital visits in the timestep.
 #' @param params Model parameters.
-#' 
+#'
 #' @returns
 #' A list with total cost at the timestep and naloxone-specific cost at the timestep
 

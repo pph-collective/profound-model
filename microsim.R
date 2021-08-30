@@ -1,11 +1,11 @@
 #' Microsimulation for the PROFOUND model
-#' 
-#' @description 
-#' `MicroSim()` runs the main model for naloxone distribution. It relies on the 
-#' decision tree function to simulate each individual's change of state and saves 
+#'
+#' @description
+#' `MicroSim()` runs the main model for naloxone distribution. It relies on the
+#' decision tree function to simulate each individual's change of state and saves
 #' population data including change of drug use status, non-fatal overdose, fatal
 #' overdose, and cost.
-#' 
+#'
 #' @param init_ppl The initial population for the simulation.
 #' @param params Model parameters.
 #' @param data Empirical data to inform the model.
@@ -13,10 +13,10 @@
 #' @param discount_rate The rate of discounting for costs.
 #' @param scenario The scenario to be run.
 #' @param seed Random seed for simulation
-#' 
+#'
 #' @returns
 #' outcomes of the simulation
-#' 
+#'
 
 ###############################################################################################
 #########################           Microsimulation        ####################################
@@ -74,14 +74,13 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
   scenario <- scenarios[[scenario]]
   output$expansion <- scenario$expansion$val
   if (scenario$program$val) {
-    avail_nlx <- n.nlx.mx.lst + evaluate_program()  # TODO make this function work
+    avail_nlx <- n.nlx.mx.lst + evaluate_program() # TODO make this function work
   } else if (scenario$expansion$val > 1 && scenario$program$val) {
-     avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
+    avail_nlx <- data$NxOEND.array[dim(data$NxOEND.array)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
   } else if (scenario$expansion$val > 1) {
     avail_nlx <- n.nlx.mx.lst + scenario$expansion$val
-  }
-  else {
-    avail_nlx <- n.nlx.mx.lst 
+  } else {
+    avail_nlx <- n.nlx.mx.lst
   }
 
   array.Nx <- array.Nx <- abind(array.Nx, avail_nlx, along = 1)
@@ -117,8 +116,8 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
         fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
         ppl_list[[t]]$fx[init_ppl$curr.state != "NODU"] <- fx
         # determine fentanyl exposure among population who use stimulants (non-opioid)
-        set.seed(seed*2)
-        fx         <- sample(0:1, size = n.noud, prob = c(1-data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
+        set.seed(seed * 2)
+        fx <- sample(0:1, size = n.noud, prob = c(1 - data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
         ppl_list[[t]]$fx[init_ppl$curr.state == "NODU"] <- fx
       }
       m.tp <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
@@ -166,7 +165,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
     ppl_list[[t]][od_ppl$ind, ] <- od_ppl
     cost <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), data)
     ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
-    
+
     ## replace deceased individuals with ones with the same initial characteristics (ever.od reset as 0)
     ppl_list[[t]]$age[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state == "dead"]
     ppl_list[[t]]$ever.od[ppl_list[[t]]$curr.state == "dead"] <- 0

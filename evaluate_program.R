@@ -18,7 +18,7 @@
 # source("cost_effectiveness.R")
 
 
-evaluate_program <- function(params) {# Program data
+evaluate_program <- function(params) { # Program data
   program_data <- read.xlsx(params$program_data$program_file$val, sheet = params$program_data$val)
   program_levels <- c(1, 5, 10, 20, 50)
   program_add.array <- array(0, dim = c(length(program_levels), 2, dim(program_data)[1]))

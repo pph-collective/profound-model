@@ -1,18 +1,17 @@
 #' Data import for PROFOUND
-#' 
-#' @description 
+#'
+#' @description
 #' `data_input()` reads in empirical data to inform the microsimulation.
-#' 
+#'
 #' @param main_table The file location for the main empirical data table
 #'    (.xlsx format)
-#' 
+#'
 #' @returns
 #' empirical data for the microsimulation
-#' 
+#'
 
 library(openxlsx)
 data_input <- function(main_table) {
-
   params <- list()
   WB <- loadWorkbook(main_table)
 

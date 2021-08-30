@@ -1,15 +1,15 @@
 #!/usr/bin/env Rscript
 
 #' Main model entry point for the PROFOUND naloxone distribution model
-#' 
-#' @description 
+#'
+#' @description
 #' `main()` sets up necessary parameters, runs the model, and saves the output
-#' 
+#'
 #' @param TODO should change this to pretty much all be in main
-#' 
+#'
 #' @returns
 #' writes overdose stats to file
-#' 
+#'
 
 # Load packages and scripts -----------------------------------------------------
 
@@ -44,7 +44,7 @@ out.file <- inputs$outfile
 # init_ppl.file <- inputs$init_ppl
 
 
-data <- data_input(main_table)  # empirical
+data <- data_input(main_table) # empirical
 # add parameters
 params <- input_setup(inputs, data)
 # create output table
@@ -76,17 +76,15 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
 
 # Run the simulation =============================
 
-main <- function(init_ppl, params, data, output, timesteps, d.c, expansion, seed){
-  # what I want to do: for each scenario, run the simulation. If it's a program, send it to the program eval to change the probs. Otherwise, scale as needed
-  print("simulate")
+main <- function(init_ppl, params, data, output, timesteps, d.c, expansion, seed) {
+  print("start simulation")
   results <- data.frame()
-  for (scenario in names(params$scenarios)){
+  # iterate through desired scenarios and save results
+  for (scenario in names(params$scenarios)) {
     results <- rbind(results, MicroSim(init_ppl, params, data, output, d.c, scenario, seed))
-    # outfile <- paste0(params$outdir, scenario, "_overdose.csv")
     outfile <- "overdoses.csv"
-    write.csv(results, paste0(params$outdir, params$outfile), row.names = FALSE, na="0")
+    write.csv(results, paste0(params$outdir, params$outfile), row.names = FALSE, na = "0")
   }
 }
 
 main(init_ppl, params, data, output, timesteps, d.c, expansion, inputs$seed)
-
