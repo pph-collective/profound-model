@@ -1,41 +1,18 @@
 #!/usr/bin/env Rscript
 
-################################################################################
-############### PROFOUND Naloxone Distribution model ### 2020 ##################
-################################################################################
-# Main module for the Profound Naloxone distribution model:
-#
-# Author: Xiao Zang, PhD; Shayla Nolen, MPH; Sam Bessy, MSc
-# Marshall Lab, Department of Epidemiology, Brown University
-# Created: May 06, 2020
-# Last update: July 17, 2021
-#
-################################################################################
+#' Main model entry point for the PROFOUND naloxone distribution model
+#' 
+#' @description 
+#' `main()` sets up necessary parameters, runs the model, and saves the output
+#' 
+#' @param TODO should change this to pretty much all be in main
+#' 
+#' @returns
+#' writes overdose stats to file
+#' 
 
-################################################################################
-####    Individual-based microsimulation                                    ####
-####    7 agent states: prescribed (preb),                                  ####
-####                     unregulated-injection (unreg.inj)                  ####
-####                     unregulated-noninjection (unreg.nin)               ####
-####                     inactive (inact),                                  ####
-####                     non-opioid drug use (NODU) - stimulant,            ####
-####                     relapsed (relap),                                  ####
-####                     death (dead)                                       ####
-####    1 health event:  Overdose                                           ####
-####    Attributes:      age, sex, residence, race,                         ####
-####                     current state (curr.state),                        ####
-####                     opioid use state (OU.state),                       ####
-####                     initial state (init.state),                        ####
-####                     initial age (inits.age),                           ####
-####                     fenatneyl exposure (fx),                           ####
-####                     ever overdosed (ever.od)                           ####
-####  Projects effects of naloxone distribution strategies on overdose      ####
-################################################################################
+# Load packages and scripts -----------------------------------------------------
 
-################################################################################
-# 1. SET directpry and workspace
-################################################################################
-rm(list = ls())
 library("argparser")
 library(dplyr)
 library(tictoc)
@@ -55,31 +32,6 @@ source("data_input.R")
 
 # parse command line arguments--------------------------------------------------
 args <- arg_parser("arguments")
-# args <- add_argument(args,
-#   "--seed",
-#   help = "seed for random numbers",
-#   default = 2021
-# )
-# args <- add_argument(args,
-#   "--regional",
-#   help = "flag to run regional model",
-#   flag = TRUE
-# )
-# args <- add_argument(args,
-#   "--outfile",
-#   help = "file to store outputs",
-#   default = "OverdoseDeath_RIV1_0.csv"
-# )
-# args <- add_argument(args,
-#   "--ppl",
-#   help = "file with initial ppl info",
-#   default = "Inputs/init_pop.rds"
-# )
-# args <- add_argument(args,
-#   "--cores",
-#   help = "number of cores to run in parallel. If none, do not open socket.",
-#   default = 1
-# )
 args <- add_argument(args, "--inputs", help = "file containing input values", default = "params/base_params.yml")
 argv <- parse_args(args)
 
@@ -124,17 +76,17 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
 
 # Run the simulation =============================
 
-main <- function(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, seed){
+main <- function(init_ppl, params, data, output, timesteps, d.c, expansion, seed){
   # what I want to do: for each scenario, run the simulation. If it's a program, send it to the program eval to change the probs. Otherwise, scale as needed
   print("simulate")
   results <- data.frame()
   for (scenario in names(params$scenarios)){
-    results <- rbind(results, MicroSim(init_ppl, params, data, output, agent_states, d.c, TRUE, scenario, seed))
+    results <- rbind(results, MicroSim(init_ppl, params, data, output, d.c, scenario, seed))
     # outfile <- paste0(params$outdir, scenario, "_overdose.csv")
     outfile <- "overdoses.csv"
     write.csv(results, paste0(params$outdir, params$outfile), row.names = FALSE, na="0")
   }
 }
 
-main(init_ppl, params, data, output, timesteps, agent_states, d.c, PT.out, expansion, inputs$seed)
+main(init_ppl, params, data, output, timesteps, d.c, expansion, inputs$seed)
 

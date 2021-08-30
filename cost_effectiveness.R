@@ -1,20 +1,17 @@
-########################################################################################
-################# PROFOUND Naloxone Distribution model #### 2020 #######################
-########################################################################################
-# Module for Data Input of the Profound Naloxone distribution model:
-#
-# Author: Xiao Zang, PhD; Shayla Nolen, MPH
-# People, Place and Health Collective, Department of Epidemiology, Brown University
-#
-# Created: Dec 30, 2020
-# Last update: Jan 31, 2021
-#
-##################################################################################
-###################        Cost effectiveness analysis      ######################
-##################################################################################
-
-### Costs function
-# The Costs function estimates the costs at every cycle.
+#' Calculate costs at each timestep
+#' 
+#' @description 
+#' `Costs()` finds the total cost of interventions and the naloxone-specific costs
+#' of the scenario.
+#' 
+#' @param state Vector of current agent states.
+#' @param OU.state Vector of current opioid use states.
+#' @param nlx Total naloxone distributed at the timestep.
+#' @param count Number of EMS and hospital visits in the timestep.
+#' @param params Model parameters.
+#' 
+#' @returns
+#' A list with total cost at the timestep and naloxone-specific cost at the timestep
 
 Costs <- function(state, OU.state, nlx, count, params) {
   list2env(params, environment())

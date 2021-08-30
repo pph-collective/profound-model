@@ -1,17 +1,15 @@
-########################################################################################
-################# PROFOUND Naloxone Distribution model #### 2020 #######################
-########################################################################################
-# Module for Data Input of the Profound Naloxone distribution model:
-#
-# Author: Xiao Zang, PhD; Shayla Nolen, MPH
-# Marshall Lab, Department of Epidemiology, Brown University
-#
-# Created: Dec 30, 2020
-# Last update: April 12, 2021
-#
-#############################################################################
+#' Data import for PROFOUND
+#' 
+#' @description 
+#' `data_input()` reads in empirical data to inform the microsimulation.
+#' 
+#' @param main_table The file location for the main empirical data table
+#'    (.xlsx format)
+#' 
+#' @returns
+#' empirical data for the microsimulation
+#' 
 
-## Define input excel file for empirical data##
 library(openxlsx)
 data_input <- function(main_table) {
 

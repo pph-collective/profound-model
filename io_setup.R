@@ -5,8 +5,23 @@
 ###########################################################################################
 # This is to define all the input and output variables required in the model (consistent across all scenarios)
 
+#' Create dataframes for params and model outputs
+#' 
+#' @description 
+#' `input_setup()` adds necessary parameters to the model's input params
+#' 
+#' `output_setup()` creates a dataframe to store the model's output data
+#' 
+#' @param params The parameters for the model.
+#' @param data Empirical data to inform the model.
+#' 
+#' @returns
+#' `input_setup()` returns a named list of model parameters
+#' 
+#' `output_setup()` returns a dataframe to store model outputs
+#' 
+
 library("yaml")
-# INPUT setup
 input_setup <- function(params, data){
   params$pop.info <- c(
     "sex", "race", "age", "residence", "curr.state",
@@ -19,11 +34,10 @@ input_setup <- function(params, data){
   params$timesteps <- 12 * params$num_years # number of time cycles (in month)
   params$v.region <- data$v.region
   num_regions <- length(params$v.region) # number of regions
-  params$strategies = c("SQ", "expand", "program")
+  # params$strategies = c("SQ", "expand", "program")
   return(params)
 }
 
-# OUTPUT matrices and vectors
 output_setup <- function(params){
   output <- data.frame(
     v.od = rep(0, times = params$timesteps) # count of overdoses at timestep

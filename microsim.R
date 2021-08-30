@@ -1,3 +1,23 @@
+#' Microsimulation for the PROFOUND model
+#' 
+#' @description 
+#' `MicroSim()` runs the main model for naloxone distribution. It relies on the 
+#' decision tree function to simulate each individual's change of state and saves 
+#' population data including change of drug use status, non-fatal overdose, fatal
+#' overdose, and cost.
+#' 
+#' @param init_ppl The initial population for the simulation.
+#' @param params Model parameters.
+#' @param data Empirical data to inform the model.
+#' @param output The dataframe for model output.
+#' @param discount_rate The rate of discounting for costs.
+#' @param scenario The scenario to be run.
+#' @param seed Random seed for simulation
+#' 
+#' @returns
+#' outcomes of the simulation
+#' 
+
 ###############################################################################################
 #########################           Microsimulation        ####################################
 ###############################################################################################
@@ -17,7 +37,7 @@
 ###############################################################################################
 
 
-MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate, PT.out = TRUE, scenario = "SQ", seed = 1) {
+MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "SQ", seed = 1) {
   # Arguments:
   # init_ppl:       matrix of initial states for individuals
   # params:    model parameters
@@ -66,7 +86,7 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
 
   array.Nx <- array.Nx <- abind(array.Nx, avail_nlx, along = 1)
 
-  v.dwc <- rep(1 / (1 + discount.rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
+  v.dwc <- rep(1 / (1 + discount_rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
 
   # Create the population list to capture the state/attributes/costs for all individuals at each time point
   ppl_list <- list()
@@ -157,11 +177,6 @@ MicroSim <- function(init_ppl, params, data, output, agent_states, discount.rate
 
   total.cost <- sum(output$cost.matrix[, "TotalCost"] * v.dwc) # total (discounted) cost
 
-  if (PT.out == TRUE) {
-    pop.trace <- ppl_list
-  } else {
-    pop.trace <- NULL
-  }
   print("Saving results")
   return(output) # return the results
 } # end of the MicroSim function

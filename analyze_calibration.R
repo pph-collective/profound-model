@@ -1,13 +1,16 @@
-###############################################################################################
-#######################         Calibration Analysis          #################################
-###############################################################################################
-# Module for analyzing calibration runs and selecting those with best goodness of fit
-#
-# Authors: Xiao Zang, PhD, Sam Bessey, MS
-#
-# People, Place and Health Collective, Department of Epidemiology, Brown University
-#
-###############################################################################################
+#!/usr/bin/env Rscript
+
+#' Analyze calibration and select best-fitting runs
+#' 
+#' @description
+#' imports model runs and finds the runs that fit empirical data best, for use in
+#' future analyses
+#' 
+#' @param TODO need to make function
+#' 
+#' @returns
+#' writes parameters for calibrated runs to file
+#' 
 
 rm(list = ls())
 # Load required packages
