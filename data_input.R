@@ -25,8 +25,11 @@ data_input <- function(main_table) {
   params$demographic <- read.xlsx(WB, sheet = "Demographic")
 
   demo.mx <- data.matrix(params$demographic[, 4:ncol(params$demographic)])
+
+  v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
   
-  params$v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
+  params$v.region <- v.region
+  # v.demo.sex <- Demographic$sex
   params$v.demo.race <- params$demographic$race
   params$v.demo.age <- params$demographic$age
 
