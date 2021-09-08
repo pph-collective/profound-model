@@ -97,7 +97,7 @@ v.region <- Calibration.data.ls[[1]]$v.region # load vector for regions (require
 
 # parallel calibration simulation
 # TODO: look into apply functions for parallel
-ss <- 1 # DEBUG
+
 # calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages = c("dplyr", "abind")) %dopar% {
 yr_start <- 2016 # simulation first year
 yr_end <- 2020 # simulation last year

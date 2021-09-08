@@ -14,9 +14,10 @@
 # To initialize study population at time = 0, define all individual attributes
 ########################################################################################
 
-initiate_ppl <- function(data, seed = 2021) {
+initiate_ppl <- function(data, agent_states, seed = 2021) {
   initials <- data$initials
   list2env(initials, environment())
+  ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
   ## opioid population
   # Determine people with opioid use disorder as estimated by NSDUH
   oud_pop_nsduh <- demo.mx * OUDDemo # number of OUD population estimates for each subgroup in each region according to NSDUH prevalence estimates
@@ -24,23 +25,20 @@ initiate_ppl <- function(data, seed = 2021) {
   oud_pop <- oud_pop_nsduh * oud.adj
   prop.oud.region <- colSums(oud_pop) / sum(oud_pop)
   oud_demo <- oud_pop / matrix(rep(colSums(oud_pop), each = nrow(oud_pop)), nrow = nrow(oud_pop), ncol = ncol(oud_pop))
-
   ## non-opioid population
   stim_pop <- demo.mx * StimDemo # number of NODU population estimates for each subgroup in each region according to NSDUH prevalence estimates
   prop.nodu.region <- colSums(stim_pop) / sum(stim_pop)
   nodu_demo <- stim_pop / matrix(rep(colSums(stim_pop), each = nrow(stim_pop)), nrow = nrow(stim_pop), ncol = ncol(stim_pop))
-
   ## initialize the population matrix
   total.oud <- round(sum(oud_pop), 0)
   total.nodu <- round(sum(stim_pop), 0)
+
   init_ppl <- data.frame(matrix(0, (total.oud + total.nodu), length(ppl_info) + 1)) # initial population matrix
   dimnames(init_ppl)[[2]] <- c("ind", ppl_info)
   init_ppl$ind <- 1:(total.oud + total.nodu)
-
   set.seed(seed)
   oud.region.ind <- sample(1:length(v.region), size = total.oud, prob = prop.oud.region, replace = TRUE)
   nodu.region.ind <- sample(1:length(v.region), size = total.nodu, prob = prop.nodu.region, replace = TRUE)
-
   ## OPIOID USE POPULATION
   for (i in 1:total.oud) {
     set.seed(seed + i)
@@ -65,7 +63,7 @@ initiate_ppl <- function(data, seed = 2021) {
     }
 
     # determine opioid use state
-    oud.state <- params$agent_states[1:4]
+    oud.state <- agent_states[1:4]
     oud.prob.m <- c((1 - init_inactive) * (1 - ini.il.m), (1 - init_inactive) * ini.il.m * (1 - ini.il.hr.m), (1 - init_inactive) * ini.il.m * ini.il.hr.m, init_inactive)
     oud.prob.f <- c((1 - init_inactive) * (1 - ini.il.f), (1 - init_inactive) * ini.il.f * (1 - ini.il.hr.f), (1 - init_inactive) * ini.il.f * ini.il.hr.f, init_inactive)
     if (sex == "m") {
@@ -84,9 +82,6 @@ initiate_ppl <- function(data, seed = 2021) {
       OU.state <- curr.state
     }
 
-    # # determine fentanyl use
-    # fx         <- sample(0:1, size = 1, prob = c(1-ini.OUD.fx, ini.OUD.fx))
-
     # determine ever overdosed
     if (OU.state == "preb") {
       ever.od <- sample(0:1, size = 1, prob = c(1 - ini.everod.preb, ini.everod.preb))
@@ -95,7 +90,6 @@ initiate_ppl <- function(data, seed = 2021) {
     } else if (OU.state == "il.hr") {
       ever.od <- sample(0:1, size = 1, prob = c(1 - ini.everod.il.hr, ini.everod.il.hr))
     }
-
 
     init_ppl$sex[i] <- sex
     init_ppl$race[i] <- data$v.demo.race[demo.ind]
@@ -153,5 +147,6 @@ initiate_ppl <- function(data, seed = 2021) {
     init_ppl$ever.od[i + total.oud] <- ever.od
     # init_ppl$fx[i+total.oud]         <- fx
   }
+
   return(init_ppl)
 }

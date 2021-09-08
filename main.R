@@ -30,9 +30,13 @@ source("parse_params.R")
 source("io_setup.R")
 source("data_input.R")
 
-# parse command line arguments--------------------------------------------------
+# parse command line argument for params file -------------------------------
 args <- arg_parser("arguments")
-args <- add_argument(args, "--inputs", help = "file containing input values", default = "params/base_params.yml")
+args <- add_argument(args,
+        "--inputs",
+        help = "file containing input values",
+        default = "params/base_params.yml"
+        )
 argv <- parse_args(args)
 
 inputs <- parse_inputs(argv$inputs)
@@ -68,7 +72,7 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
   init_ppl <- readRDS(inputs$init_ppl_file)
   print(paste0("Population loaded from file: ", inputs$init_ppl_file))
 } else { # otherwise, create pop
-  init_ppl <- initiate_ppl(data, seed = inputs$seed)
+  init_ppl <- initiate_ppl(data, params$agent_states, seed = inputs$seed)
   saveRDS(init_ppl, inputs$init_ppl_file)
   print(paste0("Population saved to file: ", inputs$init_ppl_file))
 }
@@ -83,7 +87,12 @@ main <- function(init_ppl, params, data, output, timesteps, d.c, expansion, seed
   for (scenario in names(params$scenarios)) {
     results <- rbind(results, MicroSim(init_ppl, params, data, output, d.c, scenario, seed))
     outfile <- "overdoses.csv"
-    write.csv(results, paste0(params$outdir, params$outfile), row.names = FALSE, na = "0")
+    write.csv(
+      results,
+      paste0(params$outdir, params$outfile),
+      row.names = FALSE,
+      na = "0"
+      )
   }
 }
 

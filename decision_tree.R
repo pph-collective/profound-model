@@ -38,8 +38,9 @@
 #############################################################################
 # 2. Decision tree function
 #############################################################################
+source("naloxone_availability.R")
 
-decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
+decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed, data) {
   # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
   list2env(params, environment())
   set.seed(seed)

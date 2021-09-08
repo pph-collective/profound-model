@@ -120,6 +120,9 @@ evaluate_program <- function(params) { # Program data
   write.csv(RateDeaths, file = ("Outputs/Program//Rate.Deaths.csv"), row.names = F)
   write.csv(NoNlx, file = ("Outputs/Program//Number.Naloxone.csv"), row.names = F)
   write.csv(RateNlx, file = ("Outputs/Program//Rate.Naloxone.csv"), row.names = F)
-  write.csv(nlx.used.mx, file = ("Outputs/Program//NaloxoneUseinputs$discountsv"), row.names = F)
+  write.csv(nlx.used.mx, file = ("Outputs/Program//NaloxoneUsed.csv"), row.names = F)
   write.csv(od.death.mx, file = ("Outputs/Program//TotalODdeaths.csv"), row.names = F)
 }
+
+# params <- 
+# evaluate_program()

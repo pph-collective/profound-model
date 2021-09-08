@@ -17,7 +17,7 @@ data_input <- function(main_table) {
 
   # Parameters for initial cohort --------------------------
   InitialPop <- read.xlsx(WB, sheet = "InitialPop")
-  ppl.size <- round(with(InitialPop, pe[par == "ppl.size"]) * with(InitialPop, pe[par == "prop.12older"]), 0) # size of initial population
+  ppl_size <- round(with(InitialPop, pe[par == "ppl_size"]) * with(InitialPop, pe[par == "prop.12older"]), 0) # size of initial population
   prev.oud <- with(InitialPop, pe[par == "prev.oud"]) # prevalence of OUD (or at risk for OUD)
   prev.NODU.m <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"]) # prevalence of non-opioid drug use among males, in addition to OUD
   prev.NODU.f <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"]) # prevalence of non-opioid drug use among females, in addition to OUD
@@ -56,7 +56,7 @@ data_input <- function(main_table) {
 
   # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
   params$initials <- list(
-    ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
+    ppl_size = ppl_size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
     ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
     ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr, ini.everod.sti = ini.everod.sti
   )

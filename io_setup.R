@@ -40,6 +40,7 @@ input_setup <- function(params, data) {
 
 output_setup <- function(params) {
   output <- data.frame(
+    t = 1:params$timesteps,
     v.od = rep(0, times = params$timesteps) # count of overdoses at timestep
   )
 
