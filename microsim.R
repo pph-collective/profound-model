@@ -113,13 +113,11 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
     n.nlx.mn <- n.nlx.mn * (1 - data$r.LossExp) + nx_avail_yr / 12
   }
-  print("DEBUG 2")
   
   samples <- samplev(trans_prob, 1)
   ppl_list[[t]]$curr.state <- as.vector(samples) # sample the next health state and store that state in matrix m.M
   ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% params$v.oustate & OU.state != curr.state)$ind
   ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
-  print("DEBUG 3")
   od_ppl <- ppl_list[[t]][ppl_list[[t]]$curr.state == "od", ]
 
   output$v.od <- nrow(od_ppl)
