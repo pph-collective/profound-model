@@ -27,14 +27,16 @@ data_input <- function(main_table) {
   demo.mx <- data.matrix(params$demographic[, 4:ncol(params$demographic)])
 
   v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
-  
+  p_region <- read.xlsx(WB, sheet = "region_prob")
+  rownames(p_region) <- p_region$region
+
   params$v.region <- v.region
   # v.demo.sex <- Demographic$sex
   params$v.demo.race <- params$demographic$race
   params$v.demo.age <- params$demographic$age
 
-  OUDDemo <- read.xlsx(WB, sheet = "OUDPrevNSDUH")$pe
-  StimDemo <- read.xlsx(WB, sheet = "StimPrevNSDUH")$pe
+  OUDDemo <- read.xlsx(WB, sheet = "OUDPrevNSDUH")
+  StimDemo <- read.xlsx(WB, sheet = "StimPrevNSDUH")
 
   # REVIEWED init = initial, lr/hr lowrisk/highrisk, il = illegal, inact = inactive, gw = annual growth rate of fx exposure, preb = prescription, opioid_use_patterns
   # why create all these variables and then put them into a dataframe? Wastes memory
@@ -58,7 +60,7 @@ data_input <- function(main_table) {
   params$initials <- list(
     ppl_size = ppl_size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
     ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
-    ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr, ini.everod.sti = ini.everod.sti
+    ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr, ini.everod.sti = ini.everod.sti, p_region = p_region
   )
 
   params$gw.fx <- gw.fx
