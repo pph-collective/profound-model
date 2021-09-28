@@ -28,6 +28,7 @@ source("cost_effectiveness.R")
 MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "SQ", seed = 1) {
   list2env(params, environment())
   # Find number of opioid and non-opioid users
+  print(names(init_ppl))
   init_ppl.residence <- (init_ppl %>% count(residence))$n
   output <- data.frame(t = params$timesteps, scenario = scenario, v.od = rep(0, times = params$timesteps))
 

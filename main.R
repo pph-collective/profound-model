@@ -72,9 +72,12 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
   init_ppl <- readRDS(inputs$init_ppl_file)
   print(paste0("Population loaded from file: ", inputs$init_ppl_file))
 } else { # otherwise, create pop
+  print("creating population")
+  tic()
   init_ppl <- initiate_ppl(data, params$agent_states, seed = inputs$seed)
   saveRDS(init_ppl, inputs$init_ppl_file)
   print(paste0("Population saved to file: ", inputs$init_ppl_file))
+  toc()
 }
 
 
