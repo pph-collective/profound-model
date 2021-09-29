@@ -12,7 +12,7 @@
 
 library(openxlsx)
 data_input <- function(main_table) {
-  params <- list()
+  params <- new.env(hash = TRUE)
   WB <- loadWorkbook(main_table)  # load data table
 
   # Parameters for initial cohort --------------------------

@@ -29,10 +29,8 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
   init_ppl <- data.frame(matrix(0, (ppl_size), length(ppl_info)))
   colnames(init_ppl) <- ppl_info
 
-  print(ppl_size)
-
+  tic()
   for (i in 1:ppl_size) {
-    tic(paste0(i, ": "))
     set.seed(seed + i)
     agent <- list()
     agent$residence <- sample(p_region$region, 1, prob = p_region$prob)
@@ -64,13 +62,11 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
     }
     age <- agent$age
     agent$age <- round(runif(1, as.integer(substr(age, 1, 2)), as.integer(substr(age, nchar(age) - 1, nchar(age)))))
-
     agent$fx <- 0  # TO_REVIEW seems like this is how it is in the original?
     # add agent to pop
-    rbind(init_ppl, agent)
-    toc()
+    init_ppl[i, ] <- agent
   }
-
+  toc()
   return(init_ppl)
 }
 
