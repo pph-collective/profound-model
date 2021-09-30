@@ -23,6 +23,13 @@ test_parse_empty <- function() {
         }
     }
     # multi scenario has two scenarios
-    expect_identical(length(multi$scenarios), as.integer(2))
+    expect_equal(length(multi$scenarios), 2)
     expect_identical(multi$scenarios$SQ, params$scenario$SQ)
+}
+
+test_new_scenario <- function() {
+    expand <- parse_inputs("tests/params/test_expansion.yml")
+    # should not have status quo scenario
+    expect_length(expand$scenarios, 1)
+    expect_equal(names(expand$scenarios), "expand")
 }

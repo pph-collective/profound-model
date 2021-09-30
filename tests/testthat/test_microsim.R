@@ -15,12 +15,14 @@ test_step_one <- function() {
     output <- output_setup(params)
     ppl <- list()
     ppl[[1]] <- init_ppl
+    
     # do not include pharmacy data
     nlx_array <- data$NxOEND
     nlx_array <- abind(nlx_array, nlx_array[dim(nlx_array)[1], , ], along = 1)
     x <- step(1, output, nlx_array, ppl, data, 1, params, 0)
+    ppl_2 <- x$ppl_list[[1]]
+    ppl_1 <- ppl[[1]]
 
     # full list should be the same except fentanyl
-    expect_identical(x$ppl_list[[1]][1,1:10], ppl[[1]][1,1:10])
-    print(x$output)
+    expect_identical(ppl_1[1, -which(names(ppl_1) == "fx")], ppl_2[1, -which(names(ppl_2) == "fx")])
 }
