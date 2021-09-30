@@ -52,8 +52,11 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed, data) {
   # REVIEWED ind = index; id
   decntree.out[, "ind"] <- od_ppl$ind
   p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, data$OD_loc, data$Low2Priv, data$nlx.adj, data$cap)
-
+  
   for (d in 1:n.od) {
+    if (n.od == 0) {
+      break
+    }
     loc <- sample(c("priv", "pub"), size = 1, prob = data$OD_loc[, residence[d]])
     locpriv <- ifelse(loc == "priv", 1, 0)
     p.wtns <- ifelse(loc == "priv", data$OD_wit_priv, data$OD_wit_pub)

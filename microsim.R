@@ -28,7 +28,6 @@ source("cost_effectiveness.R")
 MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "SQ", seed = 1) {
   list2env(params, environment())
   # Find number of opioid and non-opioid users
-  print(names(init_ppl))
   init_ppl.residence <- (init_ppl %>% count(residence))$n
   output <- data.frame(t = params$timesteps, scenario = scenario, v.od = rep(0, times = params$timesteps))
 
@@ -116,7 +115,9 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   }
   
   samples <- samplev(trans_prob, 1)
-  ppl_list[[t]]$curr.state <- as.vector(samples) # sample the next health state and store that state in matrix m.M
+
+  # update health state
+  ppl_list[[t]]$curr.state <- as.vector(samples)
   ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% params$v.oustate & OU.state != curr.state)$ind
   ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
   od_ppl <- ppl_list[[t]][ppl_list[[t]]$curr.state == "od", ]
@@ -152,6 +153,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
 
   ppl_list[[t]][od_ppl$ind, ] <- od_ppl
   cost <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), data)
+  # should probably check if it's a new year and then increment it
   ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
 
   ## replace deceased individuals with ones with the same initial characteristics (ever.od reset as 0)

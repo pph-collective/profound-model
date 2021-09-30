@@ -11,56 +11,79 @@
 #'
 
 library(openxlsx)
+
 data_input <- function(main_table) {
   params <- new.env(hash = TRUE)
   WB <- loadWorkbook(main_table)  # load data table
 
   # Parameters for initial cohort --------------------------
   InitialPop <- read.xlsx(WB, sheet = "InitialPop")
-  ppl_size <- round(with(InitialPop, pe[par == "ppl_size"]) * with(InitialPop, pe[par == "prop.12older"]), 0) # size of initial population
-  prev.oud <- with(InitialPop, pe[par == "prev.oud"]) # prevalence of OUD (or at risk for OUD)
-  prev.NODU.m <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"]) # prevalence of non-opioid drug use among males, in addition to OUD
-  prev.NODU.f <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"]) # prevalence of non-opioid drug use among females, in addition to OUD
+  ppl_size <- round(with(
+    InitialPop,
+    pe[par == "ppl_size"]) * with(InitialPop,
+    pe[par == "prop.12older"]),
+    0
+  )
+  prev.oud <- with(InitialPop, pe[par == "prev.oud"])
+  prev.NODU.m <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"])
+  prev.NODU.f <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"])
 
   params$demographic <- read.xlsx(WB, sheet = "Demographic")
 
   demo.mx <- data.matrix(params$demographic[, 4:ncol(params$demographic)])
 
   v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
+  v.region <- gsub("\\.", " ", v.region)
   p_region <- read.xlsx(WB, sheet = "region_prob")
   rownames(p_region) <- p_region$region
 
   params$v.region <- v.region
-  # v.demo.sex <- Demographic$sex
   params$v.demo.race <- params$demographic$race
   params$v.demo.age <- params$demographic$age
 
   OUDDemo <- read.xlsx(WB, sheet = "OUDPrevNSDUH")
   StimDemo <- read.xlsx(WB, sheet = "StimPrevNSDUH")
 
-  # REVIEWED init = initial, lr/hr lowrisk/highrisk, il = illegal, inact = inactive, gw = annual growth rate of fx exposure, preb = prescription, opioid_use_patterns
-  # why create all these variables and then put them into a dataframe? Wastes memory
   OpioidPattern <- read.xlsx(WB, sheet = "OpioidPattern")
-  ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"]) # % of illicite opioid use among OUD ppl
-  ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"]) # % of illicite opioid use among OUD ppl
-  ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"]) # % of high-risk among illicit opioid ppl
-  ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"]) # % of high-risk among illicit opioid ppl
+  # % of illicite opioid use among OUD ppl
+  ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"])
+  ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"])
+  # % of high-risk among illicit opioid ppl
+  ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"])
+  ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"])
+  # % inactive
   init_inactive <- with(OpioidPattern, pe[par == "init_inactive"])
+  # TO_REVIEW what is this %?
   params$init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
+  # TO_REVEW what does gw stand for
   gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
-  ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
-  ini.everod.il.lr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.lr"])
-  ini.everod.il.hr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.hr"])
-  # REVIEWED stimulant_use_patterns
+  # initial probabilities that agent has previously overdosed
+  ini.everod.preb <- with(
+    OpioidPattern,
+    pe[par == "ini.everod" & group == "preb"]
+  )
+  ini.everod.il.lr <- with(
+    OpioidPattern,
+    pe[par == "ini.everod" & group == "il.lr"]
+  )
+  ini.everod.il.hr <- with(
+    OpioidPattern,
+    pe[par == "ini.everod" & group == "il.hr"]
+  )
+  
   StimulantPattern <- read.xlsx(WB, sheet = "StimulantPattern")
   params$ini.NOUD.fx <- with(StimulantPattern, pe[par == "ini.NOUD.fx"])
   ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
 
   # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
   params$initials <- list(
-    ppl_size = ppl_size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
-    ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
-    ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr, ini.everod.sti = ini.everod.sti, p_region = p_region
+    ppl_size = ppl_size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m,
+    prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region,
+    OUDDemo = OUDDemo, StimDemo = StimDemo, ini.il.m = ini.il.m,
+    ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f,
+    init_inactive = init_inactive, ini.everod.preb = ini.everod.preb,
+    ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr,
+    ini.everod.sti = ini.everod.sti, p_region = p_region
   )
 
   params$gw.fx <- gw.fx
@@ -68,10 +91,10 @@ data_input <- function(main_table) {
   ## Parameters for microsimulation ##
   # life table: for mortality
   mor.bg.y <- read.xlsx(WB, sheet = "LifeTable")$pe
-  params$mor.bg <- 1 - (1 - mor.bg.y / 1000000)^(1 / 12)
+  params$mor.bg <- 1 - (1 - mor.bg.y / 1000000)^ (1 / 12)
   mor.drug.y <- read.xlsx(WB, sheet = "LifeTable")$drug
-  params$mor.drug <- 1 - (1 - mor.drug.y / 1000000)^(1 / 12)
-  # REVIEWED gp = general population
+  params$mor.drug <- 1 - (1 - mor.drug.y / 1000000)^ (1 / 12)
+
   mor.gp <- read.xlsx(WB, sheet = "LifeTable")$age
   rm(list = c("mor.bg.y", "mor.drug.y"))
   # risk of overdose
@@ -104,19 +127,28 @@ data_input <- function(main_table) {
     } else {
       OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
       OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-      OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
+      OD_loc <- rbind(
+        rep(OD_loc_priv, length(v.region)),
+        rep(OD_loc_pub, length(v.region))
+      )
     }
   } else {
     OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
     OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-    OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
+    OD_loc <- rbind(
+      rep(OD_loc_priv, length(v.region)),
+      rep(OD_loc_pub, length(v.region))
+    )
   }
   rownames(OD_loc) <- c("priv", "pub")
   colnames(OD_loc) <- v.region
   params$OD_loc <- OD_loc
 
   DecisionTree <- read.xlsx(WB, sheet = "DecisionTree")
-  params$OD_wit_priv <- with(DecisionTree, pe[par == "OD_wit" & group == "priv"])
+  params$OD_wit_priv <- with(
+    DecisionTree,
+    pe[par == "OD_wit" & group == "priv"]
+  )
   params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit" & group == "pub"])
   params$OD_911_priv <- with(DecisionTree, pe[par == "OD_911_priv"])
   params$OD_911_pub_mul <- with(DecisionTree, pe[par == "OD_911_pub_mul"])
@@ -138,12 +170,17 @@ data_input <- function(main_table) {
   NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")
   NxOEND <- array(
     0,
-    dim = c(length(unique(NxDataOEND$year)), length(unique(NxDataOEND$risk)), length(v.region)))
+    dim = c(
+      length(unique(NxDataOEND$year)),
+      length(unique(NxDataOEND$risk)), length(v.region))
+  )
   dimnames(NxOEND)[[1]] <- unique(NxDataOEND$year)
   dimnames(NxOEND)[[2]] <- unique(NxDataOEND$risk)
   dimnames(NxOEND)[[3]] <- v.region
   for (i in 1:length(unique(NxDataOEND$year))) {
-    NxOEND[i, , ] <- data.matrix(subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)])
+    NxOEND[i, , ] <- data.matrix(
+      subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)]
+    )
   }
   params$NxOEND <- NxOEND
   params$NxDataPharm <- read.xlsx(WB, sheet = "NxDataPharm")
@@ -161,8 +198,8 @@ data_input <- function(main_table) {
   params$c.nlx.kit <- with(Cost, pe[par == "c.nlx.kit"])
   # REVIEWED database
   params$c.nlx.dtb <- with(Cost, pe[par == "c.nlx.dtb"])
-  # REVIEW, assume relapse is mid-month, mix cost of active and inactive
-  c.relap.v <- numeric(0) # cost of remaining one cycle: relapsed, as the average of inactive and prior state
+
+  c.relap.v <- numeric(0)
   c.relap.v["preb"] <- (params$c.preb + params$c.inact) / 2
   c.relap.v["il.lr"] <- (params$c.il.lr + params$c.inact) / 2
   c.relap.v["il.hr"] <- (params$c.il.hr + params$c.inact) / 2

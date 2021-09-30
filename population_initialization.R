@@ -29,7 +29,6 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
   init_ppl <- data.frame(matrix(0, (ppl_size), length(ppl_info)))
   colnames(init_ppl) <- ppl_info
 
-  tic()
   for (i in 1:ppl_size) {
     set.seed(seed + i)
     agent <- list()
@@ -41,7 +40,6 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
     agent$sex <- dem[[1]][1]
     agent$race <- dem[[1]][2]
     agent$age <- dem[[1]][3]
-    agent$init.age <- agent$age
 
     oud_prob <- OUDDemo$pe[
       OUDDemo$age == agent$age &
@@ -62,11 +60,13 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
     }
     age <- agent$age
     agent$age <- round(runif(1, as.integer(substr(age, 1, 2)), as.integer(substr(age, nchar(age) - 1, nchar(age)))))
+    agent$init.age <- agent$age
     agent$fx <- 0  # TO_REVIEW seems like this is how it is in the original?
     # add agent to pop
-    init_ppl[i, ] <- agent
+    for (j in names(agent)) {
+      init_ppl[i, j] <- agent[j]
+    }
   }
-  toc()
   return(init_ppl)
 }
 
