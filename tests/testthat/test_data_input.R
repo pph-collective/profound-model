@@ -63,10 +63,10 @@ test_data_input <- function() {
   expect_equal(data$p_rx2il_lr, 0.000418)
 
   # overdose ems
-  expect_equal(data$OD_loc[1], 0.692, tolerance = 0.001)
+  expect_equal(data$od_loc[1], 0.692, tolerance = 0.001)
 
   # decision tree
-  expect_equal(data$OD_wit_priv, 0.645)
+  expect_equal(data$od_wit_priv, 0.645)
 
   # mortality
   expect_equal(data$mor_bl, 0.1111111)
@@ -76,9 +76,9 @@ test_data_input <- function() {
   woonsocket$low <- c(0, 0, 1, 71, 170)
   rownames(woonsocket) <- 2015:2019
   rownames(woonsocket) <- as.character(rownames(woonsocket))
-  x <- as.data.frame(data$NxOEND[, , "Woonsocket"])
+  x <- as.data.frame(data$nx_oend[, , "Woonsocket"])
   expect_equal(x, woonsocket)
 
   # Cost
-  expect_equal(data$c.rx, 1019)
+  expect_equal(data$c_rx, 1019)
 }

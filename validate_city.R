@@ -33,7 +33,7 @@ for (ss in 1:nrow(calib.result.mx)) {
   overdose_probs["rx", "subs"] <- od_rx_sub
   overdose_probs["il_lr", "subs"] <- od_il_lr_sub
   overdose_probs["il_hr", "subs"] <- od_il_lr_sub * multi_hr
-  overdose_probs["NODU", "subs"] <- od_NODU_sub
+  overdose_probs["NODU", "subs"] <- od_nodu_sub
   overdose_probs[, "first"] <- overdose_probs[, "subs"] / multi_sub
   # TO_REVIEW sim_sq status quo?
   # run status quo simulation

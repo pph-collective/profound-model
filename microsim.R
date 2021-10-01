@@ -32,14 +32,14 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
   output <- data.frame(t = params$timesteps, scenario = scenario, v.od = rep(0, times = params$timesteps))
 
   # Pharmacy data
-  NxPharm.mx <- data$NxDataPharm$pe[data$NxDataPharm$year >= (year_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
+  NxPharm.mx <- data$nlx_data_pharm$pe[data$nlx_data_pharm$year >= (year_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
 
   for (cc in 1:dim(NxPharm.mx)[1]) {
-    NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * data$OD_loc, 0)
+    NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * data$od_loc, 0)
   }
-  nlx_array <- data$NxOEND[dimnames(data$NxOEND)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
-  initial_nx <- data$NxOEND[dimnames(data$NxOEND)[[1]] == year_start - 1, , ] + NxPharm.array[1, , ]
+  nlx_array <- data$nx_oend[dimnames(data$nx_oend)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
+  initial_nx <- data$nx_oend[dimnames(data$nx_oend)[[1]] == year_start - 1, , ] + NxPharm.array[1, , ]
 
   nlx_month <- nlx_array[dim(nlx_array)[1], , ]
 
@@ -49,7 +49,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
   if (scenario$program$val) {
     avail_nlx <- nlx_month + evaluate_program() # TODO make this function work
   } else if (scenario$expansion$val > 1 && scenario$program$val) {
-    avail_nlx <- data$NxOEND[dim(data$NxOEND)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
+    avail_nlx <- data$nx_oend[dim(data$nx_oend)[1], , ] * scenario$expansion$val + NxPharm.array[dim(NxPharm.array)[1], , ]
   } else if (scenario$expansion$val > 1) {
     avail_nlx <- nlx_month + scenario$expansion$val
   } else {
@@ -71,7 +71,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
     ppl_list <- tmp$ppl_list
   }
 
-  total.cost <- sum(output$cost.matrix[, "TotalCost"] * cost_discount) # total (discounted) cost
+  total.cost <- sum(output$cost.matrix[, "Totalcost"] * cost_discount) # total (discounted) cost
 
   print("Saving results")
   return(output) # return the results
@@ -111,7 +111,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
     }
     trans_prob <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
-    n.nlx.mn <- n.nlx.mn * (1 - data$r.LossExp) + nx_avail_yr / 12
+    n.nlx.mn <- n.nlx.mn * (1 - data$r_loss_exp) + nx_avail_yr / 12
   }
   
   samples <- samplev(trans_prob, 1)
@@ -152,7 +152,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   }
 
   ppl_list[[t]][od_ppl$ind, ] <- od_ppl
-  cost <- Costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), data)
+  cost <- costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), data)
   # should probably check if it's a new year and then increment it
   ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
 

@@ -17,7 +17,7 @@ test_step_one <- function() {
     ppl[[1]] <- init_ppl
     
     # do not include pharmacy data
-    nlx_array <- data$NxOEND
+    nlx_array <- data$nx_oend
     nlx_array <- abind(nlx_array, nlx_array[dim(nlx_array)[1], , ], along = 1)
     x <- step(1, output, nlx_array, ppl, data, 1, params, 0)
     ppl_2 <- x$ppl_list[[1]]

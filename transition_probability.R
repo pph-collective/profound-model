@@ -62,10 +62,10 @@ trans.prob <- function(pop.t, params, data) {
 
   if (sum(ind.rx) != 0) {
     trans.prob.matrix[, ind.rx] <- rbind(
-      1 - data$p_rx2il_lr - data$p.rx2inact - mor.rate[ind.rx] - od.rate[ind.rx],
+      1 - data$p_rx2il_lr - data$p_rx2inact - mor.rate[ind.rx] - od.rate[ind.rx],
       rep(data$p_rx2il_lr, sum(ind.rx)),
       rep(0, sum(ind.rx)),
-      rep(data$p.rx2inact, sum(ind.rx)),
+      rep(data$p_rx2inact, sum(ind.rx)),
       rep(0, sum(ind.rx)),
       rep(0, sum(ind.rx)),
       mor.rate[ind.rx],
@@ -77,9 +77,9 @@ trans.prob <- function(pop.t, params, data) {
   if (sum(ind.il_lr) != 0) {
     trans.prob.matrix[, ind.il_lr] <- rbind(
       rep(0, sum(ind.il_lr)),
-      1 - data$p.il_lr2il_hr - data$p.il_lr2inact - mor.rate[ind.il_lr] - od.rate[ind.il_lr],
-      rep(data$p.il_lr2il_hr, sum(ind.il_lr)),
-      rep(data$p.il_lr2inact, sum(ind.il_lr)),
+      1 - data$p_il_lr2il_hr - data$p_il_lr2inact - mor.rate[ind.il_lr] - od.rate[ind.il_lr],
+      rep(data$p_il_lr2il_hr, sum(ind.il_lr)),
+      rep(data$p_il_lr2inact, sum(ind.il_lr)),
       rep(0, sum(ind.il_lr)),
       rep(0, sum(ind.il_lr)),
       mor.rate[ind.il_lr],
@@ -91,9 +91,9 @@ trans.prob <- function(pop.t, params, data) {
   if (sum(ind.il_hr) != 0) {
     trans.prob.matrix[, ind.il_hr] <- rbind(
       rep(0, sum(ind.il_hr)),
-      rep(data$p.il_hr2il_lr, sum(ind.il_hr)),
-      1 - data$p.il_hr2il_lr - data$p.il_hr2inact - mor.rate[ind.il_hr] - od.rate[ind.il_hr],
-      rep(data$p.il_hr2inact, sum(ind.il_hr)),
+      rep(data$p_il_hr2il_lr, sum(ind.il_hr)),
+      1 - data$p_il_hr2il_lr - data$p_il_hr2il_lr - mor.rate[ind.il_hr] - od.rate[ind.il_hr],
+      rep(data$p_il_hr2il_lr, sum(ind.il_hr)),
       rep(0, sum(ind.il_hr)),
       rep(0, sum(ind.il_hr)),
       mor.rate[ind.il_hr],
@@ -107,9 +107,9 @@ trans.prob <- function(pop.t, params, data) {
       rep(0, sum(ind.inact)),
       rep(0, sum(ind.inact)),
       rep(0, sum(ind.inact)),
-      1 - data$p.inact2relap - mor.rate[ind.inact] - od.rate[ind.inact],
+      1 - data$p_inact2relap - mor.rate[ind.inact] - od.rate[ind.inact],
       rep(0, sum(ind.inact)),
-      rep(data$p.inact2relap, sum(ind.inact)),
+      rep(data$p_inact2relap, sum(ind.inact)),
       mor.rate[ind.inact],
       od.rate[ind.inact]
     )

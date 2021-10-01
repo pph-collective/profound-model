@@ -60,7 +60,7 @@ for (bb in 1:(sample.size / batch.size)) {
     overdose_probs["rx", "subs"] <- params$od_rx_sub
     overdose_probs["il_lr", "subs"] <- params$od_il_lr_sub
     overdose_probs["il_hr", "subs"] <- params$od_il_lr_sub * params$multi_hr
-    overdose_probs["NODU", "subs"] <- params$od_NODU_sub
+    overdose_probs["NODU", "subs"] <- params$od_nodu_sub
     overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi_sub
     params$overdose_probs <- overdose_probs
 
@@ -71,7 +71,7 @@ for (bb in 1:(sample.size / batch.size)) {
     mortality_probs["bg", ] <- params$mortality_base
     mortality_probs["drug", ] <- params$mortality_drug
     params$mortality_probs <- mortality_probs
-    params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
+    params$od_911_pub <- params$od_911_priv * params$od_911_pub_mul
 
     calib.parameters[[ii]] <- params
     ii <- ii + 1
@@ -98,7 +98,7 @@ prep_data <- function(cc) {
   overdose_probs["rx", "subs"] <- params$od_rx_sub
   overdose_probs["il_lr", "subs"] <- params$od_il_lr_sub
   overdose_probs["il_hr", "subs"] <- params$od_il_lr_sub * params$multi_hr
-  overdose_probs["NODU", "subs"] <- params$od_NODU_sub
+  overdose_probs["NODU", "subs"] <- params$od_nodu_sub
   overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi_sub
   params$overdose_probs <- overdose_probs
 
@@ -109,7 +109,7 @@ prep_data <- function(cc) {
   mortality_probs["bg", ] <- params$mortality_base
   mortality_probs["drug", ] <- params$mortality_drug
   params$mortality_probs <- mortality_probs
-  params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
+  params$od_911_pub <- params$od_911_priv * params$od_911_pub_mul
 
   calib.parameters[[ii]] <- params
 }

@@ -51,18 +51,18 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed, data) {
   colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   # REVIEWED ind = index; id
   decntree.out[, "ind"] <- od_ppl$ind
-  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, data$OD_loc, data$Low2Priv, data$nlx.adj, data$cap)
+  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, data$od_loc, data$low2priv, data$nlx_adj, data$cap)
   
   for (d in 1:n.od) {
     if (n.od == 0) {
       break
     }
-    loc <- sample(c("priv", "pub"), size = 1, prob = data$OD_loc[, residence[d]])
+    loc <- sample(c("priv", "pub"), size = 1, prob = data$od_loc[, residence[d]])
     locpriv <- ifelse(loc == "priv", 1, 0)
-    p.wtns <- ifelse(loc == "priv", data$OD_wit_priv, data$OD_wit_pub)
-    p.911 <- ifelse(loc == "priv", data$OD_911_priv, data$OD_911_pub)
-    p.hosp <- data$OD_hosp
-    p.od2inact <- data$OD_cess
+    p.wtns <- ifelse(loc == "priv", data$od_wit_priv, data$od_wit_pub)
+    p.911 <- ifelse(loc == "priv", data$od_911_priv, data$od_911_pub)
+    p.hosp <- data$od_hosp
+    p.od2inact <- data$od_cess
     wtns <- sample.dic(p.wtns)
     p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
 

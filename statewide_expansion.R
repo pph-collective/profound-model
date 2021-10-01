@@ -48,7 +48,7 @@ for (ss in 1:length(simulation_seed)) {
   print(paste0("Parameter set: ", ss))
   params.temp <- simulation_data[[ss]]
   # ATTN: These two lines are temporary, to remove pharm nx and make nx effect 90%
-  params.temp$NxDataPharm$pe <- 0
+  params.temp$nlx_data_pharm$pe <- 0
   params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
   sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
   od.death.mx.last[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])

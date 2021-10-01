@@ -123,7 +123,7 @@ v.deathpriv <- rep(0, times = timesteps) # count of overdose deaths occurred at 
 v.deathpubl <- rep(0, times = timesteps) # count of overdose deaths occurred at public setting at each time step
 v.str <- c("SQ", "Expand100") # store the strategy names
 d.c <- 0.03 # discounting of costs by 3%
-cost.item <- c("TotalCost", "NxCost")
+cost.item <- c("Totalcost", "Nxcost")
 cost.matrix <- matrix(0, nrow = timesteps, ncol = length(cost.item))
 colnames(cost.matrix) <- cost.item
 m.oddeath.fx <- rep(0, times = timesteps) # count of overdose deaths with fentanyl present at each time step
