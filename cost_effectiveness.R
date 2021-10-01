@@ -1,8 +1,8 @@
 #' Calculate costs at each timestep
 #'
 #' @description
-#' `costs()` finds the total cost of interventions and the naloxone-specific costs
-#' of the scenario.
+#' `costs()` finds the total cost of interventions and the naloxone-specific
+#' cost of the scenario.
 #'
 #' @param state Vector of current agent states.
 #' @param OU.state Vector of current opioid use states.
@@ -11,7 +11,8 @@
 #' @param params Model parameters.
 #'
 #' @returns
-#' A list with total cost at the timestep and naloxone-specific cost at the timestep
+#' A list with total cost at the timestep and naloxone-specific cost at the 
+#' timestep
 
 costs <- function(state, OU.state, nlx, count, params) {
 
