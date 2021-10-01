@@ -90,7 +90,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
     ppl_list[[t]]$fx[ppl_list[[t]]$curr.state != "NODU"] <- fx
     # determine fentanyl use among population who use stimulants (non-opioid)
     set.seed(seed * 2)
-    fx <- sample(0:1, size = n.noud, prob = c(1 - data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
+    fx <- sample(0:1, size = n.noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
     ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
     trans_prob <- trans.prob(ppl_list[[t]], params, data) # calculate the transition probabilities at cycle t
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
@@ -99,14 +99,14 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
     if (t %% 12 == 0) {
       num_opioid <- sum(ppl_list[[t]]$curr.state != "NODU")
       n.noud <- sum(ppl_list[[t]]$curr.state == "NODU")
-      OUD.fx <- min(data$init_oud_fx * (1 + data$gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
+      OUD.fx <- min(data$init_oud_fx * (1 + data$fx_growth * min(floor((t - 1) / 12) + 1, 3)), 0.9)
       # determine fentanyl use among population who use opioids
       set.seed(seed)
       fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
       ppl_list[[t]]$fx[ppl_list[[t]]$curr.state != "NODU"] <- fx
       # determine fentanyl exposure among population who use stimulants (non-opioid)
       set.seed(seed * 2)
-      fx <- sample(0:1, size = n.noud, prob = c(1 - data$ini.NOUD.fx, data$ini.NOUD.fx), replace = T)
+      fx <- sample(0:1, size = n.noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
       ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
     }
     trans_prob <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
@@ -136,12 +136,12 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   output$n.EMS[t] <- sum(decntree.out[, "EMS"])
   output$EDvisits[t] <- sum(decntree.out[, "hospcare"])
   od_ppl$curr.state[decntree.out[, "od.death"] == 1] <- "dead"
-  od_ppl$ever.od[decntree.out[, "od.death"] != 1] <- 1
+  od_ppl$ever_od[decntree.out[, "od.death"] != 1] <- 1
   od_ppl$curr.state[decntree.out[, "inact"] == 1] <- "inact"
   od_ppl$curr.state[od_ppl$curr.state == "od"] <- od_ppl$OU.state[od_ppl$curr.state == "od"]
   output$m.oddeath.fx[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx == 1, ])
   output$m.oddeath.op[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU", ])
-  output$m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "preb", ])
+  output$m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "rx", ])
   output$m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
 
   od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
@@ -158,7 +158,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
 
   ## replace deceased individuals with ones with the same initial characteristics (ever.od reset as 0)
   ppl_list[[t]]$age[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state == "dead"]
-  ppl_list[[t]]$ever.od[ppl_list[[t]]$curr.state == "dead"] <- 0
+  ppl_list[[t]]$ever_od[ppl_list[[t]]$curr.state == "dead"] <- 0
   ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state != "inact"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state != "inact"]
   ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state == "inact"] <- ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state == "inact"]
   ppl_list[[t]]$curr.state[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead"]

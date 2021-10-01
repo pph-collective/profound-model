@@ -93,7 +93,7 @@ calibration_results[, "seed"] <- calib.seed.vt
 # initializbration_results matrix to savbration_results from parallel simulation
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
 
-v.region <- Calibration.data.ls[[1]]$v.region # load vector for regions (required by simulation)
+regions <- Calibration.data.ls[[1]]$regions # load vector for regions (required by simulation)
 
 # parallel calibration simulation
 # TODO: look into apply functions for parallel
@@ -105,18 +105,18 @@ ppl_info <- c(
   "sex", "race", "age", "residence", "curr.state",
   "OU.state", "init.age", "init.state", "ever.od", "fx"
 ) # information for each model individual
-agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
-v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
+agent_states <- c("rx", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
+v.oustate <- c("rx", "il.lr", "il.hr") # vector for active opioid use state names
 num_states <- length(agent_states) # number of states
 num_years <- yr_end - yr_start + 1
 timesteps <- 12 * num_years # number of time cycles (in month)
-num_regions <- length(v.region) # number of regions
+num_regions <- length(regions) # number of regions
 
 # OUTPUT matrices and vectors
 v.od <- rep(0, times = timesteps) # count of overdose events at each time step
 v.oddeath <- rep(0, times = timesteps) # count of overdose deaths at each time step
 m.oddeath <- matrix(0, nrow = timesteps, ncol = num_regions)
-colnames(m.oddeath) <- v.region
+colnames(m.oddeath) <- regions
 v.odpriv <- rep(0, times = timesteps) # count of overdose events occurred at private setting at each time step
 v.odpubl <- rep(0, times = timesteps) # count of overdose events occurred at public setting at each time step
 v.deathpriv <- rep(0, times = timesteps) # count of overdose deaths occurred at private setting at each time step

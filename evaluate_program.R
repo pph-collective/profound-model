@@ -49,8 +49,8 @@ evaluate_program <- function(params) { # Program data
   simulation_seed <- simulation_seed[1:100]
 
   # REVIEWED sq = status quo; pg = program
-  sq.dh.mx <- sq.nx.mx <- matrix(0, nrow = length(v.region), ncol = length(simulation_seed))
-  program_dh.ar <- program_nx.ar <- array(0, dim = c(dim(program_add.array)[1], length(v.region), length(simulation_seed)))
+  sq.dh.mx <- sq.nx.mx <- matrix(0, nrow = length(regions), ncol = length(simulation_seed))
+  program_dh.ar <- program_nx.ar <- array(0, dim = c(dim(program_add.array)[1], length(regions), length(simulation_seed)))
   nlx.used.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(program_levels))
   od.death.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(program_levels))
   scenario.name <- c("Status Quo", "100% increase", "500% increase", "1000% increase", "2000% increase", "5000% increase")

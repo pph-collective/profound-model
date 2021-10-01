@@ -25,15 +25,15 @@ library("yaml")
 input_setup <- function(params, data) {
   params$pop.info <- c(
     "sex", "race", "age", "residence", "curr.state",
-    "OU.state", "init.age", "init.state", "ever.od", "fx"
+    "OU.state", "init.age", "init.state", "ever_od", "fx"
   ) # information for each model individual
-  params$agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
-  params$v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
+  params$agent_states <- c("rx", "il_lr", "il_hr", "inact", "NODU", "relap", "dead") # vector for state names
+  params$v.oustate <- c("rx", "il_lr", "il_hr") # vector for active opioid use state names
   num_states <- length(params$agent_states) # number of states
   params$num_years <- params$year_end - params$year_start + 1
   params$timesteps <- 12 * params$num_years # number of time cycles (in month)
-  params$v.region <- data$v.region
-  num_regions <- length(params$v.region) # number of regions
+  params$regions <- data$regions
+  num_regions <- length(params$regions) # number of regions
   # params$strategies = c("SQ", "expand", "program")
   return(params)
 }
@@ -59,7 +59,7 @@ output_setup <- function(params) {
   output$m.EDvisits <- NA # count of opioid overdose-related ED visits
   output$m.oddeath.hr <- NA # count of overdose deaths among high-risk opioid users (inject heroin)
 
-  for (region in params$v.region) {
+  for (region in params$regions) {
     output[region] <- NA
   }
 

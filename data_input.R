@@ -14,137 +14,135 @@ library(openxlsx)
 
 data_input <- function(main_table) {
   params <- new.env(hash = TRUE)
-  WB <- loadWorkbook(main_table)  # load data table
+  workbook <- loadWorkbook(main_table)  # load data table
 
   # Parameters for initial cohort --------------------------
-  InitialPop <- read.xlsx(WB, sheet = "InitialPop")
+  ppl_data <- read.xlsx(workbook, sheet = "InitialPop")
   ppl_size <- round(with(
-    InitialPop,
-    pe[par == "ppl_size"]) * with(InitialPop,
+    ppl_data,
+    pe[par == "ppl_size"]) * with(ppl_data,
     pe[par == "prop.12older"]),
     0
   )
-  prev.oud <- with(InitialPop, pe[par == "prev.oud"])
-  prev.NODU.m <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"])
-  prev.NODU.f <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"])
+  oud_prev <- with(ppl_data, pe[par == "prev.oud"])
+  nodu_m_prev <- with(ppl_data, pe[par == "prev.NODU" & sex == "m"])
+  nodu_f_prev <- with(ppl_data, pe[par == "prev.NODU" & sex == "f"])
 
-  params$demographic <- read.xlsx(WB, sheet = "Demographic")
+  params$demographic <- read.xlsx(workbook, sheet = "Demographic")
 
-  demo.mx <- data.matrix(params$demographic[, 4:ncol(params$demographic)])
-
-  v.region <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
-  v.region <- gsub("\\.", " ", v.region)
-  p_region <- read.xlsx(WB, sheet = "region_prob")
+  regions <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
+  regions <- gsub("\\.", " ", regions)
+  p_region <- read.xlsx(workbook, sheet = "region_prob")
   rownames(p_region) <- p_region$region
 
-  params$v.region <- v.region
-  params$v.demo.race <- params$demographic$race
-  params$v.demo.age <- params$demographic$age
+  params$regions <- regions
+  params$races <- params$demographic$race
+  params$ages <- params$demographic$age
 
-  OUDDemo <- read.xlsx(WB, sheet = "OUDPrevNSDUH")
-  StimDemo <- read.xlsx(WB, sheet = "StimPrevNSDUH")
+  oud_demo <- read.xlsx(workbook, sheet = "OUDPrevNSDUH")
+  stim_demo <- read.xlsx(workbook, sheet = "StimPrevNSDUH")
 
-  OpioidPattern <- read.xlsx(WB, sheet = "OpioidPattern")
+  opioid_pattern <- read.xlsx(workbook, sheet = "OpioidPattern")
   # % of illicite opioid use among OUD ppl
-  ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"])
-  ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"])
+  init_il_m <- with(opioid_pattern, pe[par == "ini.il" & sex == "m"])
+  init_il_f <- with(opioid_pattern, pe[par == "ini.il" & sex == "f"])
   # % of high-risk among illicit opioid ppl
-  ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"])
-  ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"])
+  init_il_hr_m <- with(opioid_pattern, pe[par == "ini.il.hr" & sex == "m"])
+  init_il_hr_f <- with(opioid_pattern, pe[par == "ini.il.hr" & sex == "f"])
   # % inactive
-  init_inactive <- with(OpioidPattern, pe[par == "init_inactive"])
+  init_inactive <- with(opioid_pattern, pe[par == "init_inactive"])
   # TO_REVIEW what is this %?
-  params$init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
+  params$init_oud_fx <- with(opioid_pattern, pe[par == "init_oud_fx"])
   # TO_REVEW what does gw stand for
-  gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
+  fx_growth <- with(opioid_pattern, pe[par == "fx_growth"])
   # initial probabilities that agent has previously overdosed
-  ini.everod.preb <- with(
-    OpioidPattern,
-    pe[par == "ini.everod" & group == "preb"]
+  init_everod_rx <- with(
+    opioid_pattern,
+    pe[par == "ini.everod" & group == "rx"]
   )
-  ini.everod.il.lr <- with(
-    OpioidPattern,
+  init_everod_il_lr <- with(
+    opioid_pattern,
     pe[par == "ini.everod" & group == "il.lr"]
   )
-  ini.everod.il.hr <- with(
-    OpioidPattern,
+  init_everod_il_hr <- with(
+    opioid_pattern,
     pe[par == "ini.everod" & group == "il.hr"]
   )
   
-  StimulantPattern <- read.xlsx(WB, sheet = "StimulantPattern")
-  params$ini.NOUD.fx <- with(StimulantPattern, pe[par == "ini.NOUD.fx"])
-  ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
+  stimulant_pattern <- read.xlsx(workbook, sheet = "StimulantPattern")
+  params$init_noud_fx <- with(stimulant_pattern, pe[par == "ini.NOUD.fx"])
+  ini_everod_sti <- with(stimulant_pattern, pe[par == "ini.everod"])
 
-  # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
   params$initials <- list(
-    ppl_size = ppl_size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m,
-    prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region,
-    OUDDemo = OUDDemo, StimDemo = StimDemo, ini.il.m = ini.il.m,
-    ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f,
-    init_inactive = init_inactive, ini.everod.preb = ini.everod.preb,
-    ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr,
-    ini.everod.sti = ini.everod.sti, p_region = p_region
+    ppl_size = ppl_size, oud_prev = oud_prev, nodu_m_prev = nodu_m_prev,
+    nodu_f_prev = nodu_f_prev, regions = regions,
+    oud_demo = oud_demo, stim_demo = stim_demo, init_il_m = init_il_m,
+    init_il_f = init_il_f, init_il_hr_m = init_il_hr_m,
+    init_il_hr_f = init_il_hr_f, init_inactive = init_inactive,
+    init_everod_rx = init_everod_rx, init_everod_il_lr = init_everod_il_lr,
+    init_everod_il_hr = init_everod_il_hr,
+    ini_everod_sti = ini_everod_sti, p_region = p_region
   )
 
-  params$gw.fx <- gw.fx
+  params$fx_growth <- fx_growth
 
   ## Parameters for microsimulation ##
   # life table: for mortality
-  mor.bg.y <- read.xlsx(WB, sheet = "LifeTable")$pe
-  params$mor.bg <- 1 - (1 - mor.bg.y / 1000000)^ (1 / 12)
-  mor.drug.y <- read.xlsx(WB, sheet = "LifeTable")$drug
-  params$mor.drug <- 1 - (1 - mor.drug.y / 1000000)^ (1 / 12)
+  annual_mortality_base <- read.xlsx(workbook, sheet = "LifeTable")$pe
+  params$mortality_base <- 1 - (1 - annual_mortality_base / 1000000)^ (1 / 12)
+  annual_mortality_drug <- read.xlsx(workbook, sheet = "LifeTable")$drug
+  params$mortality_drug <- 1 - (1 - annual_mortality_drug / 1000000)^ (1 / 12)
 
-  mor.gp <- read.xlsx(WB, sheet = "LifeTable")$age
-  rm(list = c("mor.bg.y", "mor.drug.y"))
+  mor.gp <- read.xlsx(workbook, sheet = "LifeTable")$age
+  rm(list = c("annual_mortality_base", "annual_mortality_drug"))
   # risk of overdose
-  OverdoseRisk <- read.xlsx(WB, sheet = "OverdoseRisk")
-  params$od.preb.sub <- with(OverdoseRisk, pe[par == "od.preb.sub"])
-  params$od.il.lr.sub <- with(OverdoseRisk, pe[par == "od.il.lr.sub"])
-  params$od.NODU.sub <- with(OverdoseRisk, pe[par == "od.NODU.sub"])
-  params$multi.hr <- with(OverdoseRisk, pe[par == "multi.hr"])
-  params$multi.fx <- with(OverdoseRisk, pe[par == "multi.fx"])
-  params$multi.relap <- with(OverdoseRisk, pe[par == "multi.relap"])
-  params$multi.sub <- with(OverdoseRisk, pe[par == "multi.sub"])
-  params$multi.NODU.fx <- with(OverdoseRisk, pe[par == "multi.NODU.fx"])
+  overdose_risk <- read.xlsx(workbook, sheet = "OverdoseRisk")
+  params$od_rx_sub <- with(overdose_risk, pe[par == "od.rx.sub"])
+  params$od_il_lr_sub <- with(overdose_risk, pe[par == "od.il.lr.sub"])
+  params$od_NODU_sub <- with(overdose_risk, pe[par == "od.NODU.sub"])
+  params$multi_hr <- with(overdose_risk, pe[par == "multi.hr"])
+  params$multi_fx <- with(overdose_risk, pe[par == "multi.fx"])
+  params$multi_relap <- with(overdose_risk, pe[par == "multi.relap"])
+  params$multi_sub <- with(overdose_risk, pe[par == "multi.sub"])
+  params$multi_NODU_fx <- with(overdose_risk, pe[par == "multi.NODU.fx"])
   # transition probability
-  TransProb <- read.xlsx(WB, sheet = "TransProb")
-  params$p.preb2il.lr <- with(TransProb, pe[par == "p.preb2il.lr"])
-  params$p.preb2inact <- with(TransProb, pe[par == "p.preb2inact"])
-  params$p.il.lr2il.hr <- with(TransProb, pe[par == "p.il.lr2il.hr"])
-  params$p.il.lr2inact <- with(TransProb, pe[par == "p.il.lr2inact"])
-  params$p.il.hr2il.lr <- with(TransProb, pe[par == "p.il.hr2il.lr"])
-  params$p.il.hr2inact <- with(TransProb, pe[par == "p.il.hr2inact"])
-  params$p.inact2relap <- with(TransProb, pe[par == "p.inact2relap"])
+  p_transition <- read.xlsx(workbook, sheet = "TransProb")
+  params$p_rx2il_lr <- with(p_transition, pe[par == "p.rx2il.lr"])
+  params$p.rx2inact <- with(p_transition, pe[par == "p.rx2inact"])
+  params$p.il_lr2il_hr <- with(p_transition, pe[par == "p.il.lr2il.hr"])
+  params$p.il_lr2inact <- with(p_transition, pe[par == "p.il.lr2inact"])
+  params$p.il_hr2il_lr <- with(p_transition, pe[par == "p.il.hr2il.lr"])
+  params$p.il_hr2inact <- with(p_transition, pe[par == "p.il.hr2inact"])
+  params$p.inact2relap <- with(p_transition, pe[par == "p.inact2relap"])
 
 
   ## Parameters for decision tree ##
   if (exists("sw.EMS.ODloc")) {
     if (sw.EMS.ODloc == "sp") {
-      OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$private
-      OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$public
+      OD_loc_priv <- read.xlsx(workbook, sheet = "ODSettingEMS(sp)")$private
+      OD_loc_pub <- read.xlsx(workbook, sheet = "ODSettingEMS(sp)")$public
       OD_loc <- rbind(OD_loc_priv, OD_loc_pub)
     } else {
-      OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-      OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
+      OD_loc_priv <- read.xlsx(workbook, sheet = "ODSettingEMS")$private
+      OD_loc_pub <- read.xlsx(workbook, sheet = "ODSettingEMS")$public
       OD_loc <- rbind(
-        rep(OD_loc_priv, length(v.region)),
-        rep(OD_loc_pub, length(v.region))
+        rep(OD_loc_priv, length(regions)),
+        rep(OD_loc_pub, length(regions))
       )
     }
   } else {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
+    OD_loc_priv <- read.xlsx(workbook, sheet = "ODSettingEMS")$private
+    OD_loc_pub <- read.xlsx(workbook, sheet = "ODSettingEMS")$public
     OD_loc <- rbind(
-      rep(OD_loc_priv, length(v.region)),
-      rep(OD_loc_pub, length(v.region))
+      rep(OD_loc_priv, length(regions)),
+      rep(OD_loc_pub, length(regions))
     )
   }
   rownames(OD_loc) <- c("priv", "pub")
-  colnames(OD_loc) <- v.region
+  colnames(OD_loc) <- regions
   params$OD_loc <- OD_loc
 
-  DecisionTree <- read.xlsx(WB, sheet = "DecisionTree")
+  DecisionTree <- read.xlsx(workbook, sheet = "DecisionTree")
   params$OD_wit_priv <- with(
     DecisionTree,
     pe[par == "OD_wit" & group == "priv"]
@@ -156,43 +154,43 @@ data_input <- function(main_table) {
   params$OD_hosp <- with(DecisionTree, pe[par == "OD_hosp"])
   params$OD_cess <- with(DecisionTree, pe[par == "OD_cess"])
 
-  Mortality <- read.xlsx(WB, sheet = "Mortality")
+  Mortality <- read.xlsx(workbook, sheet = "Mortality")
   params$mor_bl <- with(Mortality, pe[par == "mor_bl"])
   params$mortality_nx <- with(Mortality, pe[par == "mortality_nx"])
   params$rr_mor_EMS <- with(Mortality, pe[par == "rr_mor_EMS"])
 
   ## Parameters for naloxone kits ##
-  NxKit <- read.xlsx(WB, sheet = "NxKit")
+  NxKit <- read.xlsx(workbook, sheet = "NxKit")
   params$r.LossExp <- 1 / with(NxKit, pe[par == "LossExp"])
   params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
   params$nlx.adj <- with(NxKit, pe[par == "nlx.adj"])
   params$cap <- with(NxKit, pe[par == "cap"])
-  NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")
+  NxDataOEND <- read.xlsx(workbook, sheet = "NxDataOEND")
   NxOEND <- array(
     0,
     dim = c(
       length(unique(NxDataOEND$year)),
-      length(unique(NxDataOEND$risk)), length(v.region))
+      length(unique(NxDataOEND$risk)), length(regions))
   )
   dimnames(NxOEND)[[1]] <- unique(NxDataOEND$year)
   dimnames(NxOEND)[[2]] <- unique(NxDataOEND$risk)
-  dimnames(NxOEND)[[3]] <- v.region
+  dimnames(NxOEND)[[3]] <- regions
   for (i in 1:length(unique(NxDataOEND$year))) {
     NxOEND[i, , ] <- data.matrix(
       subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)]
     )
   }
   params$NxOEND <- NxOEND
-  params$NxDataPharm <- read.xlsx(WB, sheet = "NxDataPharm")
-  NxMvt <- data.matrix(read.xlsx(WB, sheet = "NxMvt")[, -1])
-  row.names(NxMvt) <- v.region
+  params$NxDataPharm <- read.xlsx(workbook, sheet = "NxDataPharm")
+  NxMvt <- data.matrix(read.xlsx(workbook, sheet = "NxMvt")[, -1])
+  row.names(NxMvt) <- regions
   params$NxMvt <- NxMvt
 
   ## Parameters for cost ##
-  Cost <- read.xlsx(WB, sheet = "Cost")
-  params$c.preb <- with(Cost, pe[par == "c.preb"])
-  params$c.il.lr <- with(Cost, pe[par == "c.il.lr"])
-  params$c.il.hr <- with(Cost, pe[par == "c.il.hr"])
+  Cost <- read.xlsx(workbook, sheet = "Cost")
+  params$c.rx <- with(Cost, pe[par == "c.rx"])
+  params$c.il_lr <- with(Cost, pe[par == "c.il.lr"])
+  params$c.il_hr <- with(Cost, pe[par == "c.il.hr"])
   params$c.inact <- with(Cost, pe[par == "c.inact"])
   params$c.NODU <- with(Cost, pe[par == "c.NODU"])
   params$c.nlx.kit <- with(Cost, pe[par == "c.nlx.kit"])
@@ -200,9 +198,9 @@ data_input <- function(main_table) {
   params$c.nlx.dtb <- with(Cost, pe[par == "c.nlx.dtb"])
 
   c.relap.v <- numeric(0)
-  c.relap.v["preb"] <- (params$c.preb + params$c.inact) / 2
-  c.relap.v["il.lr"] <- (params$c.il.lr + params$c.inact) / 2
-  c.relap.v["il.hr"] <- (params$c.il.hr + params$c.inact) / 2
+  c.relap.v["rx"] <- (params$c.rx + params$c.inact) / 2
+  c.relap.v["il_lr"] <- (params$c.il_lr + params$c.inact) / 2
+  c.relap.v["il_hr"] <- (params$c.il_hr + params$c.inact) / 2
   params$c.relap.v <- c.relap.v
 
   params$c.EMS <- with(Cost, pe[par == "c.EMS"])
@@ -210,21 +208,21 @@ data_input <- function(main_table) {
 
   # Overdose probability matrix (per month)
   overdose_probs <- matrix(0, nrow = 4, ncol = 2)
-  rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+  rownames(overdose_probs) <- c("rx", "il_lr", "il_hr", "NODU")
   colnames(overdose_probs) <- c("first", "subs")
-  overdose_probs["preb", "subs"] <- params$od.preb.sub
-  overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
-  overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-  overdose_probs["NODU", "subs"] <- params$od.NODU.sub
-  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+  overdose_probs["rx", "subs"] <- params$od_rx_sub
+  overdose_probs["il_lr", "subs"] <- params$od_il_lr_sub
+  overdose_probs["il_hr", "subs"] <- params$od_il_lr_sub * params$multi_hr
+  overdose_probs["NODU", "subs"] <- params$od_NODU_sub
+  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi_sub
   params$overdose_probs <- overdose_probs
 
   # Baseline mortality excluding overdose (per month)
   params$mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
   rownames(params$mortality_probs) <- c("bg", "drug")
   colnames(params$mortality_probs) <- mor.gp
-  params$mortality_probs["bg", ] <- params$mor.bg
-  params$mortality_probs["drug", ] <- params$mor.drug
+  params$mortality_probs["bg", ] <- params$mortality_base
+  params$mortality_probs["drug", ] <- params$mortality_drug
 
   return(params)
 }

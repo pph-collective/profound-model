@@ -25,7 +25,7 @@ library(commandArgs)
 # source("io_setup.R")
 
 ## Initialize the study population - people who are at risk of opioid overdose
-pop.info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
+pop.info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever_od", "fx")
 if (file.exists(paste0("Inputs/init_pop.rds"))) {
   init_ppl <- readRDS(paste0("Inputs/init_pop.rds"))
 } else if (!file.exists(paste0("Inputs/init_pop.rds"))) {

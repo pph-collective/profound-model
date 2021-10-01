@@ -22,14 +22,14 @@ Costs <- function(state, OU.state, nlx, count, params) {
     count.EMS <- params$count$n.EMS
     count.hospcare <- params$count$n.hospcare
   }
-  c.TC <- sum(state == "preb") * params$c.preb +
-    sum(state == "il.lr") * params$c.il.lr +
-    sum(state == "il.hr") * params$c.il.hr +
+  c.TC <- sum(state == "rx") * params$c_rx +
+    sum(state == "il_lr") * params$c_il_lr +
+    sum(state == "il_hr") * params$c_il_hr +
     sum(state == "inact") * params$c.inact +
     sum(state == "NODU") * params$c.NODU +
-    sum(state == "relap" & OU.state == "preb") * params$c.relap.v["preb"] +
-    sum(state == "relap" & OU.state == "il.lr") * params$c.relap.v["il.lr"] +
-    sum(state == "relap" & OU.state == "il.hr") * params$c.relap.v["il.hr"] +
+    sum(state == "relap" & OU.state == "rx") * params$c.relap.v["rx"] +
+    sum(state == "relap" & OU.state == "il_lr") * params$c.relap.v["il_lr"] +
+    sum(state == "relap" & OU.state == "il_hr") * params$c.relap.v["il_hr"] +
     count.EMS * params$c.EMS +
     count.hospcare * params$c.hospcare +
     nlx * (params$c.nlx.dtb + params$c.nlx.kit)

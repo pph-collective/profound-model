@@ -44,8 +44,8 @@ calibration_params <- readRDS(paste0("calibration/Calib_par_table.rds"))
 calibration_results <- cbind(calibration_results, calibration_params)
 
 # read in workbook of targets
-WB <- loadWorkbook("Inputs/MasterTable.xlsx")
-Target <- read.xlsx(WB, sheet = "Target")
+workbook <- loadWorkbook("Inputs/MasterTable.xlsx")
+Target <- read.xlsx(workbook, sheet = "Target")
 tar.data <- Target$pe
 
 
@@ -93,21 +93,21 @@ for (cc in 1:nrow(calibration_results)) {
   }
   # Overdose probability parameter matrix (per month)
   overdose_probs <- matrix(0, nrow = 4, ncol = 2)
-  rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+  rownames(overdose_probs) <- c("rx", "il_lr", "il_hr", "NODU")
   colnames(overdose_probs) <- c("first", "subs")
-  overdose_probs["preb", "subs"] <- params$od.preb.sub
-  overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
-  overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-  overdose_probs["NODU", "subs"] <- params$od.NODU.sub
-  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+  overdose_probs["rx", "subs"] <- params$od_rx_sub
+  overdose_probs["il_lr", "subs"] <- params$od_il_lr_sub
+  overdose_probs["il_hr", "subs"] <- params$od_il_lr_sub * params$multi_hr
+  overdose_probs["NODU", "subs"] <- params$od_NODU_sub
+  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi_sub
   params$overdose_probs <- overdose_probs
 
   # Baseline mortality parameters, excluding overdose (per month)
   mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
   rownames(mortality_probs) <- c("bg", "drug")
   colnames(mortality_probs) <- mor.gp
-  mortality_probs["bg", ] <- params$mor.bg
-  mortality_probs["drug", ] <- params$mor.drug
+  mortality_probs["bg", ] <- params$mortality_base
+  mortality_probs["drug", ] <- params$mortality_drug
   params$mortality_probs <- mortality_probs
   params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
 

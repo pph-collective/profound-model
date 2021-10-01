@@ -22,10 +22,10 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
     "residence",
     "curr.state", "OU.state",
     "init.age", "init.state",
-    "ever.od", "fx")
+    "ever_od", "fx")
 
   # get actual population size
-  ppl_size <- round(ppl_size * (prev.oud + mean(c(prev.NODU.m, prev.NODU.f))))
+  ppl_size <- round(ppl_size * (oud_prev + mean(c(nodu_m_prev, nodu_f_prev))))
   init_ppl <- data.frame(matrix(0, (ppl_size), length(ppl_info)))
   colnames(init_ppl) <- ppl_info
 
@@ -33,7 +33,6 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
     set.seed(seed + i)
     agent <- list()
     agent$residence <- sample(p_region$region, 1, prob = p_region$prob)
-
     # get age/race/sex
     age_probs <- p_region[agent$residence, -c(1, 2)]
     dem <- strsplit(sample(colnames(age_probs), 1, prob = age_probs), "_")
@@ -41,23 +40,24 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
     agent$race <- dem[[1]][2]
     agent$age <- dem[[1]][3]
 
-    oud_prob <- OUDDemo$pe[
-      OUDDemo$age == agent$age &
-      OUDDemo$sex == agent$sex & OUDDemo$race == agent$race]
+    oud_prob <- oud_demo$pe[
+      oud_demo$age == agent$age &
+      oud_demo$sex == agent$sex & oud_demo$race == agent$race]
 
-    stim_prob <- StimDemo$pe[
-      StimDemo$sex == agent$sex &
-      StimDemo$race == agent$race & StimDemo$age == agent$age]
+    stim_prob <- stim_demo$pe[
+      stim_demo$sex == agent$sex &
+      stim_demo$race == agent$race & stim_demo$age == agent$age]
 
     oud_prob <- oud_prob / (oud_prob + stim_prob)
 
-    agent$ever.od <- FALSE
+    agent$ever_od <- FALSE
     # OUD agent?
     if (runif(1) < oud_prob) {
       agent <- make_oud_agent(agent, initials, agent_states)
     } else {
       agent$curr.state <- agent$init.state <- agent$OU.state <- "NODU"
     }
+
     age <- agent$age
     agent$age <- round(runif(1, as.integer(substr(age, 1, 2)), as.integer(substr(age, nchar(age) - 1, nchar(age)))))
     agent$init.age <- agent$age
@@ -75,13 +75,13 @@ make_oud_agent <- function(agent, params, agent_states) {
   sex <- agent$sex
   oud.state <- agent_states[1:4]
   # non-illicit drug use probability
-  non_il <- (1 - init_inactive) * (1 - get(paste0("ini.il.", sex)))
+  non_il <- (1 - init_inactive) * (1 - get(paste0("init_il_", sex)))
 
   # high risk use probability
-  hr <- (1 - init_inactive) * get(paste0("ini.il.", sex)) * get(paste0("ini.il.hr.", sex))
+  hr <- (1 - init_inactive) * get(paste0("init_il_", sex)) * get(paste0("init_il_hr_", sex))
 
   # illicit, non-high risk probability
-  il <- (1 - init_inactive) * get(paste0("ini.il.", sex)) * (1 - get(paste0("ini.il.hr.", sex)))
+  il <- (1 - init_inactive) * get(paste0("init_il_", sex)) * (1 - get(paste0("init_il_hr_", sex)))
 
   # create probability vector
   oud.prob <- c(non_il, il, hr, init_inactive)
@@ -100,8 +100,7 @@ make_oud_agent <- function(agent, params, agent_states) {
   }
 
   # has the agent previously overdosed?
-  p_ever_od <- get(paste0("ini.everod.", agent$OU.state))
-  agent$ever.od <- runif(1) < p_ever_od
-
+  p_ever_od <- get(paste0("init_everod_", agent$OU.state))
+  agent$ever_od <- runif(1) < p_ever_od
   return(agent)
 }

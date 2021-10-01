@@ -34,70 +34,70 @@ trans.prob <- function(pop.t, params, data) {
   # create a vector to store probability of overdose for each individual according to ever overdosed and fentanyl
   # TO_REVIEW what does "multi" mean here
   od.rate <- numeric(nrow(pop.t))
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 0 & fx == 0)$ind] <- data$overdose_probs["preb", "first"]
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 1 & fx == 0)$ind] <- data$overdose_probs["preb", "subs"]
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 0 & fx == 1)$ind] <- data$overdose_probs["preb", "first"] * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "preb" & ever.od == 1 & fx == 1)$ind] <- data$overdose_probs["preb", "subs"] * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 0 & fx == 0)$ind] <- data$overdose_probs["il.lr", "first"]
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 1 & fx == 0)$ind] <- data$overdose_probs["il.lr", "subs"]
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 0 & fx == 1)$ind] <- data$overdose_probs["il.lr", "first"] * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "il.lr" & ever.od == 1 & fx == 1)$ind] <- data$overdose_probs["il.lr", "subs"] * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 0 & fx == 0)$ind] <- data$overdose_probs["il.hr", "first"]
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 1 & fx == 0)$ind] <- data$overdose_probs["il.hr", "subs"]
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 0 & fx == 1)$ind] <- data$overdose_probs["il.hr", "first"] * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "il.hr" & ever.od == 1 & fx == 1)$ind] <- data$overdose_probs["il.hr", "subs"] * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 0)$ind] <- data$overdose_probs["NODU", "first"]
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 0)$ind] <- data$overdose_probs["NODU", "subs"]
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 1)$ind] <- data$overdose_probs["il.lr", "first"] * data$multi.NODU.fx * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 1)$ind] <- data$overdose_probs["il.lr", "subs"] * data$multi.NODU.fx * data$multi.fx
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "preb")$ind] <- data$overdose_probs["preb", "first"] * data$multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind] <- data$overdose_probs["preb", "subs"] * data$multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- data$overdose_probs["il.lr", "first"] * data$multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.lr", "subs"] * data$multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.hr", "first"] * data$multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- data$overdose_probs["il.hr", "subs"] * data$multi.relap
+  od.rate[filter(pop.t, curr.state == "rx" & ever_od == 0 & fx == 0)$ind] <- data$overdose_probs["rx", "first"]
+  od.rate[filter(pop.t, curr.state == "rx" & ever_od == 1 & fx == 0)$ind] <- data$overdose_probs["rx", "subs"]
+  od.rate[filter(pop.t, curr.state == "rx" & ever_od == 0 & fx == 1)$ind] <- data$overdose_probs["rx", "first"] * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "rx" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["rx", "subs"] * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "il_lr" & ever_od == 0 & fx == 0)$ind] <- data$overdose_probs["il_lr", "first"]
+  od.rate[filter(pop.t, curr.state == "il_lr" & ever_od == 1 & fx == 0)$ind] <- data$overdose_probs["il_lr", "subs"]
+  od.rate[filter(pop.t, curr.state == "il_lr" & ever_od == 0 & fx == 1)$ind] <- data$overdose_probs["il_lr", "first"] * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "il_lr" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["il_lr", "subs"] * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "il_hr" & ever_od == 0 & fx == 0)$ind] <- data$overdose_probs["il_hr", "first"]
+  od.rate[filter(pop.t, curr.state == "il_hr" & ever_od == 1 & fx == 0)$ind] <- data$overdose_probs["il_hr", "subs"]
+  od.rate[filter(pop.t, curr.state == "il_hr" & ever_od == 0 & fx == 1)$ind] <- data$overdose_probs["il_hr", "first"] * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "il_hr" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["il_hr", "subs"] * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 0 & fx == 0)$ind] <- data$overdose_probs["NODU", "first"]
+  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 1 & fx == 0)$ind] <- data$overdose_probs["NODU", "subs"]
+  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 0 & fx == 1)$ind] <- data$overdose_probs["il_lr", "first"] * data$multi.NODU.fx * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["il_lr", "subs"] * data$multi.NODU.fx * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 0 & OU.state == "rx")$ind] <- data$overdose_probs["rx", "first"] * data$multi_relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "rx")$ind] <- data$overdose_probs["rx", "subs"] * data$multi_relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 0 & OU.state == "il_lr")$ind] <- data$overdose_probs["il_lr", "first"] * data$multi_relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_lr", "subs"] * data$multi_relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 0 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_hr", "first"] * data$multi_relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_hr", "subs"] * data$multi.relap
 
   # update the trans.prob matrix with the corresponding probabilities
-  ind.preb <- pop.t$curr.state == "preb"
+  ind.rx <- pop.t$curr.state == "rx"
 
-  if (sum(ind.preb) != 0) {
-    trans.prob.matrix[, ind.preb] <- rbind(
-      1 - data$p.preb2il.lr - data$p.preb2inact - mor.rate[ind.preb] - od.rate[ind.preb],
-      rep(data$p.preb2il.lr, sum(ind.preb)),
-      rep(0, sum(ind.preb)),
-      rep(data$p.preb2inact, sum(ind.preb)),
-      rep(0, sum(ind.preb)),
-      rep(0, sum(ind.preb)),
-      mor.rate[ind.preb],
-      od.rate[ind.preb]
+  if (sum(ind.rx) != 0) {
+    trans.prob.matrix[, ind.rx] <- rbind(
+      1 - data$p_rx2il_lr - data$p.rx2inact - mor.rate[ind.rx] - od.rate[ind.rx],
+      rep(data$p_rx2il_lr, sum(ind.rx)),
+      rep(0, sum(ind.rx)),
+      rep(data$p.rx2inact, sum(ind.rx)),
+      rep(0, sum(ind.rx)),
+      rep(0, sum(ind.rx)),
+      mor.rate[ind.rx],
+      od.rate[ind.rx]
     )
   }
 
-  ind.il.lr <- pop.t$curr.state == "il.lr"
-  if (sum(ind.il.lr) != 0) {
-    trans.prob.matrix[, ind.il.lr] <- rbind(
-      rep(0, sum(ind.il.lr)),
-      1 - data$p.il.lr2il.hr - data$p.il.lr2inact - mor.rate[ind.il.lr] - od.rate[ind.il.lr],
-      rep(data$p.il.lr2il.hr, sum(ind.il.lr)),
-      rep(data$p.il.lr2inact, sum(ind.il.lr)),
-      rep(0, sum(ind.il.lr)),
-      rep(0, sum(ind.il.lr)),
-      mor.rate[ind.il.lr],
-      od.rate[ind.il.lr]
+  ind.il_lr <- pop.t$curr.state == "il_lr"
+  if (sum(ind.il_lr) != 0) {
+    trans.prob.matrix[, ind.il_lr] <- rbind(
+      rep(0, sum(ind.il_lr)),
+      1 - data$p.il_lr2il_hr - data$p.il_lr2inact - mor.rate[ind.il_lr] - od.rate[ind.il_lr],
+      rep(data$p.il_lr2il_hr, sum(ind.il_lr)),
+      rep(data$p.il_lr2inact, sum(ind.il_lr)),
+      rep(0, sum(ind.il_lr)),
+      rep(0, sum(ind.il_lr)),
+      mor.rate[ind.il_lr],
+      od.rate[ind.il_lr]
     )
   }
 
-  ind.il.hr <- pop.t$curr.state == "il.hr"
-  if (sum(ind.il.hr) != 0) {
-    trans.prob.matrix[, ind.il.hr] <- rbind(
-      rep(0, sum(ind.il.hr)),
-      rep(data$p.il.hr2il.lr, sum(ind.il.hr)),
-      1 - data$p.il.hr2il.lr - data$p.il.hr2inact - mor.rate[ind.il.hr] - od.rate[ind.il.hr],
-      rep(data$p.il.hr2inact, sum(ind.il.hr)),
-      rep(0, sum(ind.il.hr)),
-      rep(0, sum(ind.il.hr)),
-      mor.rate[ind.il.hr],
-      od.rate[ind.il.hr]
+  ind.il_hr <- pop.t$curr.state == "il_hr"
+  if (sum(ind.il_hr) != 0) {
+    trans.prob.matrix[, ind.il_hr] <- rbind(
+      rep(0, sum(ind.il_hr)),
+      rep(data$p.il_hr2il_lr, sum(ind.il_hr)),
+      1 - data$p.il_hr2il_lr - data$p.il_hr2inact - mor.rate[ind.il_hr] - od.rate[ind.il_hr],
+      rep(data$p.il_hr2inact, sum(ind.il_hr)),
+      rep(0, sum(ind.il_hr)),
+      rep(0, sum(ind.il_hr)),
+      mor.rate[ind.il_hr],
+      od.rate[ind.il_hr]
     )
   }
 

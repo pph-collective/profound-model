@@ -4,7 +4,7 @@ scenarios:
       description: scalar on number of kits, scaling from the status quo scenario
       val: 1
     program:
-      description: program name if relevant, else false
+      description: program name if targeting a specific program, else false
       val: false
       file:
         description: excel file with program data, else false

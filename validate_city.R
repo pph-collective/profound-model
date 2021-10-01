@@ -4,7 +4,7 @@ ODdeaths16 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
 ODdeaths17 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
 ODdeaths18 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
 ODdeaths19 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
-row.names(ODdeaths16) <- row.names(ODdeaths17) <- row.names(ODdeaths18) <- row.names(ODdeaths19) <- v.region
+row.names(ODdeaths16) <- row.names(ODdeaths17) <- row.names(ODdeaths18) <- row.names(ODdeaths19) <- regions
 for (ss in 1:nrow(calib.result.mx)) {
   print(paste0("Parameter set: ", ss))
   calib.seed <- calib.result.mx[ss, "seed"]
@@ -22,19 +22,19 @@ for (ss in 1:nrow(calib.result.mx)) {
   init_ppl$fx[init_ppl$curr.state != "NODU"] <- fx
   # determine fentanyl use among initial population who use stimulants (non-opioid)
   set.seed(calib.seed * 2)
-  fx <- sample(0:1, size = n.noud, prob = c(1 - ini.NOUD.fx, ini.NOUD.fx), replace = T)
+  fx <- sample(0:1, size = n.noud, prob = c(1 - init_noud_fx, init_noud_fx), replace = T)
   init_ppl$fx[init_ppl$curr.state == "NODU"] <- fx
 
   # Overdose probability matrix (per month)
   # REVIEWED: subs = subsequent
   overdose_probs <- matrix(0, nrow = 4, ncol = 2)
-  rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+  rownames(overdose_probs) <- c("rx", "il_lr", "il_hr", "NODU")
   colnames(overdose_probs) <- c("first", "subs")
-  overdose_probs["preb", "subs"] <- od.preb.sub
-  overdose_probs["il.lr", "subs"] <- od.il.lr.sub
-  overdose_probs["il.hr", "subs"] <- od.il.lr.sub * multi.hr
-  overdose_probs["NODU", "subs"] <- od.NODU.sub
-  overdose_probs[, "first"] <- overdose_probs[, "subs"] / multi.sub
+  overdose_probs["rx", "subs"] <- od_rx_sub
+  overdose_probs["il_lr", "subs"] <- od_il_lr_sub
+  overdose_probs["il_hr", "subs"] <- od_il_lr_sub * multi_hr
+  overdose_probs["NODU", "subs"] <- od_NODU_sub
+  overdose_probs[, "first"] <- overdose_probs[, "subs"] / multi_sub
   # TO_REVIEW sim_sq status quo?
   # run status quo simulation
   sim_sq <- MicroSim(init_ppl, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = calib.seed) # run for no treatment

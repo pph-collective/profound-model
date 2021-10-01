@@ -64,7 +64,7 @@ ppl_info <- c(
   "OU.state",
   "init.age",
   "init.state",
-  "ever.od",
+  "ever_od",
   "fx"
 )
 
