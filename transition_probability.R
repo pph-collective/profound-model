@@ -13,16 +13,18 @@
 #################        Transistion probability function      #########################
 ########################################################################################
 library(dplyr)
+# TODO there must be a way to do all of the filters at once?
+# the issue seems to be the age -- might want to change this to allow age category as well
 
 trans.prob <- function(pop.t, params, data) {
-  list2env(params, environment())
   # initialize a matrix to store transition probabilities of each individual
   trans.prob.matrix <- matrix(NA, length(params$agent_states) + 1, nrow(pop.t)) # add one row for OD
-  rownames(trans.prob.matrix) <- c(agent_states, "od")
+  rownames(trans.prob.matrix) <- c(params$agent_states, "od")
 
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))
 
+  tic("mor rate 1")
   mor.rate[filter(pop.t, age %in% c(10:14))$ind] <- data$mortality_probs["drug", "10to14"]
   mor.rate[filter(pop.t, age %in% c(15:24))$ind] <- data$mortality_probs["drug", "15to24"]
   mor.rate[filter(pop.t, age %in% c(25:34))$ind] <- data$mortality_probs["drug", "25to34"]
@@ -30,7 +32,7 @@ trans.prob <- function(pop.t, params, data) {
   mor.rate[filter(pop.t, age %in% c(45:54))$ind] <- data$mortality_probs["drug", "45to54"]
   mor.rate[filter(pop.t, age %in% c(55:64))$ind] <- data$mortality_probs["drug", "55to64"]
   mor.rate[filter(pop.t, age >= 65)$ind] <- data$mortality_probs["drug", "65over"]
-
+  toc()
   # create a vector to store probability of overdose for each individual according to ever overdosed and fentanyl
   # TO_REVIEW what does "multi" mean here
   od.rate <- numeric(nrow(pop.t))
@@ -48,15 +50,14 @@ trans.prob <- function(pop.t, params, data) {
   od.rate[filter(pop.t, curr.state == "il_hr" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["il_hr", "subs"] * data$multi_fx
   od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 0 & fx == 0)$ind] <- data$overdose_probs["NODU", "first"]
   od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 1 & fx == 0)$ind] <- data$overdose_probs["NODU", "subs"]
-  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 0 & fx == 1)$ind] <- data$overdose_probs["il_lr", "first"] * data$multi.NODU.fx * data$multi_fx
-  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["il_lr", "subs"] * data$multi.NODU.fx * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 0 & fx == 1)$ind] <- data$overdose_probs["il_lr", "first"] * data$multi_NODU_fx * data$multi_fx
+  od.rate[filter(pop.t, curr.state == "NODU" & ever_od == 1 & fx == 1)$ind] <- data$overdose_probs["il_lr", "subs"] * data$multi_NODU_fx * data$multi_fx
   od.rate[filter(pop.t, curr.state == "relap" & ever_od == 0 & OU.state == "rx")$ind] <- data$overdose_probs["rx", "first"] * data$multi_relap
   od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "rx")$ind] <- data$overdose_probs["rx", "subs"] * data$multi_relap
   od.rate[filter(pop.t, curr.state == "relap" & ever_od == 0 & OU.state == "il_lr")$ind] <- data$overdose_probs["il_lr", "first"] * data$multi_relap
   od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_lr", "subs"] * data$multi_relap
   od.rate[filter(pop.t, curr.state == "relap" & ever_od == 0 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_hr", "first"] * data$multi_relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_hr", "subs"] * data$multi.relap
-
+  od.rate[filter(pop.t, curr.state == "relap" & ever_od == 1 & OU.state == "il_hr")$ind] <- data$overdose_probs["il_hr", "subs"] * data$multi_relap
   # update the trans.prob matrix with the corresponding probabilities
   ind.rx <- pop.t$curr.state == "rx"
 
@@ -135,8 +136,8 @@ trans.prob <- function(pop.t, params, data) {
     num_states <- length(params$agent_states)
     relap.m <- matrix(0, num_states + 1, sum(ind.relap))
     for (r in 1:sum(ind.relap)) {
-      relap.m[which(OU.v[r] == agent_states), r] <- 1 - mor.rate[ind.relap][r] - od.rate[ind.relap][r]
-      relap.m[which("dead" == agent_states), r] <- mor.rate[ind.relap][r]
+      relap.m[which(OU.v[r] == params$agent_states), r] <- 1 - mor.rate[ind.relap][r] - od.rate[ind.relap][r]
+      relap.m[which("dead" == params$agent_states), r] <- mor.rate[ind.relap][r]
       relap.m[num_states + 1, r] <- od.rate[ind.relap][r]
     }
     trans.prob.matrix[, ind.relap] <- relap.m
@@ -176,5 +177,6 @@ samplev <- function(probs, m) {
     un <- rep(runif(n), rep(k, n))
     ran[, j] <- states[1 + colSums(un > U)]
   }
+
   return(ran)
 }

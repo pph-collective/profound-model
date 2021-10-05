@@ -82,6 +82,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   output$t[t] <- t
   nx_avail_yr <- nlx_array[floor((t - 1) / 12) + 1, , ]
   if (t == 1) {
+    tic("t1")
     set.seed(seed)
     num_opioid <- sum(ppl_list[[t]]$curr.state != "NODU")
     n.noud <- sum(ppl_list[[t]]$curr.state == "NODU")
@@ -94,6 +95,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
     ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
     trans_prob <- trans.prob(ppl_list[[t]], params, data) # calculate the transition probabilities at cycle t
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
+    toc()
   } else {
     ppl_list[[t]] <- ppl_list[[t - 1]]
     if (t %% 12 == 0) {
@@ -109,15 +111,17 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
       fx <- sample(0:1, size = n.noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
       ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
     }
+    tic("calculate transition")
     trans_prob <- trans.prob(ppl_list[[t - 1]], params, data) # calculate the transition probabilities at cycle t
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
     n.nlx.mn <- n.nlx.mn * (1 - data$r_loss_exp) + nx_avail_yr / 12
+    toc()
   }
-  
-  samples <- samplev(trans_prob, 1)
+  tic("transition states")
+  ppl_list[[t]]$curr.state <- as.vector(samplev(probs = trans_prob, m = 1))
+  toc()
 
   # update health state
-  ppl_list[[t]]$curr.state <- as.vector(samples)
   ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% params$oustate & OU.state != curr.state)$ind
   ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
   od_ppl <- ppl_list[[t]][ppl_list[[t]]$curr.state == "od", ]
@@ -157,11 +161,27 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
 
   ## replace deceased individuals with ones with the same initial characteristics (ever.od reset as 0)
-  ppl_list[[t]]$age[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state == "dead"]
+  tic("new way")
+  ppl_list[[t]]$age[.data$curr.state == "dead"] <- mutate(
+    ppl_list[[t]] %>% filter(.data$curr.state == "dead"),
+    age = init.age
+  )
+  toc()
+  tic("old way")
+
   ppl_list[[t]]$ever_od[ppl_list[[t]]$curr.state == "dead"] <- 0
   ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state != "inact"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state != "inact"]
   ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state == "inact"] <- ppl_list[[t]]$OU.state[ppl_list[[t]]$curr.state == "dead" & ppl_list[[t]]$init.state == "inact"]
   ppl_list[[t]]$curr.state[ppl_list[[t]]$curr.state == "dead"] <- ppl_list[[t]]$init.state[ppl_list[[t]]$curr.state == "dead"]
+  toc()
   return(list(output = output, ppl_list = ppl_list))
 }
 
+toy_fun <- function(df) {
+  if (length(df) == 0) {
+    return()
+  }
+  df$age <- df$init_age
+  df$ever_od <- 0
+  df$curr_state <- df$init.state
+}

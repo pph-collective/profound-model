@@ -108,6 +108,7 @@ data_input <- function(inputs, main_table) {
   params$multi_fx <- with(overdose_risk, pe[par == "multi.fx"])
   params$multi_relap <- with(overdose_risk, pe[par == "multi.relap"])
   params$multi_sub <- with(overdose_risk, pe[par == "multi.sub"])
+  params$multi_NODU_fx <- with(overdose_risk, pe[par == "multi.NODU.fx"])
 
   # transition probability
   p_transition <- read.xlsx(workbook, sheet = "TransProb")
@@ -146,8 +147,8 @@ data_input <- function(inputs, main_table) {
     pe[par == "OD_wit" & group == "priv"]
   )
   params$od_wit_pub <- with(decision_tree, pe[par == "OD_wit" & group == "pub"])
-  params$od_911_priv <- with(decision_tree, pe[par == "od_911_priv"])
-  params$od_911_pub_mul <- with(decision_tree, pe[par == "od_911_pub_mul"])
+  params$od_911_priv <- with(decision_tree, pe[par == "OD_911_priv"])
+  params$od_911_pub_mul <- with(decision_tree, pe[par == "OD_911_pub_mul"])
   params$od_911_pub <- params$od_911_priv * params$od_911_pub_mul
   params$od_hosp <- with(decision_tree, pe[par == "OD_hosp"])
   params$od_cess <- with(decision_tree, pe[par == "OD_cess"])

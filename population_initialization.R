@@ -67,6 +67,7 @@ initiate_ppl <- function(data, agent_states, seed = 2021) {
       init_ppl[i, j] <- agent[j]
     }
   }
+  init_ppl$ind <- 1:nrow(init_ppl)
   return(init_ppl)
 }
 

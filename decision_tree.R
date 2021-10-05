@@ -96,7 +96,6 @@ decision_tree <- function(od_ppl, n_nlx, ou_ppl_resid, params, seed, data) {
 
     outcome[d, -1] <- c(od_death, ems, hospcare, inact, locpriv, nlx_used, wtns)
   } # end for loop
-
   return(outcome)
 }
 
