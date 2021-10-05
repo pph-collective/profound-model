@@ -15,7 +15,7 @@ test_step_one <- function() {
     output <- output_setup(params)
     ppl <- list()
     ppl[[1]] <- init_ppl
-    
+
     # do not include pharmacy data
     nlx_array <- data$nx_oend
     nlx_array <- abind(nlx_array, nlx_array[dim(nlx_array)[1], , ], along = 1)
@@ -24,5 +24,8 @@ test_step_one <- function() {
     ppl_1 <- ppl[[1]]
 
     # full list should be the same except fentanyl
-    expect_identical(ppl_1[1, -which(names(ppl_1) == "fx")], ppl_2[1, -which(names(ppl_2) == "fx")])
+    expect_identical(
+        ppl_1[1, -which(names(ppl_1) == "fx")],
+        ppl_2[1, -which(names(ppl_2) == "fx")]
+    )
 }

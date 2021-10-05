@@ -11,6 +11,9 @@ test_init_ppl <- function() {
     # import workbook for comparison
     workbook <- loadWorkbook(main_table)
     init_ppl_params <- read.xlsx(workbook, sheet = "InitialPop")
-    expect_equal(nrow(ppl), init_ppl_params$pe[init_ppl_params$par == "ppl_size"])
+    expect_equal(
+        nrow(ppl),
+        init_ppl_params$pe[init_ppl_params$par == "ppl_size"]
+    )
     print("tests pass!")
 }

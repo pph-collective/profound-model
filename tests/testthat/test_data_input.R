@@ -38,23 +38,28 @@ test_data_input <- function() {
 
   # note: equations from excel doc main_table
   # illicit
-  expect_equal(data$initials$init_il_m, (93000+62000)/(93000+62000+781000))
-  expect_equal(data$initials$init_il_f, (30000+55000)/(30000+55000+616000))
+  expect_equal(
+    data$initials$init_il_m,
+    (93000 + 62000) / (93000 + 62000 + 781000)
+  )
+  expect_equal(
+    data$initials$init_il_f,
+    (30000 + 55000) / (30000 + 55000 + 616000)
+  )
 
   # high risk among illicit
   expect_equal(.486, data$initials$init_il_hr_m)
   expect_equal(data$initials$init_il_hr_f, 0.4105)
 
   # fentanyl exposure
-  expect_equal(data$init_oud_fx, 22/39)
+  expect_equal(data$init_oud_fx, 22 / 39)
 
   # stimulant
   expect_equal(data$init_noud_fx, 0.1567, tolerance = 0.00001)
   expect_equal(data$initials$ini_everod_sti, 0.252445, tolerance = 0.00001)
 
   # mortality
-  mort <- 1 - (1 - 13.3 / 1000000)^ (1/12)
-  expect_equal(data$mortality_base[1], 1 - (1 - 13.3 / 1000000)^ (1/12))
+  expect_equal(data$mortality_base[1], 1 - (1 - 13.3 / 1000000) ^ (1 / 12))
 
   # overdose risk
   expect_equal(data$od_rx_sub, 0.007543849358)
