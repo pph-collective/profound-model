@@ -127,16 +127,16 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   rownames(ou.pop.resid) <- ou.pop.resid$residence
   decntree.out <- decision_tree(od_ppl, n.nlx.mn, ou.pop.resid, params, seed + t, data)
 
-  output$oddeath[t] <- sum(decntree.out[, "od.death"])
+  output$oddeath[t] <- sum(decntree.out[, "od_death"])
   output$priv_od[t] <- sum(decntree.out[, "locpriv"])
   output$vpub_od[t] <- output$v.od[t] - output$priv_od[t]
-  output$priv_death[t] <- sum(decntree.out[decntree.out[, "od.death"] == 1, "locpriv"])
-  output$pub_death[t] <- sum(decntree.out[, "od.death"] == 1) - output$priv_death[t]
-  output$nlxused[t] <- sum(decntree.out[, "nlx.used"])
+  output$priv_death[t] <- sum(decntree.out[decntree.out[, "od_death"] == 1, "locpriv"])
+  output$pub_death[t] <- sum(decntree.out[, "od_death"] == 1) - output$priv_death[t]
+  output$nlxused[t] <- sum(decntree.out[, "nlx_used"])
   output$n.EMS[t] <- sum(decntree.out[, "EMS"])
   output$EDvisits[t] <- sum(decntree.out[, "hospcare"])
-  od_ppl$curr.state[decntree.out[, "od.death"] == 1] <- "dead"
-  od_ppl$ever_od[decntree.out[, "od.death"] != 1] <- 1
+  od_ppl$curr.state[decntree.out[, "od_death"] == 1] <- "dead"
+  od_ppl$ever_od[decntree.out[, "od_death"] != 1] <- 1
   od_ppl$curr.state[decntree.out[, "inact"] == 1] <- "inact"
   od_ppl$curr.state[od_ppl$curr.state == "od"] <- od_ppl$OU.state[od_ppl$curr.state == "od"]
   output$fx_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx == 1, ])
@@ -144,15 +144,15 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   output$hr_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "rx", ])
   output$stim_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
 
-  od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
-  if (nrow(od.death.sum) > 0) {
-    for (dd in 1:nrow(od.death.sum)) {
-      output[t, od.death.sum$residence[dd]] <- od.death.sum$n[dd]
+  od_death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
+  if (nrow(od_death.sum) > 0) {
+    for (dd in 1:nrow(od_death.sum)) {
+      output[t, od_death.sum$residence[dd]] <- od_death.sum$n[dd]
     }
   }
 
   ppl_list[[t]][od_ppl$ind, ] <- od_ppl
-  cost <- costs(state = ppl_list[[t]]$curr.state, OU.state = ppl_list[[t]]$OU.state, nlx = sum(nx_avail_yr) / 12, count = list(n.EMS = output$n.EMS, n.hospcare = output$n.hospcare), data)
+  cost <- costs(ppl_list[[t]]$curr.state, ppl_list[[t]]$OU.state, sum(nx_avail_yr) / 12, output$n.EMS, output$n.hospcare, data)
   # should probably check if it's a new year and then increment it
   ppl_list[[t]]$age[ppl_list[[t]]$curr.state != "dead"] <- ppl_list[[t]]$init.age[ppl_list[[t]]$curr.state != "dead"] + floor(t / 12) # update age for individuals that are still alive
 

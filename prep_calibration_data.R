@@ -25,8 +25,6 @@ library(openxlsx)
 source("data_input.R")
 
 # INPUT PARAMETERS
-sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
-
 ## Model parameter updates for calibration process ##
 params <- data_input()
 CalibPar <- read.xlsx(params$workbook, sheet = "CalibPar")
@@ -65,9 +63,9 @@ for (bb in 1:(sample.size / batch.size)) {
     params$overdose_probs <- overdose_probs
 
     # Baseline mortality excluding overdose (per month)
-    mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+    mortality_probs <- matrix(0, nrow = 2, ncol = length(mor_gp))
     rownames(mortality_probs) <- c("bg", "drug")
-    colnames(mortality_probs) <- mor.gp
+    colnames(mortality_probs) <- mor_gp
     mortality_probs["bg", ] <- params$mortality_base
     mortality_probs["drug", ] <- params$mortality_drug
     params$mortality_probs <- mortality_probs
@@ -103,9 +101,9 @@ prep_data <- function(cc) {
   params$overdose_probs <- overdose_probs
 
   # Baseline mortality excluding overdose (per month)
-  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor_gp))
   rownames(mortality_probs) <- c("bg", "drug")
-  colnames(mortality_probs) <- mor.gp
+  colnames(mortality_probs) <- mor_gp
   mortality_probs["bg", ] <- params$mortality_base
   mortality_probs["drug", ] <- params$mortality_drug
   params$mortality_probs <- mortality_probs

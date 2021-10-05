@@ -51,11 +51,11 @@ evaluate_program <- function(params) { # Program data
   # REVIEWED sq = status quo; pg = program
   sq.dh.mx <- sq.nx.mx <- matrix(0, nrow = length(regions), ncol = length(simulation_seed))
   program_dh.ar <- program_nx.ar <- array(0, dim = c(dim(program_add.array)[1], length(regions), length(simulation_seed)))
-  nlx.used.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(program_levels))
-  od.death.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(program_levels))
+  nlx_used.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(program_levels))
+  od_death.mx <- matrix(0, nrow = length(simulation_seed), ncol = 1 + length(program_levels))
   scenario.name <- c("Status Quo", "100% increase", "500% increase", "1000% increase", "2000% increase", "5000% increase")
-  colnames(nlx.used.mx) <- scenario.name
-  colnames(od.death.mx) <- scenario.name
+  colnames(nlx_used.mx) <- scenario.name
+  colnames(od_death.mx) <- scenario.name
 
   for (ss in 1:length(simulation_seed)) {
     print(paste0("Parameter set: ", ss))
@@ -65,16 +65,16 @@ evaluate_program <- function(params) { # Program data
     sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, inputs$discount, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
     sq.dh.mx[, ss] <- colSums(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
     sq.nx.mx[, ss] <- colSums(sim_sq$n.nlx.OEND.str)
-    nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$nlxused[(timesteps - 11):timesteps])
-    od.death.mx[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
+    nlx_used.mx[ss, "Status Quo"] <- sum(sim_sq$nlxused[(timesteps - 11):timesteps])
+    od_death.mx[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
 
     for (ll in 1:dim(program_add.array)[1]) {
       params.temp$program_add <- program_add.array[ll, , ]
       sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, inputs$discount, PT.out = FALSE, strategy = "program", seed = simulation_seed[ss]) # run for program scenario
       program_dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
       program_nx.ar[ll, , ss] <- colSums(sim_pg$n.nlx.OEND.str)
-      nlx.used.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$nlxused[(timesteps - 11):timesteps])
-      od.death.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
+      nlx_used.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$nlxused[(timesteps - 11):timesteps])
+      od_death.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
     }
   }
 
@@ -120,8 +120,8 @@ evaluate_program <- function(params) { # Program data
   write.csv(RateDeaths, file = ("Outputs/Program//Rate.Deaths.csv"), row.names = F)
   write.csv(NoNlx, file = ("Outputs/Program//Number.Naloxone.csv"), row.names = F)
   write.csv(RateNlx, file = ("Outputs/Program//Rate.Naloxone.csv"), row.names = F)
-  write.csv(nlx.used.mx, file = ("Outputs/Program//NaloxoneUsed.csv"), row.names = F)
-  write.csv(od.death.mx, file = ("Outputs/Program//TotalODdeaths.csv"), row.names = F)
+  write.csv(nlx_used.mx, file = ("Outputs/Program//NaloxoneUsed.csv"), row.names = F)
+  write.csv(od_death.mx, file = ("Outputs/Program//TotalODdeaths.csv"), row.names = F)
 }
 
 # params <- 

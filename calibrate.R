@@ -82,7 +82,7 @@ calib.seed.vt <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15)
 colnames(calibration_results) <- c(
   "index", "seed",
-  "od.death16", "od.death17", "od.death18", "od.death19",
+  "od_death16", "od_death17", "od_death18", "od_death19",
   "fx.death16", "fx.death17", "fx.death18", "fx.death19",
   "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19",
   "gof"

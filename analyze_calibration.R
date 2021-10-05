@@ -54,7 +54,7 @@ target_data <- target$pe
 # Calculate goodness of fit (gof)
 for (ss in seq_len(nrow(cal_results))) {
   prediction <- cal_results[ss, c(
-    "od.death16", "od.death17", "od.death18", "od.death19",
+    "od_death16", "od_death17", "od_death18", "od_death19",
     "fx.death16", "fx.death17", "fx.death18", "fx.death19",
     "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19"
   )]
@@ -106,9 +106,9 @@ for (cc in seq_len(nrow(cal_results))) {
   params$overdose_probs <- overdose_probs
 
   # Baseline mortality parameters, excluding overdose (per month)
-  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor_gp))
   rownames(mortality_probs) <- c("bg", "drug")
-  colnames(mortality_probs) <- mor.gp
+  colnames(mortality_probs) <- mor_gp
   mortality_probs["bg", ] <- params$mortality_base
   mortality_probs["drug", ] <- params$mortality_drug
   params$mortality_probs <- mortality_probs
@@ -125,12 +125,12 @@ saveRDS(cal_results[, "seed"], file = paste0("calibration/CalibratedSeed.rds"))
 par(mfrow = c(1, 3))
 # REVIEWED md = median, change to mean
 mean_oddeath <- apply(
-  cal_results[, c("od.death16", "od.death17", "od.death18", "od.death19")],
+  cal_results[, c("od_death16", "od_death17", "od_death18", "od_death19")],
   2,
   mean
 )
 ymax <- max(
-  cal_results[, c("od.death16", "od.death17", "od.death18", "od.death19")]
+  cal_results[, c("od_death16", "od_death17", "od_death18", "od_death19")]
 )
 plot(
   x = 2016:2019,
@@ -147,7 +147,7 @@ plot(
   frame.plot = FALSE
 )
 for (i in 1:cal_sample) {
-  res_name <- c("od.death16", "od.death17", "od.death18", "od.death19")
+  res_name <- c("od_death16", "od_death17", "od_death18", "od_death19")
   lines(
     x = 2016:2019,
     y = cal_results[i, res_name],

@@ -28,7 +28,6 @@ source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parse_params.R")
 source("io_setup.R")
-source("data_input.R")
 
 # parse command line argument for params file -------------------------------
 args <- arg_parser("arguments")
@@ -43,12 +42,11 @@ inputs <- parse_inputs(argv$inputs)
 d.c <- inputs$discount # discounting of costs by 3%
 main_table <- inputs$main_table
 
-sw.EMS.ODloc <- inputs$strat
 out.file <- inputs$outfile
 # init_ppl.file <- inputs$init_ppl
 
 
-data <- data_input(main_table) # empirical
+data <- data_input(inputs, main_table) # empirical
 # add parameters
 params <- input_setup(inputs, data)
 # create output table

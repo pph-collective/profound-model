@@ -9,8 +9,8 @@ source("data_input.R")
 test_step_one <- function() {
     init_ppl <- readRDS("tests/init_ppl.RDS")
     params <- parse_inputs("tests/params/test_params_empty.yml")
-    data <- data_input(params$main_table)
     params <- input_setup(params, data)
+    data <- data_input(params, params$main_table)
     params$timesteps <- 1
     output <- output_setup(params)
     ppl <- list()

@@ -20,7 +20,7 @@
 # cap: the maximum level naloxone availability can be in a witnssed overdose (even when reaching saturation)
 # od_loc: proportion of OD events occuring in private/public setting
 # nlx_adj: adjustment term for naloxone availability, to account for occations where naloxone is in possession but not immediately accessible (or familsy/friends may fail to find)
-nlx.avail.algm <- function(n.nlx, ou.pop.resid, od_loc, low2priv, nlx_adj, cap) {
+nlx_avail_algm <- function(n.nlx, ou.pop.resid, od_loc, low2priv, nlx_adj, cap) {
   n.nlx.loc <- cbind(n.nlx["high", ] + n.nlx["low", ] * low2priv, n.nlx["low", ] * (1 - low2priv))
   colnames(n.nlx.loc) <- c("priv", "pub")
   ou <- merge(ou.pop.resid, t(od_loc), by.x = "residence", by.y = 0, all = TRUE)
