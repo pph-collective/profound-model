@@ -6,8 +6,8 @@ parallel.fun <- function(calib.seed, params) {
   output <- output_setup(params)
   sim_sq <- MicroSim(init_ppl, params, output, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = calib.seed) # run for status quo
   return(c(
-    colSums(matrix(sim_sq$v.oddeath, nrow = 12, ncol = 5))[-5],
-    (colSums(matrix(sim_sq$m.oddeath.fx, nrow = 12, ncol = 5)) / colSums(matrix(sim_sq$v.oddeath, nrow = 12, ncol = 5)))[-5],
-    colSums(matrix(sim_sq$m.EDvisits, nrow = 12, ncol = 5))[-5]
+    colSums(matrix(sim_sq$oddeath, nrow = 12, ncol = 5))[-5],
+    (colSums(matrix(sim_sq$fx_deaths, nrow = 12, ncol = 5)) / colSums(matrix(sim_sq$oddeath, nrow = 12, ncol = 5)))[-5],
+    colSums(matrix(sim_sq$edvisits, nrow = 12, ncol = 5))[-5]
   ))
 }

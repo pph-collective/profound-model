@@ -118,7 +118,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
 
   # update health state
   ppl_list[[t]]$curr.state <- as.vector(samples)
-  ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% params$v.oustate & OU.state != curr.state)$ind
+  ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% params$oustate & OU.state != curr.state)$ind
   ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
   od_ppl <- ppl_list[[t]][ppl_list[[t]]$curr.state == "od", ]
 
@@ -127,22 +127,22 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   rownames(ou.pop.resid) <- ou.pop.resid$residence
   decntree.out <- decision_tree(od_ppl, n.nlx.mn, ou.pop.resid, params, seed + t, data)
 
-  output$v.oddeath[t] <- sum(decntree.out[, "od.death"])
-  output$v.odpriv[t] <- sum(decntree.out[, "locpriv"])
-  output$v.odpubl[t] <- output$v.od[t] - output$v.odpriv[t]
-  output$v.deathpriv[t] <- sum(decntree.out[decntree.out[, "od.death"] == 1, "locpriv"])
-  output$v.deathpubl[t] <- sum(decntree.out[, "od.death"] == 1) - output$v.deathpriv[t]
-  output$v.nlxused[t] <- sum(decntree.out[, "nlx.used"])
+  output$oddeath[t] <- sum(decntree.out[, "od.death"])
+  output$priv_od[t] <- sum(decntree.out[, "locpriv"])
+  output$vpub_od[t] <- output$v.od[t] - output$priv_od[t]
+  output$priv_death[t] <- sum(decntree.out[decntree.out[, "od.death"] == 1, "locpriv"])
+  output$pub_death[t] <- sum(decntree.out[, "od.death"] == 1) - output$priv_death[t]
+  output$nlxused[t] <- sum(decntree.out[, "nlx.used"])
   output$n.EMS[t] <- sum(decntree.out[, "EMS"])
   output$EDvisits[t] <- sum(decntree.out[, "hospcare"])
   od_ppl$curr.state[decntree.out[, "od.death"] == 1] <- "dead"
   od_ppl$ever_od[decntree.out[, "od.death"] != 1] <- 1
   od_ppl$curr.state[decntree.out[, "inact"] == 1] <- "inact"
   od_ppl$curr.state[od_ppl$curr.state == "od"] <- od_ppl$OU.state[od_ppl$curr.state == "od"]
-  output$m.oddeath.fx[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx == 1, ])
-  output$m.oddeath.op[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU", ])
-  output$m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "rx", ])
-  output$m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
+  output$fx_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$fx == 1, ])
+  output$oud_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU", ])
+  output$hr_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "rx", ])
+  output$stim_deaths[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
 
   od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
   if (nrow(od.death.sum) > 0) {

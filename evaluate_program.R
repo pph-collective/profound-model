@@ -65,7 +65,7 @@ evaluate_program <- function(params) { # Program data
     sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, inputs$discount, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
     sq.dh.mx[, ss] <- colSums(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
     sq.nx.mx[, ss] <- colSums(sim_sq$n.nlx.OEND.str)
-    nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$v.nlxused[(timesteps - 11):timesteps])
+    nlx.used.mx[ss, "Status Quo"] <- sum(sim_sq$nlxused[(timesteps - 11):timesteps])
     od.death.mx[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
 
     for (ll in 1:dim(program_add.array)[1]) {
@@ -73,7 +73,7 @@ evaluate_program <- function(params) { # Program data
       sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, inputs$discount, PT.out = FALSE, strategy = "program", seed = simulation_seed[ss]) # run for program scenario
       program_dh.ar[ll, , ss] <- colSums(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
       program_nx.ar[ll, , ss] <- colSums(sim_pg$n.nlx.OEND.str)
-      nlx.used.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$v.nlxused[(timesteps - 11):timesteps])
+      nlx.used.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$nlxused[(timesteps - 11):timesteps])
       od.death.mx[ss, scenario.name[ll + 1]] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
     }
   }
