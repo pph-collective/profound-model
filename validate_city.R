@@ -37,7 +37,7 @@ for (ss in 1:nrow(calib.result.mx)) {
   overdose_probs[, "first"] <- overdose_probs[, "subs"] / multi_sub
   # TO_REVIEW sim_sq status quo?
   # run status quo simulation
-  sim_sq <- MicroSim(init_ppl, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = calib.seed) # run for no treatment
+  sim_sq <- MicroSim(init_ppl, timesteps, agent_states, c_disc, PT.out = TRUE, strategy = "SQ", seed = calib.seed) # run for no treatment
 
   ODdeaths16[, ss] <- colSums(sim_sq$m.oddeath[1:12, ])
   ODdeaths17[, ss] <- colSums(sim_sq$m.oddeath[13:24, ])

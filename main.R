@@ -11,7 +11,7 @@
 #' writes overdose stats to file
 #'
 
-# Load packages and scripts -----------------------------------------------------
+# Load packages and scripts ---------------------------------------------------
 
 library("argparser")
 library(dplyr)
@@ -39,16 +39,13 @@ args <- add_argument(args,
 argv <- parse_args(args)
 
 inputs <- parse_inputs(argv$inputs)
-d.c <- inputs$discount # discounting of costs by 3%
+c_disc <- inputs$discount # discounting of costs by 3%
 main_table <- inputs$main_table
-
-out.file <- inputs$outfile
-# init_ppl.file <- inputs$init_ppl
-
 
 data <- data_input(inputs, main_table) # empirical
 # add parameters
 params <- input_setup(inputs, data)
+params$data <- data
 # create output table
 output <- output_setup(params)
 
@@ -81,13 +78,16 @@ if (file.exists(inputs$init_ppl_file)) { # import pop if possible
 
 # Run the simulation =============================
 
-main <- function(init_ppl, params, data, output, timesteps, d.c, expansion, seed) {
+main <- function(init_ppl, params, output, timesteps, c_disc, expansion, seed) {
   print("start simulation")
   results <- data.frame()
   # iterate through desired scenarios and save results
   for (scenario in names(params$scenarios)) {
-    results <- rbind(results, MicroSim(init_ppl, params, data, output, d.c, scenario, seed))
-    outfile <- "overdoses.csv"
+    # TODO: change this to add row instead of rbind?
+    results <- rbind(
+      results,
+      MicroSim(init_ppl, params, output, c_disc, scenario, seed)
+    )
     write.csv(
       results,
       paste0(params$outdir, params$outfile),
@@ -97,4 +97,4 @@ main <- function(init_ppl, params, data, output, timesteps, d.c, expansion, seed
   }
 }
 
-main(init_ppl, params, data, output, timesteps, d.c, expansion, inputs$seed)
+main(init_ppl, params, output, timesteps, c_disc, expansion, inputs$seed)

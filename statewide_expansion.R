@@ -19,7 +19,7 @@ library(commandArgs)
 # args <- commandArgs(trailingOnly = TRUE)
 # year_start <- 2016 # starting year of simulation
 # yr_end <- 2022 # end year of simulation (also the year for evaluation)
-# d.c <- 0.03 # discounting of costs by 3%
+# c_disc <- 0.03 # discounting of costs by 3%
 
 # source("io_setup.R")
 
@@ -49,18 +49,18 @@ for (ss in 1:length(simulation_seed)) {
   # ATTN: These two lines are temporary, to remove pharm nx and make nx effect 90%
   params.temp$nlx_data_pharm$pe <- 0
   params.temp$mortality_nx <- params.temp$mor_bl * (1 - 0.9)
-  sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
+  sim_sq <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, c_disc, PT.out = FALSE, strategy = "SQ", seed = simulation_seed[ss]) # run for status quo
   od_death.mx.last[ss, "Status Quo"] <- sum(sim_sq$m.oddeath[(timesteps - 11):timesteps, ])
   od_death.mx.wtns[ss, "Status Quo"] <- sum(sim_sq$death_wtns[(timesteps - 11):timesteps])
 
   exp.lv <- 0
-  sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "expand", seed = simulation_seed[ss]) # run for program scenario
+  sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, c_disc, PT.out = FALSE, strategy = "expand", seed = simulation_seed[ss]) # run for program scenario
   od_death.mx.last[ss, "Zero"] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
   od_death.mx.wtns[ss, "Zero"] <- sum(sim_pg$death_wtns[(timesteps - 11):timesteps])
 
   for (jj in 3:length(expand.level)) {
     exp.lv <- expand.level[jj]
-    sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, d.c, PT.out = FALSE, strategy = "expand", seed = simulation_seed[ss]) # run for program scenario
+    sim_pg <- MicroSim(init_ppl, params = params.temp, timesteps, agent_states, c_disc, PT.out = FALSE, strategy = "expand", seed = simulation_seed[ss]) # run for program scenario
     od_death.mx.last[ss, jj] <- sum(sim_pg$m.oddeath[(timesteps - 11):timesteps, ])
     od_death.mx.wtns[ss, jj] <- sum(sim_pg$death_wtns[(timesteps - 11):timesteps])
   }

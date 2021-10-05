@@ -122,7 +122,7 @@ vpub_od <- rep(0, times = timesteps) # count of overdose events occurred at publ
 priv_death <- rep(0, times = timesteps) # count of overdose deaths occurred at private setting at each time step
 pub_death <- rep(0, times = timesteps) # count of overdose deaths occurred at public setting at each time step
 v.str <- c("SQ", "Expand100") # store the strategy names
-d.c <- 0.03 # discounting of costs by 3%
+c_disc <- 0.03 # discounting of costs by 3%
 cost.item <- c("Totalcost", "Nxcost")
 cost.matrix <- matrix(0, nrow = timesteps, ncol = length(cost.item))
 colnames(cost.matrix) <- cost.item

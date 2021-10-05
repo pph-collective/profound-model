@@ -25,7 +25,7 @@ source("transition_probability.R")
 source("decision_tree.R")
 source("cost_effectiveness.R")
 
-MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "SQ", seed = 1) {
+MicroSim <- function(init_ppl, params, output, discount_rate, scenario = "SQ", seed = 1) {
   list2env(params, environment())
   # Find number of opioid and non-opioid users
   init_ppl.residence <- (init_ppl %>% count(residence))$n
@@ -58,7 +58,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
 
   nlx_array <- abind(nlx_array, avail_nlx, along = 1)
 
-  cost_discount <- rep(1 / (1 + discount_rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
+  c_discount <- rep(1 / (1 + discount_rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
 
   # Create the population list to capture the state/attributes/costs for all individuals at each time point
   ppl_list <- list()
@@ -71,7 +71,7 @@ MicroSim <- function(init_ppl, params, data, output, discount_rate, scenario = "
     ppl_list <- tmp$ppl_list
   }
 
-  total.cost <- sum(output$cost.matrix[, "Totalcost"] * cost_discount) # total (discounted) cost
+  total.cost <- sum(output$cost.matrix[, "Totalcost"] * c_discount) # total (discounted) cost
 
   print("Saving results")
   return(output) # return the results

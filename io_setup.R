@@ -16,10 +16,6 @@
 
 library("yaml")
 input_setup <- function(params, data) {
-  params$pop.info <- c(
-    "sex", "race", "age", "residence", "curr.state",
-    "OU.state", "init.age", "init.state", "ever_od", "fx"
-  ) # information for each model individual
   params$agent_states <- c(
     "rx", "il_lr", "il_hr", "inact", "NODU", "relap", "dead"
   )
