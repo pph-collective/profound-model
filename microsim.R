@@ -34,8 +34,9 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
   # TODO: actual docstring description
   list2env(params, environment())
   # Find number of opioid and non-opioid users
-  num_opioid <- sum(init_ppl$curr.state != "NODU")
-  n.noud <- sum(init_ppl$curr.state == "NODU")
+  num_opioid_unpreb <- sum(init_ppl$curr.state != "NODU" & init_ppl$curr.state != "preb")  +  
+    sum(init_ppl$curr.state == "preb") * out_prebopioid  # number of individuals using opioids not from prescriptions (at risk for being exposed to fentanyl)
+  num_noud <- sum(init_ppl$curr.state == "NODU")
   init_ppl.residence <- (init_ppl %>% count(residence))$n
   # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
   NxPharm.mx <- NxDataPharm$pe[NxDataPharm$year >= (yr_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
@@ -73,8 +74,8 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
       OUD.fx <- init_oud_fx
       # determine fentanyl use among population who use opioids
       set.seed(seed)
-      fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
-      ppl_list[[t]]$fx[init_ppl$curr.state != "NODU"] <- fx
+      fx <- sample(0:1, size = num_opioid_unpreb, prob = c(1 - OUD.fx, OUD.fx), replace = T)
+      ppl_list[[t]]$fx[init_ppl$curr.state != "NODU" & init_ppl$curr.state != "preb"] <- fx
       # determine fentanyl use among population who use stimulants (non-opioid)
       set.seed(seed * 2)
       fx <- sample(0:1, size = n.noud, prob = c(1 - ini.NOUD.fx, ini.NOUD.fx), replace = T)
@@ -87,7 +88,11 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
         OUD.fx <- min(init_oud_fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
         # determine fentanyl use among population who use opioids
         set.seed(seed)
-        fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
+        num_opioid_unpreb <- sum(ppl_list[[t]]$curr.state != "NODU" & ppl_list[[t]]$curr.state != "preb") +
+          sum(ppl_list[[t]]$curr.state == "preb") * out_prebopioid
+        num_noud <- sum(ppl_list[[t]]$curr.state != "NODU" & ppl_list[[t]]$curr.state != "preb")
+        
+        fx <- sample(0:1, size = num_opioid_unpreb, prob = c(1 - OUD.fx, OUD.fx), replace = T)
         ppl_list[[t]]$fx[init_ppl$curr.state != "NODU"] <- fx
         # # determine fentanyl exposure among population who use stimulants (non-opioid)
         # set.seed(seed*2)

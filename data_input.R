@@ -50,6 +50,8 @@ gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
 ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
 ini.everod.il.lr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.lr"])
 ini.everod.il.hr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.hr"])
+out_prebopioid <- with(OpioidPattern, pe[par == "out_prebopioid"])
+
 # REVIEWED stimulant_use_patterns
 StimulantPattern <- read.xlsx(WB, sheet = "StimulantPattern")
 ini.NOUD.fx <- with(StimulantPattern, pe[par == "ini.NOUD.fx"])
@@ -67,6 +69,7 @@ initials <- list(
 params$init_oud_fx <- init_oud_fx
 params$gw.fx <- gw.fx
 params$ini.NOUD.fx <- ini.NOUD.fx
+params$out_prebopioid <- out_prebopioid
 
 ## Parameters for microsimulation ##
 # life table: for mortality
