@@ -81,6 +81,7 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   # needs to update the ppl list, outputs
   output$t[t] <- t
   nx_avail_yr <- nlx_array[floor((t - 1) / 12) + 1, , ]
+
   if (t == 1) {
     tic("t1")
     set.seed(seed)
@@ -93,12 +94,14 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
     set.seed(seed * 2)
     fx <- sample(0:1, size = n.noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
     ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
-    trans_prob <- trans.prob(ppl_list[[t]], params, data) # calculate the transition probabilities at cycle t
+    # calculate the transition probabilities at cycle t
+    trans_prob <- trans.prob(ppl_list[[t]], params, data)
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
     toc()
   } else {
     ppl_list[[t]] <- ppl_list[[t - 1]]
     if (t %% 12 == 0) {
+      # Happy new year!
       num_opioid <- sum(ppl_list[[t]]$curr.state != "NODU")
       n.noud <- sum(ppl_list[[t]]$curr.state == "NODU")
       OUD.fx <- min(data$init_oud_fx * (1 + data$fx_growth * min(floor((t - 1) / 12) + 1, 3)), 0.9)
@@ -120,11 +123,12 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   tic("transition states")
   ppl_list[[t]]$curr.state <- as.vector(samplev(probs = trans_prob, m = 1))
   toc()
-
+  print(nrow(ppl_list[[t]] %>% filter(curr.state == "od")))
   # update health state
   ind.oustate.chg <- filter(ppl_list[[t]], curr.state %in% params$oustate & OU.state != curr.state)$ind
   ppl_list[[t]]$OU.state[ind.oustate.chg] <- ppl_list[[t]]$curr.state[ind.oustate.chg]
   od_ppl <- ppl_list[[t]][ppl_list[[t]]$curr.state == "od", ]
+  print(nrow(od_ppl))
 
   output$v.od <- nrow(od_ppl)
   ou.pop.resid <- ppl_list[[t]] %>% count(residence) %>% data.frame()
@@ -177,11 +181,3 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   return(list(output = output, ppl_list = ppl_list))
 }
 
-toy_fun <- function(df) {
-  if (length(df) == 0) {
-    return()
-  }
-  df$age <- df$init_age
-  df$ever_od <- 0
-  df$curr_state <- df$init.state
-}

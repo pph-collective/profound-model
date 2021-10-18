@@ -33,6 +33,7 @@ trans.prob <- function(pop.t, params, data) {
   mor.rate[filter(pop.t, age %in% c(55:64))$ind] <- data$mortality_probs["drug", "55to64"]
   mor.rate[filter(pop.t, age >= 65)$ind] <- data$mortality_probs["drug", "65over"]
   toc()
+
   # create a vector to store probability of overdose for each individual according to ever overdosed and fentanyl
   # TO_REVIEW what does "multi" mean here
   od.rate <- numeric(nrow(pop.t))

@@ -23,7 +23,8 @@
 nlx_avail_algm <- function(n.nlx, ou.pop.resid, od_loc, low2priv, nlx_adj, cap) {
   n.nlx.loc <- cbind(n.nlx["high", ] + n.nlx["low", ] * low2priv, n.nlx["low", ] * (1 - low2priv))
   colnames(n.nlx.loc) <- c("priv", "pub")
-  ou <- merge(ou.pop.resid, t(od_loc), by.x = "residence", by.y = 0, all = TRUE)
-  p_nlx_avail <- cap * (1 - exp(-(nlx_adj / cap) * n.nlx.loc / (ou$n * t(od_loc))))
-  return(p_nlx_avail)
+  # ou <- merge(ou.pop.resid, t(od_loc), by.x = "residence", by.y = 0, all = TRUE)
+  # p_nlx_avail <- cap * (1 - exp(-(nlx_adj / cap) * n.nlx.loc / (ou$n * t(od_loc))))
+  p.nlx.avail <- cap * (1 - exp(-(nlx_adj / cap) * n.nlx.loc / (ou.pop.resid$n * t(od_loc))))
+  # return(p_nlx_avail)
 }
