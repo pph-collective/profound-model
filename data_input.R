@@ -35,6 +35,7 @@ data_input <- function(inputs, main_table) {
   params$demographic <- read.xlsx(workbook, sheet = "Demographic")
 
   regions <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
+  # change . to space in region names
   regions <- gsub("\\.", " ", regions)
   p_region <- read.xlsx(workbook, sheet = "region_prob")
   rownames(p_region) <- p_region$region
@@ -55,10 +56,9 @@ data_input <- function(inputs, main_table) {
   init_il_hr_f <- with(opioid_pattern, pe[par == "ini.il.hr" & sex == "f"])
   # % inactive
   init_inactive <- with(opioid_pattern, pe[par == "init_inactive"])
-  # TO_REVIEW what is this %?
+  # TO_REVIEW why is this params instead of initials?
   params$init_oud_fx <- with(opioid_pattern, pe[par == "init_oud_fx"])
-  # TO_REVEW what does gw stand for
-  fx_growth <- with(opioid_pattern, pe[par == "fx_growth"])
+  params$fx_growth <- with(opioid_pattern, pe[par == "fx_growth"])
   # initial probabilities that agent has previously overdosed
   init_everod_rx <- with(
     opioid_pattern,
@@ -88,8 +88,6 @@ data_input <- function(inputs, main_table) {
     ini_everod_sti = ini_everod_sti, p_region = p_region
   )
 
-  params$fx_growth <- fx_growth
-
   ## Parameters for microsimulation ##
   # life table: for mortality
   annual_mortality_base <- read.xlsx(workbook, sheet = "LifeTable")$pe
@@ -101,6 +99,7 @@ data_input <- function(inputs, main_table) {
   rm(list = c("annual_mortality_base", "annual_mortality_drug"))
   # risk of overdose
   overdose_risk <- read.xlsx(workbook, sheet = "OverdoseRisk")
+  # TO_REVIEW: unused outside calibration/validated city?
   params$od_rx_sub <- with(overdose_risk, pe[par == "od.rx.sub"])
   params$od_il_lr_sub <- with(overdose_risk, pe[par == "od.il.lr.sub"])
   params$od_nodu_sub <- with(overdose_risk, pe[par == "od.NODU.sub"])
@@ -117,7 +116,7 @@ data_input <- function(inputs, main_table) {
   params$p_il_lr2il_hr <- with(p_transition, pe[par == "p.il.lr2il.hr"])
   params$p_il_lr2inact <- with(p_transition, pe[par == "p.il.lr2inact"])
   params$p_il_hr2il_lr <- with(p_transition, pe[par == "p.il.hr2il.lr"])
-  params$p_il_hr2il_lr <- with(p_transition, pe[par == "p.il.hr2inact"])
+  params$p_il_hr2inact <- with(p_transition, pe[par == "p.il.hr2inact"])
   params$p_inact2relap <- with(p_transition, pe[par == "p.inact2relap"])
 
 

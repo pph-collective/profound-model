@@ -25,18 +25,34 @@ source("transition_probability.R")
 source("decision_tree.R")
 source("cost_effectiveness.R")
 
-MicroSim <- function(init_ppl, params, output, discount_rate, scenario = "SQ", seed = 1) {
-  list2env(params, environment())
+MicroSim <- function(init_ppl, params, output, scenario = "SQ", seed = 1) {
   # Find number of opioid and non-opioid users
+  list2env(params, environment())
+  num_opioid_rx <- sum(init_ppl$curr.state == "preb") +  
+    sum(init_ppl$curr.state == "relap" & init_ppl$OU.state == "preb")
+  num_opioid_il <- sum(
+    init_ppl$curr.state == "il.lr" | init_ppl$curr.state == "il.hr"
+    ) + sum(
+      init_ppl$curr.state == "relap" & init_ppl$OU.state != "preb"
+    )
+  num_noud <- sum(init_ppl$curr.state == "NODU")
   init_ppl.residence <- (init_ppl %>% count(residence))$n
-  output <- data.frame(t = params$timesteps, scenario = scenario, v.od = rep(0, times = params$timesteps))
+  output <- data.frame(
+    t = params$timesteps,
+    scenario = scenario,
+    v.od = rep(0, times = params$timesteps)
+  )
 
   # Pharmacy data
-  NxPharm.mx <- data$nlx_data_pharm$pe[data$nlx_data_pharm$year >= (year_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
+  NxPharm.mx <- data$nlx_data_pharm$pe[
+      data$nlx_data_pharm$year >= (year_start - 1)
+    ] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
 
   for (cc in 1:dim(NxPharm.mx)[1]) {
-    NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * data$od_loc, 0)
+    NxPharm.array[cc, , ] <- round(
+      rep(NxPharm.mx[cc, ], each = 2) * data$od_loc, 0
+    )
   }
   nlx_array <- data$nx_oend[dimnames(data$nx_oend)[[1]] >= year_start, , ] + NxPharm.array[-1, , ]
   initial_nx <- data$nx_oend[dimnames(data$nx_oend)[[1]] == year_start - 1, , ] + NxPharm.array[1, , ]
@@ -83,35 +99,46 @@ step <- function(t, output, nlx_array, ppl_list, data, seed, params, initial_nx)
   nx_avail_yr <- nlx_array[floor((t - 1) / 12) + 1, , ]
 
   if (t == 1) {
-    tic("t1")
     set.seed(seed)
-    num_opioid <- sum(ppl_list[[t]]$curr.state != "NODU")
-    n.noud <- sum(ppl_list[[t]]$curr.state == "NODU")
     OUD.fx <- data$init_oud_fx
-    fx <- sample(0:1, size = num_opioid, prob = c(1 - data$init_oud_fx, data$init_oud_fx), replace = T)
-    ppl_list[[t]]$fx[ppl_list[[t]]$curr.state != "NODU"] <- fx
-    # determine fentanyl use among population who use stimulants (non-opioid)
+    # determine fentanyl use among non-prescription
+    fx <- sample(0:1, size = num_opioid_il, prob = c(1 - data$init_oud_fx, data$init_oud_fx), replace = T)
+    ppl_list[[t]]$fx[ppl_list[[t]]$curr.state != "NODU" & OU.state != "rx"] <- fx
+
+    # determine fentanyl use among prescription
     set.seed(seed * 2)
-    fx <- sample(0:1, size = n.noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
+    # TODO define out_rx_opioid
+    rx_fx <- OUD.fx * out_rx_opioid
+    fx <- sample(0:1, size = num_opioid_rx, prob = c(1 - rx_fx, rx_fx), replace = T)
+    ppl_list[[t]]$fx[with(ppl_list[[t]], ind[curr.state = "rx" | curr.state == "relap" & OU.state == "rx"])] <- fx
+    # determine fentanyl use among population who use stimulants (non-opioid)
+    set.seed(seed * 3)
+    fx <- sample(0:1, size = num_noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
     ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
     # calculate the transition probabilities at cycle t
     trans_prob <- trans.prob(ppl_list[[t]], params, data)
     n.nlx.mn <- initial_nx + nx_avail_yr / 12
-    toc()
   } else {
     ppl_list[[t]] <- ppl_list[[t - 1]]
     if (t %% 12 == 0) {
       # Happy new year!
-      num_opioid <- sum(ppl_list[[t]]$curr.state != "NODU")
-      n.noud <- sum(ppl_list[[t]]$curr.state == "NODU")
+      # TODO: what are the actual criteria??
+      num_opioid_il <- sum(ppl_list[[t]]$curr.state != "NODU" && ppl_list[[t]]$OD.state != "rx")
+      num_noud <- sum(ppl_list[[t]]$curr.state == "NODU")
+      num_opioid_rx <- nrow(ppl_list[[t]]) - num_opioid_il - num_noud
       OUD.fx <- min(data$init_oud_fx * (1 + data$fx_growth * min(floor((t - 1) / 12) + 1, 3)), 0.9)
-      # determine fentanyl use among population who use opioids
+      rx_fx <- OUD.fx * out_rx_opioid
+      # determine fentanyl use among population who use non-rx opioids
       set.seed(seed)
-      fx <- sample(0:1, size = num_opioid, prob = c(1 - OUD.fx, OUD.fx), replace = T)
-      ppl_list[[t]]$fx[ppl_list[[t]]$curr.state != "NODU"] <- fx
-      # determine fentanyl exposure among population who use stimulants (non-opioid)
+      fx <- sample(0:1, size = num_opioid_il, prob = c(1 - OUD.fx, OUD.fx), replace = T)
+      ppl_list[[t]]$fx[ppl_list[[t]]$curr.state != "NODU" & OU.state != "rx"] <- fx
+      # fentanyl exposure amone ppl using rx opioids
       set.seed(seed * 2)
-      fx <- sample(0:1, size = n.noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
+      fx <- sample(0:1, size = num_opioid_rx, probs = c(1 - rx_fx, rx_fx), replace = T)
+      ppl_list[[t]]$fx[OU.state == "rx"]
+      # determine fentanyl exposure among population who use stimulants (non-opioid)
+      set.seed(seed * 3)
+      fx <- sample(0:1, size = num_noud, prob = c(1 - data$init_noud_fx, data$init_noud_fx), replace = T)
       ppl_list[[t]]$fx[ppl_list[[t]]$curr.state == "NODU"] <- fx
     }
     tic("calculate transition")

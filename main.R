@@ -86,7 +86,7 @@ main <- function(init_ppl, params, output, timesteps, c_disc, expansion, seed) {
     # TODO: change this to add row instead of rbind?
     results <- rbind(
       results,
-      MicroSim(init_ppl, params, output, c_disc, scenario, seed)
+      MicroSim(init_ppl, params, output, scenario, seed)
     )
     write.csv(
       results,
