@@ -1,195 +1,226 @@
-########################################################################################
-################# PROFOUND Naloxone Distribution model #### 2020 #######################
-########################################################################################
-# Module for Data Input of the Profound Naloxone distribution model:
-#
-# Author: Xiao Zang, PhD; Shayla Nolen, MPH
-# Marshall Lab, Department of Epidemiology, Brown University
-#
-# Created: Dec 30, 2020
-# Last update: April 12, 2021
-#
-#############################################################################
+#' Data import for PROFOUND
+#'
+#' @description
+#' `data_input()` reads in empirical data to inform the microsimulation.
+#'
+#' @param main_table The file location for the main empirical data table
+#'    (.xlsx format)
+#'
+#' @returns
+#' empirical data for the microsimulation
+#'
 
-## Define input excel file for empirical data##
 library(openxlsx)
-params <- list()
-WB <- loadWorkbook("Inputs/MasterTable.xlsx")
 
-## Parameters for initial cohort ##
-InitialPop <- read.xlsx(WB, sheet = "InitialPop")
-ppl.size <- round(with(InitialPop, pe[par == "ppl.size"]) * with(InitialPop, pe[par == "prop.12older"]), 0) # size of initial population 12 and older
-prev.oud <- with(InitialPop, pe[par == "prev.oud"]) # prevalence of OUD (or at risk for OUD)
-prev.NODU.m <- with(InitialPop, pe[par == "prev.NODU" & sex == "m"]) # prevalence of non-opioid drug use among males, in addition to OUD
-prev.NODU.f <- with(InitialPop, pe[par == "prev.NODU" & sex == "f"]) # prevalence of non-opioid drug use among females, in addition to OUD
+data_input <- function(inputs, main_table) {
+  # appease linter
+  pe <- sex <- group <- NULL
+  # create hashed environment for params
+  params <- new.env(hash = TRUE)
+  workbook <- loadWorkbook(main_table)  # load data table
 
-Demographic <- read.xlsx(WB, sheet = "Demographic")
+  # Parameters for initial cohort --------------------------
+  ppl_data <- read.xlsx(workbook, sheet = "InitialPop")
+  ppl_size <- round(with(
+    ppl_data,
+    pe[par == "ppl_size"]) * with(ppl_data,
+    pe[par == "prop.12older"]),
+    0
+  )
 
-demo.mx <- data.matrix(Demographic[, 4:ncol(Demographic)])
+  oud_prev <- with(ppl_data, pe[par == "prev.oud"])
+  nodu_m_prev <- with(ppl_data, pe[par == "prev.NODU" & sex == "m"])
+  nodu_f_prev <- with(ppl_data, pe[par == "prev.NODU" & sex == "f"])
 
-v.region <- colnames(Demographic)[-c(1:3)] # region names (city/town)
-# REVIEWED don't need to create new variable \ ditto, why not just use Demographics$* when you want these things?
-params$v.region <- v.region
-# v.demo.sex <- Demographic$sex
-v.demo.race <- Demographic$race
-v.demo.age <- Demographic$age
+  params$demographic <- read.xlsx(workbook, sheet = "Demographic")
 
-OUDDemo <- read.xlsx(WB, sheet = "OUDPrevNSDUH")$pe
-StimDemo <- read.xlsx(WB, sheet = "StimPrevNSDUH")$pe
+  regions <- colnames(params$demographic)[-c(1:3)] # region names (city/town)
+  # change . to space in region names
+  regions <- gsub("\\.", " ", regions)
+  p_region <- read.xlsx(workbook, sheet = "region_prob")
+  rownames(p_region) <- p_region$region
 
-# REVIEWED init = initial, lr/hr lowrisk/highrisk, il = illegal, inact = inactive, gw = annual growth rate of fx exposure, preb = prescription, opioid_use_patterns
-# why create all these variables and then put them into a dataframe? Wastes memory
-OpioidPattern <- read.xlsx(WB, sheet = "OpioidPattern")
-ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"]) # % of illicite opioid use among OUD ppl
-ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"]) # % of illicite opioid use among OUD ppl
-ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"]) # % of high-risk among illicit opioid ppl
-ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"]) # % of high-risk among illicit opioid ppl
-init_inactive <- with(OpioidPattern, pe[par == "init_inactive"])
-init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
-gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
-ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
-ini.everod.il.lr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.lr"])
-ini.everod.il.hr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.hr"])
-out_prebopioid <- with(OpioidPattern, pe[par == "out_prebopioid"])
+  params$regions <- regions
+  params$races <- params$demographic$race
+  params$ages <- params$demographic$age
 
-# REVIEWED stimulant_use_patterns
-StimulantPattern <- read.xlsx(WB, sheet = "StimulantPattern")
-ini.NOUD.fx <- with(StimulantPattern, pe[par == "ini.NOUD.fx"])
-ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
+  oud_demo <- read.xlsx(workbook, sheet = "OUDPrevNSDUH")
+  stim_demo <- read.xlsx(workbook, sheet = "StimPrevNSDUH")
 
-# REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
-initials <- list(
-  ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
-  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
-  # init_oud_fx = init_oud_fx, ini.NOUD.fx = ini.NOUD.fx,
-  ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr
-)
+  opioid_pattern <- read.xlsx(workbook, sheet = "OpioidPattern")
+  # % of illicite opioid use among OUD ppl
+  init_il_m <- with(opioid_pattern, pe[par == "ini.il" & sex == "m"])
+  init_il_f <- with(opioid_pattern, pe[par == "ini.il" & sex == "f"])
+  # % of high-risk among illicit opioid ppl
+  init_il_hr_m <- with(opioid_pattern, pe[par == "ini.il.hr" & sex == "m"])
+  init_il_hr_f <- with(opioid_pattern, pe[par == "ini.il.hr" & sex == "f"])
+  # % inactive
+  init_inactive <- with(opioid_pattern, pe[par == "init_inactive"])
+  # TO_REVIEW why is this params instead of initials?
+  params$init_oud_fx <- with(opioid_pattern, pe[par == "init_oud_fx"])
+  params$fx_growth <- with(opioid_pattern, pe[par == "fx_growth"])
+  # initial probabilities that agent has previously overdosed
+  init_everod_rx <- with(
+    opioid_pattern,
+    pe[par == "ini.everod" & group == "rx"]
+  )
+  init_everod_il_lr <- with(
+    opioid_pattern,
+    pe[par == "ini.everod" & group == "il.lr"]
+  )
+  init_everod_il_hr <- with(
+    opioid_pattern,
+    pe[par == "ini.everod" & group == "il.hr"]
+  )
 
-# REVIEWED add these straight to list, no intermediary
-params$init_oud_fx <- init_oud_fx
-params$gw.fx <- gw.fx
-params$ini.NOUD.fx <- ini.NOUD.fx
-params$out_prebopioid <- out_prebopioid
+  stimulant_pattern <- read.xlsx(workbook, sheet = "StimulantPattern")
+  params$init_noud_fx <- with(stimulant_pattern, pe[par == "ini.NOUD.fx"])
+  ini_everod_sti <- with(stimulant_pattern, pe[par == "ini.everod"])
 
-## Parameters for microsimulation ##
-# life table: for mortality
-mor.bg.y <- read.xlsx(WB, sheet = "LifeTable")$pe
-params$mor.bg <- 1 - (1 - mor.bg.y / 1000000)^(1 / 12)
-mor.drug.y <- read.xlsx(WB, sheet = "LifeTable")$drug
-params$mor.drug <- 1 - (1 - mor.drug.y / 1000000)^(1 / 12)
-# REVIEWED gp = general population
-mor.gp <- read.xlsx(WB, sheet = "LifeTable")$age
-rm(list = c("mor.bg.y", "mor.drug.y"))
-# risk of overdose
-OverdoseRisk <- read.xlsx(WB, sheet = "OverdoseRisk")
-params$od.preb.sub <- with(OverdoseRisk, pe[par == "od.preb.sub"])
-params$od.il.lr.sub <- with(OverdoseRisk, pe[par == "od.il.lr.sub"])
-params$od.NODU.sub <- with(OverdoseRisk, pe[par == "od.NODU.sub"])
-params$multi.hr <- with(OverdoseRisk, pe[par == "multi.hr"])
-params$multi.fx <- with(OverdoseRisk, pe[par == "multi.fx"])
-params$multi.relap <- with(OverdoseRisk, pe[par == "multi.relap"])
-params$multi.sub <- with(OverdoseRisk, pe[par == "multi.sub"])
-params$multi.NODU.fx <- with(OverdoseRisk, pe[par == "multi.NODU.fx"])
-# transition probability
-TransProb <- read.xlsx(WB, sheet = "TransProb")
-params$p.preb2il.lr <- with(TransProb, pe[par == "p.preb2il.lr"])
-params$p.preb2inact <- with(TransProb, pe[par == "p.preb2inact"])
-params$p.il.lr2il.hr <- with(TransProb, pe[par == "p.il.lr2il.hr"])
-params$p.il.lr2inact <- with(TransProb, pe[par == "p.il.lr2inact"])
-params$p.il.hr2il.lr <- with(TransProb, pe[par == "p.il.hr2il.lr"])
-params$p.il.hr2inact <- with(TransProb, pe[par == "p.il.hr2inact"])
-params$p.inact2relap <- with(TransProb, pe[par == "p.inact2relap"])
+  params$initials <- list(
+    ppl_size = ppl_size, oud_prev = oud_prev, nodu_m_prev = nodu_m_prev,
+    nodu_f_prev = nodu_f_prev, regions = regions,
+    oud_demo = oud_demo, stim_demo = stim_demo, init_il_m = init_il_m,
+    init_il_f = init_il_f, init_il_hr_m = init_il_hr_m,
+    init_il_hr_f = init_il_hr_f, init_inactive = init_inactive,
+    init_everod_rx = init_everod_rx, init_everod_il_lr = init_everod_il_lr,
+    init_everod_il_hr = init_everod_il_hr,
+    ini_everod_sti = ini_everod_sti, p_region = p_region
+  )
+
+  ## Parameters for microsimulation ##
+  # life table: for mortality
+  annual_mortality_base <- read.xlsx(workbook, sheet = "LifeTable")$pe
+  params$mortality_base <- 1 - (1 - annual_mortality_base / 1000000) ^ (1 / 12)
+  annual_mortality_drug <- read.xlsx(workbook, sheet = "LifeTable")$drug
+  params$mortality_drug <- 1 - (1 - annual_mortality_drug / 1000000) ^ (1 / 12)
+
+  mor_gp <- read.xlsx(workbook, sheet = "LifeTable")$age
+  rm(list = c("annual_mortality_base", "annual_mortality_drug"))
+  # risk of overdose
+  overdose_risk <- read.xlsx(workbook, sheet = "OverdoseRisk")
+  # TO_REVIEW: unused outside calibration/validated city?
+  params$od_rx_sub <- with(overdose_risk, pe[par == "od.rx.sub"])
+  params$od_il_lr_sub <- with(overdose_risk, pe[par == "od.il.lr.sub"])
+  params$od_nodu_sub <- with(overdose_risk, pe[par == "od.NODU.sub"])
+  params$multi_hr <- with(overdose_risk, pe[par == "multi.hr"])
+  params$multi_fx <- with(overdose_risk, pe[par == "multi.fx"])
+  params$multi_relap <- with(overdose_risk, pe[par == "multi.relap"])
+  params$multi_sub <- with(overdose_risk, pe[par == "multi.sub"])
+  params$multi_NODU_fx <- with(overdose_risk, pe[par == "multi.NODU.fx"])
+
+  # transition probability
+  p_transition <- read.xlsx(workbook, sheet = "TransProb")
+  params$p_rx2il_lr <- with(p_transition, pe[par == "p.rx2il.lr"])
+  params$p_rx2inact <- with(p_transition, pe[par == "p.rx2inact"])
+  params$p_il_lr2il_hr <- with(p_transition, pe[par == "p.il.lr2il.hr"])
+  params$p_il_lr2inact <- with(p_transition, pe[par == "p.il.lr2inact"])
+  params$p_il_hr2il_lr <- with(p_transition, pe[par == "p.il.hr2il.lr"])
+  params$p_il_hr2inact <- with(p_transition, pe[par == "p.il.hr2inact"])
+  params$p_inact2relap <- with(p_transition, pe[par == "p.inact2relap"])
 
 
-## Parameters for decision tree ##
-if (exists("sw.EMS.ODloc")) {
-  if (sw.EMS.ODloc == "sp") {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$public
-    OD_loc <- rbind(OD_loc_priv, OD_loc_pub)
+  ## Parameters for decision tree ##
+  if (inputs$strat == "regional") {
+    od_loc_priv <- read.xlsx(workbook, sheet = "ODSettingEMS(sp)")$private
+    od_loc_pub <- read.xlsx(workbook, sheet = "ODSettingEMS(sp)")$public
+    od_loc <- rbind(od_loc_priv, od_loc_pub)
+  } else if (inputs$strat == "overall") {
+    od_loc_priv <- read.xlsx(workbook, sheet = "ODSettingEMS")$private
+    od_loc_pub <- read.xlsx(workbook, sheet = "ODSettingEMS")$public
+    od_loc <- rbind(
+      rep(od_loc_priv, length(regions)),
+      rep(od_loc_pub, length(regions))
+    )
   } else {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-    OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
+    stop("Please choose a valid strategy from 'regional' or 'overall'")
   }
-} else {
-  OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-  OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-  OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
+
+  rownames(od_loc) <- c("priv", "pub")
+  colnames(od_loc) <- regions
+  params$od_loc <- od_loc
+
+  decision_tree <- read.xlsx(workbook, sheet = "DecisionTree")
+  params$od_wit_priv <- with(
+    decision_tree,
+    pe[par == "OD_wit" & group == "priv"]
+  )
+  params$od_wit_pub <- with(decision_tree, pe[par == "OD_wit" & group == "pub"])
+  params$od_911_priv <- with(decision_tree, pe[par == "OD_911_priv"])
+  params$od_911_pub_mul <- with(decision_tree, pe[par == "OD_911_pub_mul"])
+  params$od_911_pub <- params$od_911_priv * params$od_911_pub_mul
+  params$od_hosp <- with(decision_tree, pe[par == "OD_hosp"])
+  params$od_cess <- with(decision_tree, pe[par == "OD_cess"])
+
+  mortality <- read.xlsx(workbook, sheet = "Mortality")
+  params$mor_bl <- with(mortality, pe[par == "mor_bl"])
+  params$mortality_nx <- with(mortality, pe[par == "mortality_nx"])
+  params$rr_mor_ems <- with(mortality, pe[par == "rr_mor_EMS"])
+
+  ## Parameters for naloxone kits ##
+  nlx_kit <- read.xlsx(workbook, sheet = "NxKit")
+  params$r_loss_exp <- 1 / with(nlx_kit, pe[par == "LossExp"])
+  params$low2priv <- with(nlx_kit, pe[par == "Low2Priv"])
+  params$nlx_adj <- with(nlx_kit, pe[par == "nlx.adj"])
+  params$cap <- with(nlx_kit, pe[par == "cap"])
+  nlx_data_oend <- read.xlsx(workbook, sheet = "NxDataOEND")
+  nx_oend <- array(
+    0,
+    dim = c(
+      length(unique(nlx_data_oend$year)),
+      length(unique(nlx_data_oend$risk)), length(regions))
+  )
+  dimnames(nx_oend)[[1]] <- unique(nlx_data_oend$year)
+  dimnames(nx_oend)[[2]] <- unique(nlx_data_oend$risk)
+  dimnames(nx_oend)[[3]] <- regions
+  for (i in seq_len(length(unique(nlx_data_oend$year)))) {
+    nx_oend[i, , ] <- data.matrix(
+      subset(nlx_data_oend, year == unique(nlx_data_oend$year)[i])[-c(1, 2)]
+    )
+  }
+  params$nx_oend <- nx_oend
+  params$nlx_data_pharm <- read.xlsx(workbook, sheet = "NxDataPharm")
+  nlx_mvt <- data.matrix(read.xlsx(workbook, sheet = "NxMvt")[, -1])
+  row.names(nlx_mvt) <- regions
+  params$nlx_mvt <- nlx_mvt
+
+  ## Parameters for cost ##
+  cost <- read.xlsx(workbook, sheet = "Cost")
+  params$c_rx <- with(cost, pe[par == "c.rx"])
+  params$c_il_lr <- with(cost, pe[par == "c.il.lr"])
+  params$c_il_hr <- with(cost, pe[par == "c.il.hr"])
+  params$c_inact <- with(cost, pe[par == "c.inact"])
+  params$c.NODU <- with(cost, pe[par == "c.NODU"])
+  params$c_nlx_kit <- with(cost, pe[par == "c.nlx.kit"])
+  # REVIEWED database
+  params$c_nlx_dtb <- with(cost, pe[par == "c_nlx_dtb"])
+
+  c_relap <- numeric(0)
+  c_relap["rx"] <- (params$c_rx + params$c_inact) / 2
+  c_relap["il_lr"] <- (params$c_il_lr + params$c_inact) / 2
+  c_relap["il_hr"] <- (params$c_il_hr + params$c_inact) / 2
+  params$c_relap <- c_relap
+
+  params$ems_cost <- with(cost, pe[par == "c.EMS"])
+  params$hosp_cost <- with(cost, pe[par == "c.hospcare"])
+
+  # Overdose probability matrix (per month)
+  overdose_probs <- matrix(0, nrow = 4, ncol = 2)
+  rownames(overdose_probs) <- c("rx", "il_lr", "il_hr", "NODU")
+  colnames(overdose_probs) <- c("first", "subs")
+  overdose_probs["rx", "subs"] <- params$od_rx_sub
+  overdose_probs["il_lr", "subs"] <- params$od_il_lr_sub
+  overdose_probs["il_hr", "subs"] <- params$od_il_lr_sub * params$multi_hr
+  overdose_probs["NODU", "subs"] <- params$od_nodu_sub
+  overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi_sub
+  params$overdose_probs <- overdose_probs
+
+  # Baseline mortality excluding overdose (per month)
+  params$mortality_probs <- matrix(0, nrow = 2, ncol = length(mor_gp))
+  rownames(params$mortality_probs) <- c("bg", "drug")
+  colnames(params$mortality_probs) <- mor_gp
+  params$mortality_probs["bg", ] <- params$mortality_base
+  params$mortality_probs["drug", ] <- params$mortality_drug
+
+  return(params)
 }
-rownames(OD_loc) <- c("priv", "pub")
-colnames(OD_loc) <- v.region
-params$OD_loc <- OD_loc
-
-DecisionTree <- read.xlsx(WB, sheet = "DecisionTree")
-params$OD_wit_priv <- with(DecisionTree, pe[par == "OD_wit" & group == "priv"])
-params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit" & group == "pub"])
-params$OD_911_priv <- with(DecisionTree, pe[par == "OD_911_priv"])
-params$OD_911_pub_mul <- with(DecisionTree, pe[par == "OD_911_pub_mul"])
-params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
-params$OD_hosp <- with(DecisionTree, pe[par == "OD_hosp"])
-params$OD_cess <- with(DecisionTree, pe[par == "OD_cess"])
-
-Mortality <- read.xlsx(WB, sheet = "Mortality")
-params$mor_bl <- with(Mortality, pe[par == "mor_bl"])
-params$mortality_nx <- with(Mortality, pe[par == "mortality_nx"])
-params$rr_mor_EMS <- with(Mortality, pe[par == "rr_mor_EMS"])
-
-## Parameters for naloxone kits ##
-NxKit <- read.xlsx(WB, sheet = "NxKit")
-params$r.LossExp <- 1 / with(NxKit, pe[par == "LossExp"])
-params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
-params$nlx.adj <- with(NxKit, pe[par == "nlx.adj"])
-params$cap <- with(NxKit, pe[par == "cap"])
-NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")
-NxOEND.array <- array(0, dim = c(length(unique(NxDataOEND$year)), length(unique(NxDataOEND$risk)), length(v.region)))
-dimnames(NxOEND.array)[[1]] <- unique(NxDataOEND$year)
-dimnames(NxOEND.array)[[2]] <- unique(NxDataOEND$risk)
-dimnames(NxOEND.array)[[3]] <- v.region
-for (i in 1:length(unique(NxDataOEND$year))) {
-  NxOEND.array[i, , ] <- data.matrix(subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)])
-}
-params$NxOEND.array <- NxOEND.array
-params$NxDataPharm <- read.xlsx(WB, sheet = "NxDataPharm")
-NxMvt <- data.matrix(read.xlsx(WB, sheet = "NxMvt")[, -1])
-row.names(NxMvt) <- v.region
-params$NxMvt <- NxMvt
-
-## Parameters for cost ##
-Cost <- read.xlsx(WB, sheet = "Cost")
-params$c.preb <- with(Cost, pe[par == "c.preb"])
-params$c.il.lr <- with(Cost, pe[par == "c.il.lr"])
-params$c.il.hr <- with(Cost, pe[par == "c.il.hr"])
-params$c.inact <- with(Cost, pe[par == "c.inact"])
-params$c.NODU <- with(Cost, pe[par == "c.NODU"])
-params$c.nlx.kit <- with(Cost, pe[par == "c.nlx.kit"])
-# REVIEWED database
-params$c.nlx.dtb <- with(Cost, pe[par == "c.nlx.dtb"])
-# REVIEW, assume relapse is mid-month, mix cost of active and inactive
-c.relap.v <- numeric(0) # cost of remaining one cycle: relapsed, as the average of inactive and prior state
-c.relap.v["preb"] <- (params$c.preb + params$c.inact) / 2
-c.relap.v["il.lr"] <- (params$c.il.lr + params$c.inact) / 2
-c.relap.v["il.hr"] <- (params$c.il.hr + params$c.inact) / 2
-params$c.relap.v <- c.relap.v
-
-params$c.EMS <- with(Cost, pe[par == "c.EMS"])
-params$c.hospcare <- with(Cost, pe[par == "c.hospcare"])
-
-# Overdose probability matrix (per month)
-overdose_probs <- matrix(0, nrow = 4, ncol = 2)
-rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
-colnames(overdose_probs) <- c("first", "subs")
-overdose_probs["preb", "subs"] <- params$od.preb.sub
-overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
-overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
-overdose_probs["NODU", "subs"] <- params$od.NODU.sub
-overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
-params$overdose_probs <- overdose_probs
-
-# Baseline mortality excluding overdose (per month)
-mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
-rownames(mortality_probs) <- c("bg", "drug")
-colnames(mortality_probs) <- mor.gp
-mortality_probs["bg", ] <- params$mor.bg
-mortality_probs["drug", ] <- params$mor.drug
-params$mortality_probs <- mortality_probs

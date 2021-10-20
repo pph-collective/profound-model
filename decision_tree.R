@@ -1,117 +1,104 @@
-###############################################################################################
-###################### PROFOUND Naloxone Distribution model #### 2020 #########################
-###############################################################################################
-# Main module for the decision tree of the Profound Naloxone distribution model:
-#
-# Author: Xiao Zang, PhD; Shayla Nolen, MPH
-# Marshall Lab, Department of Epidemiology, Brown University
-#
-# Created: May 25, 2020
-# Last update: April 12, 2021
-#
-###############################################################################################
-#########################           Decision Tree           ####################################
-###############################################################################################
+#' Decision tree to determine agent state change
+#'
+#' @description
+#' The decision tree stochastically determines what states the population's
+#' individuals change to at a timestep. It finds the outcomes of an overdose
+#' event.
+#'
+#' @param od_ppl The population that has overdosed this time step.
+#' @param n_nlx The number of naloxone kits available.
+#' @param ou_ppl_resid Population that has overdosed by location.
+#' @param params Model parameters.
+#'
+#' @returns
+#' outcomes determined by the model
 
-###############################################################################################
-####    Decision tree to determine consequence following overdose                          ####
-####    6 health states: prescribed, illicit (L/H), inactive, non-opioid, relapsed, death  ####
-####    1 health event:  Overdose                                                          ####
-####    Attributes:      state, age, sex, fentanyl, overdosed, pre.state,                  ####
-####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
-###############################################################################################
+source("naloxone_availability.R")
 
-#############################################################################
-# 1. Decision tree parameters
-#############################################################################
-# INPUT PARAMETERS
-# p.wtns              # probability an overodse is witnessed
-# REVIEWED if no witness, no naloxone \ can we just say probability of naloxone in the variable name (prob_nlx)?
-# p.nlx.wtns          # probability naloxone is used/administered by witness if available
-# p.911               # probability of seeking help from 911
-# p.hosp              # probability of transporting to hospital care
-# mor_bl              # baseline mortality rate (from overdose) given no witness, no naloxone used, no hospital care
-# mortality_nx              # mortality if naloxone is administered
-# rr_mor_EMS          # relative risk of mortality with EMS if no naloxone is used
-# p.od2inact          # probability to inactive (cessasion of opioid use) after surviving an overdose event
-
-#############################################################################
-# 2. Decision tree function
-#############################################################################
-
-decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
-  # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
+decision_tree <- function(od_ppl, n_nlx, ou_ppl_resid, params, seed, data) {
   list2env(params, environment())
   set.seed(seed)
-  n.od <- nrow(od_ppl)
+  n_od <- nrow(od_ppl)
   residence <- od_ppl$residence
-  out.colnames <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
-  decntree.out <- matrix(0, nrow = n.od, ncol = length(out.colnames))
-  colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
-  # REVIEWED ind = index; id
-  decntree.out[, "ind"] <- od_ppl$ind
-  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, OD_loc, Low2Priv, nlx.adj, cap)
+  col_out <- c(
+    "ind", "od_death", "EMS", "hospcare", "inact", "locpriv",
+    "nlx_used", "wtns"
+  )
 
-  for (d in 1:n.od) {
-    loc <- sample(c("priv", "pub"), size = 1, prob = OD_loc[, residence[d]])
+  outcome <- matrix(0, nrow = n_od, ncol = length(col_out))
+  colnames(outcome) <- col_out
+  outcome[, "ind"] <- od_ppl$ind
+  p_nlx_avail_mx <- nlx_avail_algm(
+    n_nlx,
+    ou_ppl_resid,
+    data$od_loc,
+    data$low2priv,
+    data$nlx_adj,
+    data$cap
+  )
+
+  for (d in 1:n_od) {
+    if (n_od == 0) {
+      break
+    }
+    loc <- sample(c("priv", "pub"), 1, prob = data$od_loc[, residence[d]])
     locpriv <- ifelse(loc == "priv", 1, 0)
-    p.wtns <- ifelse(loc == "priv", OD_wit_priv, OD_wit_pub)
-    p.911 <- ifelse(loc == "priv", OD_911_priv, OD_911_pub)
-    p.hosp <- OD_hosp
-    p.od2inact <- OD_cess
-    wtns <- sample.dic(p.wtns)
-    p.nlx.avail <- p.nlx.avail.mx[residence[d], loc]
+    p_wtns <- ifelse(loc == "priv", data$od_wit_priv, data$od_wit_pub)
+    p_911 <- ifelse(loc == "priv", data$od_911_priv, data$od_911_pub)
+    p_hosp <- data$od_hosp
+    p_od2inact <- data$od_cess
+    wtns <- sample_dic(p_wtns)
+    p_nlx_avail <- p_nlx_avail_mx[residence[d], loc]
 
     if (wtns == 1) { # if witnessed
-      p.nlx.avail <- sample.dic(p.nlx.avail)
-      if (sample.dic(p.nlx.avail) == 1) { # if naloxone available by witness (witnessed)
-        nlx.used <- 1
-        EMS <- sample.dic(p.911)
-        if (EMS == 1) { # if EMS reached (witnessed, available, naloxone used by witness )
-          hospcare <- sample.dic(p.hosp)
-          if (hospcare == 1) { # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mortality_nx)
-          } else { # if not hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mortality_nx)
+      p_nlx_avail <- sample_dic(p_nlx_avail)
+      if (sample_dic(p_nlx_avail) == 1) { # naloxone, witness
+        nlx_used <- 1
+        ems <- sample_dic(p_911)
+        if (ems == 1) { # EMS, naloxone, witness
+          hospcare <- sample_dic(p_hosp)
+          if (hospcare == 1) { # hospitalized, EMS, naloxone, witness
+            od_death <- sample_dic(data$mortality_nx)
+          } else { # not hospitalized, but EMS, naloxone, witness
+            od_death <- sample_dic(data$mortality_nx)
           }
-        } else { # if EMS not reached (witnessed, available, naloxone used by witness )
-          od.death <- sample.dic(mortality_nx)
+        } else { # not EMS, but naloxone, witness
+          od_death <- sample_dic(data$mortality_nx)
           hospcare <- 0
         }
-      } else { # if naloxone not used (unavailable) by witness (witnessed)
-        nlx.used <- 0
-        EMS <- sample.dic(p.911)
-        if (EMS == 1) { # if EMS reached (witnessed, naloxone not used by witness)
-          hospcare <- sample.dic(p.hosp)
-          if (hospcare == 1) { # if hospitalized (witnessed, naloxone not used by witness, EMS reached)
-            od.death <- sample.dic(mor_bl * rr_mor_EMS)
-          } else { # if not hospitalized (witnessed, naloxone not used by witness, EMS reached)
-            od.death <- sample.dic(mor_bl * rr_mor_EMS)
+      } else { # no naloxone, but witness
+        nlx_used <- 0
+        ems <- sample_dic(p_911)
+        if (ems == 1) { # EMS but no nlx
+          hospcare <- sample_dic(p_hosp)
+          if (hospcare == 1) { # hospitalized no nlx
+            od_death <- sample_dic(data$mor_bl * data$rr_mor_ems)
+          } else { # no hospital, no nlx
+            od_death <- sample_dic(data$mor_bl * data$rr_mor_ems)
           }
         } else { # if EMS not reached (witnessed, naloxone not used by witness)
-          od.death <- sample.dic(mor_bl)
+          od_death <- sample_dic(data$mor_bl)
           hospcare <- 0
         }
       }
     } else { # if not witnessed
-      od.death <- sample.dic(mor_bl)
-      EMS <- 0
+      od_death <- sample_dic(data$mor_bl)
+      ems <- 0
       hospcare <- 0
-      nlx.used <- 0
-    } # end if loop for decision tree
+      nlx_used <- 0
+    }
 
-    if (od.death != 1) {
-      inact <- sample.dic(p.od2inact)
+    if (od_death != 1) {
+      inact <- sample_dic(p_od2inact)
     } else {
       inact <- 0
     }
 
-    decntree.out[d, -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used, wtns)
+    outcome[d, -1] <- c(od_death, ems, hospcare, inact, locpriv, nlx_used, wtns)
   } # end for loop
-
-  return(decntree.out)
+  return(outcome)
 }
 
-sample.dic <- function(prob) {
+sample_dic <- function(prob) {
   return(sample(0:1, 1, prob = c((1 - prob), prob)))
 }

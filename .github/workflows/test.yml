@@ -26,12 +26,12 @@ jobs:
       - name: Install dependencies
         run: Rscript install.r
       - name: Run PROFOUND without inital pop
-        run: Rscript main.R -p Inputs/init_pop.rds
+        run: Rscript main.R
       - name: Check initial pop exists
         run: |
-          [ -f Inputs/init_pop.rds ]
+          [ -f Inputs/init_ppl.rds ]
       - name: Run PROFOUND with input pop
-        run: Rscript main.R -p Inputs/init_pop.rds
+        run: Rscript main.R
       - name: Check results exists
         run: |
-          [ -f overdose_deaths.csv ]
+          [ -f results/overdoses.csv ]

@@ -1,28 +1,17 @@
 #!/usr/bin/env Rscript
 
-###############################################################################################
-#######################        Model calibration runs         #################################
-###############################################################################################
-###############################################################################################
-####    1st step of Calibration: create random parameter samples and simulate over them    ####
-####    3 sets of targets:  annual # overdose deaths:       od.deathYR (YR for year)       ####
-####                        % of overdose death with fentanyl present:    fx.deathYR       ####
-####                        annual # ED visits due to overdose:           ed.visitYR       ####
-####    Calibrate multiple parameters (calib.par) simultaneously                           ####
-####    Targets at the state level, 2016-2019                                              ####
-####    Method: random calibration with Latin hypercube sampling                           ####
-####    DUE to large samples, run calibration simulation with parallel in batches          ####
-####    AFTER finishing all batches, run ResultAnalysis.R for the next step                ####
-###############################################################################################
-rm(list = ls())
-# Module for running model with uncalibrated data in parallel over calibration period
-#
-# Authors: Xiao Zang, PhD, Sam Bessey, MS
-#
-# People, Place and Health Collective, Department of Epidemiology, Brown University
-#
+#' Wrapper for running a batch of param sets for calibration
+#'
+#' @description
+#' `calibrate()` sets up parameters for running multiple parameter sets
+#' and runs them in parallel through `main()`
+#'
+#' @param TODO
+#'
+#' @returns
+#' writes overdose stats to file
+#'
 
-rm(list = ls())
 print("Loading required packages")
 library(dplyr)
 library(openxlsx)
@@ -33,7 +22,7 @@ library(foreach)
 library(doParallel)
 library("argparser")
 
-# ## Model setup parameters ##
+# Model setup parameters -----------------------------
 args <- arg_parser("arguments")
 args <- add_argument(args, "--seed", help = "seed for latin hypercube sampling", default = 5112021)
 args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")
@@ -63,8 +52,6 @@ source("decision_tree.R")
 source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parallel.R")
-source("prep_calibration_data.R")
-
 
 # REVIEWED - check for both / is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
 ## load or create calibration parameter sets for calibration simulation
@@ -74,7 +61,7 @@ if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
 } else {
   ## Specify the number of calibration random parameter sets
   sample.size <- 1000000 # total number of calibration samples
-
+  source("prep_calibration_data.R")
   # load calibration parameter bounds and values
   CalibPar <- read.xlsx("Inputs/MasterTable.xlsx", "CalibPar")
   parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
@@ -86,16 +73,16 @@ if (file.exists(paste0("Inputs/Calib_par_table.rds"))) {
   saveRDS(calib.par, paste0("Inputs/Calib_par_table.rds")) # save sampled calibration parameter values
 
   Calibration.data.ls <- readRDS(paste0("Inputs/CalibrationSampleData", batch.ind, ".rds"))
-  
 }
 
+Calibration.data.ls <- Calibration.data.ls[1:batch.size]
 # generate stepwise seeds for calibration starting at initial seed
 calib.seed.vt <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 # initialize calibratiobration_results table
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15)
 colnames(calibration_results) <- c(
   "index", "seed",
-  "od.death16", "od.death17", "od.death18", "od.death19",
+  "od_death16", "od_death17", "od_death18", "od_death19",
   "fx.death16", "fx.death17", "fx.death18", "fx.death19",
   "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19",
   "gof"
@@ -106,52 +93,56 @@ calibration_results[, "seed"] <- calib.seed.vt
 # initializbration_results matrix to savbration_results from parallel simulation
 calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
 
-v.region <- Calibration.data.ls[[1]]$v.region # load vector for regions (required by simulation)
+regions <- Calibration.data.ls[[1]]$regions # load vector for regions (required by simulation)
 
 # parallel calibration simulation
 # TODO: look into apply functions for parallel
-calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages = c("dplyr", "abind")) %dopar% {
-  yr_start <- 2016 # simulation first year
-  yr_end <- 2020 # simulation last year
-  ppl_info <- c(
-    "sex", "race", "age", "residence", "curr.state",
-    "OU.state", "init.age", "init.state", "ever.od", "fx"
-  ) # information for each model individual
-  agent_states <- c("preb", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
-  v.oustate <- c("preb", "il.lr", "il.hr") # vector for active opioid use state names
-  num_states <- length(agent_states) # number of states
-  num_years <- yr_end - yr_start + 1
-  timesteps <- 12 * num_years # number of time cycles (in month)
-  num_regions <- length(v.region) # number of regions
 
-  # OUTPUT matrices and vectors
-  v.od <- rep(0, times = timesteps) # count of overdose events at each time step
-  v.oddeath <- rep(0, times = timesteps) # count of overdose deaths at each time step
-  m.oddeath <- matrix(0, nrow = timesteps, ncol = num_regions)
-  colnames(m.oddeath) <- v.region
-  v.odpriv <- rep(0, times = timesteps) # count of overdose events occurred at private setting at each time step
-  v.odpubl <- rep(0, times = timesteps) # count of overdose events occurred at public setting at each time step
-  v.deathpriv <- rep(0, times = timesteps) # count of overdose deaths occurred at private setting at each time step
-  v.deathpubl <- rep(0, times = timesteps) # count of overdose deaths occurred at public setting at each time step
-  v.str <- c("SQ", "Expand100") # store the strategy names
-  d.c <- 0.03 # discounting of costs by 3%
-  cost.item <- c("TotalCost", "NxCost")
-  cost.matrix <- matrix(0, nrow = timesteps, ncol = length(cost.item))
-  colnames(cost.matrix) <- cost.item
-  m.oddeath.fx <- rep(0, times = timesteps) # count of overdose deaths with fentanyl present at each time step
-  m.oddeath.op <- rep(0, times = timesteps) # count of overdose deaths among opioid users at each time step
-  m.oddeath.st <- rep(0, times = timesteps) # count of overdose deaths among stimulant users at each time step
-  m.EDvisits <- rep(0, times = timesteps) # count of opioid overdose-related ED visits at each time step
-  m.oddeath.hr <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
+# calibration_results <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind, .packages = c("dplyr", "abind")) %dopar% {
+yr_start <- 2016 # simulation first year
+yr_end <- 2020 # simulation last year
+ppl_info <- c(
+  "sex", "race", "age", "residence", "curr.state",
+  "OU.state", "init.age", "init.state", "ever.od", "fx"
+) # information for each model individual
+agent_states <- c("rx", "il.lr", "il.hr", "inact", "NODU", "relap", "dead") # vector for state names
+oustate <- c("rx", "il.lr", "il.hr") # vector for active opioid use state names
+num_states <- length(agent_states) # number of states
+num_years <- yr_end - yr_start + 1
+timesteps <- 12 * num_years # number of time cycles (in month)
+num_regions <- length(regions) # number of regions
 
-  ## Initialize the study population - people who are at risk of opioid overdose
-  ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
-  init_ppl <- readRDS(paste0("Inputs/init_pop.rds"))
+# OUTPUT matrices and vectors
+v.od <- rep(0, times = timesteps) # count of overdose events at each time step
+oddeath <- rep(0, times = timesteps) # count of overdose deaths at each time step
+m.oddeath <- matrix(0, nrow = timesteps, ncol = num_regions)
+colnames(m.oddeath) <- regions
+priv_od <- rep(0, times = timesteps) # count of overdose events occurred at private setting at each time step
+vpub_od <- rep(0, times = timesteps) # count of overdose events occurred at public setting at each time step
+priv_death <- rep(0, times = timesteps) # count of overdose deaths occurred at private setting at each time step
+pub_death <- rep(0, times = timesteps) # count of overdose deaths occurred at public setting at each time step
+v.str <- c("SQ", "Expand100") # store the strategy names
+c_disc <- 0.03 # discounting of costs by 3%
+cost.item <- c("Totalcost", "Nxcost")
+cost.matrix <- matrix(0, nrow = timesteps, ncol = length(cost.item))
+colnames(cost.matrix) <- cost.item
+fx_deaths <- rep(0, times = timesteps) # count of overdose deaths with fentanyl present at each time step
+oud_deaths <- rep(0, times = timesteps) # count of overdose deaths among opioid users at each time step
+stim_deaths <- rep(0, times = timesteps) # count of overdose deaths among stimulant users at each time step
+edvisits <- rep(0, times = timesteps) # count of opioid overdose-related ED visits at each time step
+hr_deaths <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
 
-  outcomes <- parallel.fun(calib.seed = calib.seed.vt[ss], params = Calibration.data.ls[[ss]])
-}
+## Initialize the study population - people who are at risk of opioid overdose
+ppl_info <- c(
+  "sex", "race", "age", "residence", "curr.state", "OU.state", "init.age",
+  "init.state", "ever.od", "fx"
+)
+init_ppl <- readRDS(paste0("Inputs/init_pop.rds"))
+
+outcomes <- parallel.fun(
+  calib.seed = calib.seed.vt[ss],
+  params = Calibration.data.ls[[ss]]
+)
 
 calibration_results[, 3:14] <- calibration_results # subset calibration results
-saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds")) # save calibration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process
-
-# stopCluster(c1)   #optional: stop clustering (breaking programs into different cores)
+saveRDS(calibration_results, paste0("CalibrationOutputs", batch.ind, ".rds"))

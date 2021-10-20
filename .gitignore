@@ -17,3 +17,7 @@ preliminary calibration
 *.png
 *.csv
 Inputs/Calib*
+results/
+
+# OS stuff
+.DS_Store
