@@ -100,7 +100,7 @@ decision_tree <- function(od_ppl, n.nlx, ou.pop.resid, params, seed) {
       nlx.used <- 0
     } # end if loop for decision tree
 
-    if (od.death != 1 & od_ppl$curr.state != "NODU") {
+    if (od.death != 1 & od_ppl$OU.state[d] != "NODU") {
       inact <- sample.dic(p.od2inact)
     } else {
       inact <- 0

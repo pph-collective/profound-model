@@ -60,16 +60,16 @@ ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
 # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
 initials <- list(
   ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
-  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
+  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, ini.inactive = ini.inactive,
   # init_oud_fx = init_oud_fx, ini.NOUD.fx = ini.NOUD.fx,
   ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr
 )
 
 # REVIEWED add these straight to list, no intermediary
-params$init_oud_fx <- init_oud_fx
+params$ini.oud.fx <- ini.oud.fx
 params$gw.fx <- gw.fx
 params$ini.NOUD.fx <- ini.NOUD.fx
-params$out_prebopioid <- out_prebopioid
+params$out.prebopioid <- out.prebopioid
 
 ## Parameters for microsimulation ##
 # life table: for mortality
@@ -99,7 +99,7 @@ params$p.il.lr2inact.ini <- with(TransProb, pe[par == "p.il.lr2inact.ini"])
 params$p.il.hr2il.lr <- with(TransProb, pe[par == "p.il.hr2il.lr"])
 params$p.il.hr2inact.ini <- with(TransProb, pe[par == "p.il.hr2inact.ini"])
 params$p.inact2relap <- with(TransProb, pe[par == "p.inact2relap"])
-params$gw.m.2inact <- with(TransProb, pe[par == "gw.m.2inactp"])
+params$gw.m.2inact <- with(TransProb, pe[par == "gw.m.2inact"])
 
 ## Parameters for decision tree ##
 DecisionTree <- read.xlsx(WB, sheet = "DecisionTree")
@@ -107,10 +107,10 @@ params$OD_loc_pub <- with(DecisionTree, pe[par == "OD_loc_pub"])
 
 params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit_pub"])
 params$rr_OD_wit_priv <- with(DecisionTree, pe[par == "rr_OD_wit_priv"])
-params$OD_wit_priv <- params$OD_wit_pub * params$OD_wit_priv_rr
+params$OD_wit_priv <- params$OD_wit_pub * params$rr_OD_wit_priv
 params$OD_911_pub <- with(DecisionTree, pe[par == "OD_911_pub"])
 params$rr_OD_911_priv <- with(DecisionTree, pe[par == "rr_OD_911_priv"])
-params$OD_911_priv <- params$OD_911_pub * params$OD_911_priv_rr
+params$OD_911_priv <- params$OD_911_pub * params$rr_OD_911_priv
 params$OD_hosp <- with(DecisionTree, pe[par == "OD_hosp"])
 params$OD_cess <- with(DecisionTree, pe[par == "OD_cess"])
 

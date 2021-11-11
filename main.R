@@ -56,14 +56,7 @@ args <- add_argument(args, "--outfile", help = "file to store outputs", default 
 args <- add_argument(args, "--ppl", help = "file with initial ppl info", default = "Inputs/init_pop.rds")
 argv <- parse_args(args)
 seed <- as.integer(argv$seed)
-
 init_ppl.file <- argv$ppl
-## Model setup parameters ##
-sw.EMS.ODloc <- "overall"
-out.file <- argv$outfile
-if (isTRUE(argv$regional)) {
-  sw.EMS.ODloc <- "sp"
-}
 
 ## Initialize the study population - people who are at risk of opioid overdose
 ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
@@ -83,7 +76,7 @@ if (file.exists(init_ppl.file)) {
 sim_sq <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = seed)
 # run for expansion (with intervention)
 exp.lv <- 2 # double all OEND programs
-sim_ep <- MicroSim(init_ppl, params, timesteps, v.state, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
+sim_ep <- MicroSim(init_ppl, params, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "expand", seed = seed)
 
 
 results <- data.frame(matrix(nrow = num_regions * 2, ncol = 6))

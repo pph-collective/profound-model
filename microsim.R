@@ -74,9 +74,9 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
       OUD.fx <- ini.oud.fx
-      p.preb2inact <- p.preb2inact.ini
-      p.il.lr2inact <- p.il.lr2inact.ini
-      p.il.hr2inact <- p.il.hr2inact.ini
+      params$p.preb2inact <- p.preb2inact.ini
+      params$p.il.lr2inact <- p.il.lr2inact.ini
+      params$p.il.hr2inact <- p.il.hr2inact.ini
       # determine fentanyl use among population who use non-prescription opioids (heroin)
       set.seed(seed)
       fx_nonpreb <- sample(0:1, size = num_opioid_nonpreb, prob = c(1 - OUD.fx, OUD.fx), replace = T)
@@ -96,9 +96,9 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
       ppl_list[[t]] <- ppl_list[[t - 1]]
       
       gw.2inact <- ifelse(t < (2019-2016 + 1)*12, (1+gw.m.2inact)^t, (1+gw.m.2inact)^((2019-2016 + 1)*12))
-      p.preb2inact <- p.preb2inact.ini * gw.2inact
-      p.il.lr2inact <- p.il.lr2inact.ini * gw.2inact
-      p.il.hr2inact <- p.il.hr2inact.ini * gw.2inact
+      params$p.preb2inact <- p.preb2inact.ini * gw.2inact
+      params$p.il.lr2inact <- p.il.lr2inact.ini * gw.2inact
+      params$p.il.hr2inact <- p.il.hr2inact.ini * gw.2inact
       
       if ((t-1) %% 12 == 0) { #adjust and reassign fentanyl exposure every year   
         OUD.fx <- min(ini.oud.fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)

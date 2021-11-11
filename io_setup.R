@@ -38,4 +38,4 @@ m.oddeath.st <- rep(0, times = timesteps) # count of overdose deaths among stimu
 m.EDvisits <- rep(0, times = timesteps) # count of opioid overdose-related ED visits at each time step
 m.oddeath.hr <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
 m.oddeath.preb <- m.oddeath.il.lr <- m.oddeath.il.hr <- m.nlx.mn <- rep(0, times = timesteps)   # count of overdose deaths stratified by risk group
-v.nlx.mn <- matrix(0, nrow= length(sim.seed), ncol = timesteps)  # count of naloxon kits in circulation in each month
+# v.nlx.mn <- matrix(0, nrow= length(sim.seed), ncol = timesteps)  # count of naloxone kits in circulation in each month
