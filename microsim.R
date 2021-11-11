@@ -44,7 +44,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
   NxPharm.mx <- NxDataPharm$pe[NxDataPharm$year >= (yr_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
   for (cc in 1:dim(NxPharm.mx)[1]) {
-    NxPharm.array[cc, , ] <- round(rep(NxPharm.mx[cc, ], each = 2) * OD_loc, 0)
+    NxPharm.array[cc, , ] <- round(matrix(rep(NxPharm.mx[cc, ], each = 2), nrow = 2) * c(1-OD_loc_pub, OD_loc_pub), 0)
   }
 
   array.Nx <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= yr_start, , ] + NxPharm.array[-1, , ]
@@ -73,14 +73,17 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     nx_avail_yr <- array.Nx[floor((t - 1) / 12) + 1, , ]
     if (t == 1) {
       ppl_list[[t]] <- init_ppl
-      OUD.fx <- init_oud_fx
+      OUD.fx <- ini.oud.fx
+      p.preb2inact <- p.preb2inact.ini
+      p.il.lr2inact <- p.il.lr2inact.ini
+      p.il.hr2inact <- p.il.hr2inact.ini
       # determine fentanyl use among population who use non-prescription opioids (heroin)
       set.seed(seed)
       fx_nonpreb <- sample(0:1, size = num_opioid_nonpreb, prob = c(1 - OUD.fx, OUD.fx), replace = T)
       ppl_list[[t]]$fx[with(ppl_list[[t]], ind[curr.state == "il.lr" | curr.state == "il.hr" | (curr.state == "relap" & OU.state != "preb")])] <- fx_nonpreb
       # determine fentanyl use among population who use prescription opioids
       set.seed(seed * 2)
-      OUD.preb.fx <- OUD.fx * out_prebopioid   #prevalence of fentanyl exposure is diluted by the portion outsourced opioids not from prescription
+      OUD.preb.fx <- OUD.fx * out.prebopioid   #prevalence of fentanyl exposure is diluted by the portion outsourced opioids not from prescription
       fx_preb <- sample(0:1, size = num_opioid_preb, prob = c(1 - OUD.preb.fx, OUD.preb.fx), replace = T)
       ppl_list[[t]]$fx[with(ppl_list[[t]], ind[curr.state == "preb" | (curr.state == "relap" & OU.state == "preb")])] <- fx_preb
       # determine fentanyl use among population who use stimulants (non-opioid)
@@ -91,8 +94,14 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
       n.nlx.mn <- initial_nx + nx_avail_yr / 12
     } else {
       ppl_list[[t]] <- ppl_list[[t - 1]]
-      if (t %% 12 == 0) {
-        OUD.fx <- min(init_oud_fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
+      
+      gw.2inact <- ifelse(t < (2019-2016 + 1)*12, (1+gw.m.2inact)^t, (1+gw.m.2inact)^((2019-2016 + 1)*12))
+      p.preb2inact <- p.preb2inact.ini * gw.2inact
+      p.il.lr2inact <- p.il.lr2inact.ini * gw.2inact
+      p.il.hr2inact <- p.il.hr2inact.ini * gw.2inact
+      
+      if ((t-1) %% 12 == 0) { #adjust and reassign fentanyl exposure every year   
+        OUD.fx <- min(ini.oud.fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
         num_opioid_nonpreb <- sum(ppl_list[[t]]$curr.state == "il.lr" | ppl_list[[t]]$curr.state == "il.hr") +
           sum(ppl_list[[t]]$curr.state == "relap" & ppl_list[[t]]$OU.state != "preb")
         num_opioid_preb <- sum(ppl_list[[t]]$curr.state == "preb") +  
@@ -143,6 +152,14 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "preb", ])
     m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
     m.EDvisits[t] <- n.hospcare
+    
+    ##ADDED for od deaths stratified by population groups##
+    m.oddeath.preb[t]  <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state =="preb", ])
+    m.oddeath.il.lr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state =="il.lr", ])
+    m.oddeath.il.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state =="il.hr", ])
+    
+    m.nlx.mn[t] <- sum(n.nlx.mn)
+    ####
 
     od.death.sum <- od_ppl[od_ppl$curr.state == "dead", ] %>% count(residence)
     for (dd in 1:nrow(od.death.sum)) {
@@ -176,7 +193,8 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     v.oddeath = v.oddeath, m.oddeath = m.oddeath, v.od = v.od,
     cost.matrix = cost.matrix, total.cost = total.cost, pop.trace = pop.trace, n.nlx.OEND.str = (n.nlx.mx.str - NxPharm.array[dim(NxPharm.array)[1], , ]), avail_nlx = n.nlx.mx.str,
     m.oddeath.fx = m.oddeath.fx, m.oddeath.op = m.oddeath.op, m.oddeath.st = m.oddeath.st, m.oddeath.hr = m.oddeath.hr, m.EDvisits = m.EDvisits,
-    v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused
+    v.odpriv = v.odpriv, v.odpubl = v.odpubl, v.deathpriv = v.deathpriv, v.deathpubl = v.deathpubl, v.nlxused = v.nlxused,
+    m.oddeath.preb = m.oddeath.preb, m.oddeath.il.lr = m.oddeath.il.lr, m.oddeath.il.hr = m.oddeath.il.hr, m.nlx.mn = m.nlx.mn
   ) # store the results from the simulation in a list
   return(results) # return the results
 } # end of the MicroSim function

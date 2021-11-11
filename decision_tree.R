@@ -31,7 +31,7 @@
 # p.911               # probability of seeking help from 911
 # p.hosp              # probability of transporting to hospital care
 # mor_bl              # baseline mortality rate (from overdose) given no witness, no naloxone used, no hospital care
-# mortality_nx              # mortality if naloxone is administered
+# mor_nx              # mortality if naloxone is administered
 # rr_mor_EMS          # relative risk of mortality with EMS if no naloxone is used
 # p.od2inact          # probability to inactive (cessasion of opioid use) after surviving an overdose event
 
@@ -39,7 +39,7 @@
 # 2. Decision tree function
 #############################################################################
 
-decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
+decision_tree <- function(od_ppl, n.nlx, ou.pop.resid, params, seed) {
   # REVIEWED n.nlx is naloxone available in city; resid is study ppl in city, change params to params or parameters
   list2env(params, environment())
   set.seed(seed)
@@ -50,10 +50,10 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
   colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
   # REVIEWED ind = index; id
   decntree.out[, "ind"] <- od_ppl$ind
-  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.ppl.resid, OD_loc, Low2Priv, nlx.adj, cap)
+  p.nlx.avail.mx <- nlx.avail.algm(n.nlx, ou.pop.resid, OD_loc_pub, Low2Priv, High2Pub, nlx.adj, cap)
 
   for (d in 1:n.od) {
-    loc <- sample(c("priv", "pub"), size = 1, prob = OD_loc[, residence[d]])
+    loc <- sample(c("priv", "pub"), size = 1, prob = c(1-OD_loc_pub, OD_loc_pub))
     locpriv <- ifelse(loc == "priv", 1, 0)
     p.wtns <- ifelse(loc == "priv", OD_wit_priv, OD_wit_pub)
     p.911 <- ifelse(loc == "priv", OD_911_priv, OD_911_pub)
@@ -70,12 +70,12 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
         if (EMS == 1) { # if EMS reached (witnessed, available, naloxone used by witness )
           hospcare <- sample.dic(p.hosp)
           if (hospcare == 1) { # if hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mortality_nx)
+            od.death <- sample.dic(mor_nx)
           } else { # if not hospitalized (witnessed, available, naloxone used by witness, EMS reached)
-            od.death <- sample.dic(mortality_nx)
+            od.death <- sample.dic(mor_nx)
           }
         } else { # if EMS not reached (witnessed, available, naloxone used by witness )
-          od.death <- sample.dic(mortality_nx)
+          od.death <- sample.dic(mor_nx)
           hospcare <- 0
         }
       } else { # if naloxone not used (unavailable) by witness (witnessed)
@@ -100,7 +100,7 @@ decision_tree <- function(od_ppl, n.nlx, ou.ppl.resid, params, seed) {
       nlx.used <- 0
     } # end if loop for decision tree
 
-    if (od.death != 1) {
+    if (od.death != 1 & od_ppl$curr.state != "NODU") {
       inact <- sample.dic(p.od2inact)
     } else {
       inact <- 0

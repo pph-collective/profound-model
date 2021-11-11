@@ -44,13 +44,13 @@ ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"]) # % of illicit
 ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"]) # % of illicite opioid use among OUD ppl
 ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"]) # % of high-risk among illicit opioid ppl
 ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"]) # % of high-risk among illicit opioid ppl
-init_inactive <- with(OpioidPattern, pe[par == "init_inactive"])
-init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
+ini.inactive <- with(OpioidPattern, pe[par == "ini.inactive"])
+ini.oud.fx <- with(OpioidPattern, pe[par == "ini.oud.fx"])
 gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
 ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
 ini.everod.il.lr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.lr"])
 ini.everod.il.hr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.hr"])
-out_prebopioid <- with(OpioidPattern, pe[par == "out_prebopioid"])
+out.prebopioid <- with(OpioidPattern, pe[par == "out.prebopioid"])
 
 # REVIEWED stimulant_use_patterns
 StimulantPattern <- read.xlsx(WB, sheet = "StimulantPattern")
@@ -93,52 +93,37 @@ params$multi.NODU.fx <- with(OverdoseRisk, pe[par == "multi.NODU.fx"])
 # transition probability
 TransProb <- read.xlsx(WB, sheet = "TransProb")
 params$p.preb2il.lr <- with(TransProb, pe[par == "p.preb2il.lr"])
-params$p.preb2inact <- with(TransProb, pe[par == "p.preb2inact"])
+params$p.preb2inact.ini <- with(TransProb, pe[par == "p.preb2inact.ini"])
 params$p.il.lr2il.hr <- with(TransProb, pe[par == "p.il.lr2il.hr"])
-params$p.il.lr2inact <- with(TransProb, pe[par == "p.il.lr2inact"])
+params$p.il.lr2inact.ini <- with(TransProb, pe[par == "p.il.lr2inact.ini"])
 params$p.il.hr2il.lr <- with(TransProb, pe[par == "p.il.hr2il.lr"])
-params$p.il.hr2inact <- with(TransProb, pe[par == "p.il.hr2inact"])
+params$p.il.hr2inact.ini <- with(TransProb, pe[par == "p.il.hr2inact.ini"])
 params$p.inact2relap <- with(TransProb, pe[par == "p.inact2relap"])
-
+params$gw.m.2inact <- with(TransProb, pe[par == "gw.m.2inactp"])
 
 ## Parameters for decision tree ##
-if (exists("sw.EMS.ODloc")) {
-  if (sw.EMS.ODloc == "sp") {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$public
-    OD_loc <- rbind(OD_loc_priv, OD_loc_pub)
-  } else {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-    OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
-  }
-} else {
-  OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-  OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-  OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
-}
-rownames(OD_loc) <- c("priv", "pub")
-colnames(OD_loc) <- v.region
-params$OD_loc <- OD_loc
-
 DecisionTree <- read.xlsx(WB, sheet = "DecisionTree")
-params$OD_wit_priv <- with(DecisionTree, pe[par == "OD_wit" & group == "priv"])
-params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit" & group == "pub"])
-params$OD_911_priv <- with(DecisionTree, pe[par == "OD_911_priv"])
-params$OD_911_pub_mul <- with(DecisionTree, pe[par == "OD_911_pub_mul"])
-params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
+params$OD_loc_pub <- with(DecisionTree, pe[par == "OD_loc_pub"])
+
+params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit_pub"])
+params$rr_OD_wit_priv <- with(DecisionTree, pe[par == "rr_OD_wit_priv"])
+params$OD_wit_priv <- params$OD_wit_pub * params$OD_wit_priv_rr
+params$OD_911_pub <- with(DecisionTree, pe[par == "OD_911_pub"])
+params$rr_OD_911_priv <- with(DecisionTree, pe[par == "rr_OD_911_priv"])
+params$OD_911_priv <- params$OD_911_pub * params$OD_911_priv_rr
 params$OD_hosp <- with(DecisionTree, pe[par == "OD_hosp"])
 params$OD_cess <- with(DecisionTree, pe[par == "OD_cess"])
 
 Mortality <- read.xlsx(WB, sheet = "Mortality")
 params$mor_bl <- with(Mortality, pe[par == "mor_bl"])
-params$mortality_nx <- with(Mortality, pe[par == "mortality_nx"])
+params$mor_nx <- with(Mortality, pe[par == "mor_nx"])
 params$rr_mor_EMS <- with(Mortality, pe[par == "rr_mor_EMS"])
 
 ## Parameters for naloxone kits ##
 NxKit <- read.xlsx(WB, sheet = "NxKit")
 params$r.LossExp <- 1 / with(NxKit, pe[par == "LossExp"])
 params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
+params$High2Pub <- with(NxKit, pe[par == "High2Pub"])
 params$nlx.adj <- with(NxKit, pe[par == "nlx.adj"])
 params$cap <- with(NxKit, pe[par == "cap"])
 NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")

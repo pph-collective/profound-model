@@ -23,7 +23,7 @@
 ####                     current state (curr.state), opioid use state (OU.state),          ####
 ####                     initial state (init.state), initial age (inits.age),              ####
 ####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
-####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
+####    Built to inform Naloxone distribution strategies to prevent overdose death         ####
 ###############################################################################################
 
 #############################################################################
