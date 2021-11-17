@@ -1,26 +1,16 @@
 #!/usr/bin/env Rscript
 
-###############################################################################################
-#######################        Model calibration runs         #################################
-###############################################################################################
-###############################################################################################
-####    1st step of Calibration: create random parameter samples and simulate over them    ####
-####    3 sets of targets:  annual # overdose deaths:       od.deathYR (YR for year)       ####
-####                        % of overdose death with fentanyl present:    fx.deathYR       ####
-####                        annual # ED visits due to overdose:           ed.visitYR       ####
-####    Calibrate multiple parameters (calib.par) simultaneously                           ####
-####    Targets at the state level, 2016-2019                                              ####
-####    Method: random calibration with Latin hypercube sampling                           ####
-####    DUE to large samples, run calibration simulation with parallel in batches          ####
-####    AFTER finishing all batches, run ResultAnalysis.R for the next step                ####
-###############################################################################################
-rm(list = ls())
-# Module for running model with uncalibrated data in parallel over calibration period
-#
-# Authors: Xiao Zang, PhD, Sam Bessey, MS
-#
-# People, Place and Health Collective, Department of Epidemiology, Brown University
-#
+#' Wrapper for running a batch of param sets for calibration
+#'
+#' @description
+#' `calibrate()` sets up parameters for running multiple parameter sets
+#' and runs them in parallel through `main()`
+#'
+#' @param TODO
+#'
+#' @returns
+#' writes overdose stats to file
+#'
 
 rm(list = ls())
 print("Loading required packages")
@@ -28,11 +18,12 @@ library(dplyr)
 library(openxlsx)
 library(abind)
 library(FME)
+
 # Load packages for parallel performance
 library(foreach)
 library(doParallel)
 library("argparser")
-
+arg_parser <- argparser::arg_parser
 # ## Model setup parameters ##
 args <- arg_parser("arguments")
 args <- add_argument(args, "--seed", help = "seed for latin hypercube sampling", default = 5112021)

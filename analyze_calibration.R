@@ -1,19 +1,22 @@
-###############################################################################################
-#######################         Calibration Analysis          #################################
-###############################################################################################
-# Module for analyzing calibration runs and selecting those with best goodness of fit
-#
-# Authors: Xiao Zang, PhD, Sam Bessey, MS
-#
-# People, Place and Health Collective, Department of Epidemiology, Brown University
-#
-###############################################################################################
+#!/usr/bin/env Rscript
+
+#' Analyze calibration and select best-fitting runs
+#'
+#' @description
+#' imports model runs and finds the runs that fit empirical data best, for use
+#' in future analyses
+#'
+#' @param TODO need to make function
+#'
+#' @returns
+#' writes parameters for calibrated runs to file
+#'
 
 rm(list = ls())
 # Load required packages
 library(dplyr)
-# library(openxlsx)
 library(abind)
+library(openxlsx)
 library(ggplot2)
 library(xlsx)
 
@@ -34,15 +37,14 @@ for (batch.ind in 1:10) {
   temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
   calibration_results <- rbind(calibration_results, temp_results)
 }
-rm(temp_results)
 
 calibration_params <- readRDS(paste0("calibration/prep_calibration_data/Calib_par_table.rds"))
 
 calibration_results <- cbind(calibration_results, calibration_params)
 
 # read in workbook
-WB <- loadWorkbook("Inputs/MasterTable.xlsx")
-Target <- read.xlsx(WB, sheet = "Target")
+WB <- openxlsx::loadWorkbook("Inputs/MasterTable.xlsx")
+Target <- openxlsx::read.xlsx(WB, sheet = "Target")
 tar.data <- Target$pe
 
 
@@ -69,7 +71,7 @@ for (ss in 1:nrow(calibration_results)) {
 sorted.mx <- calibration_results[order(calibration_results[, "gof"], decreasing = F), ]
 cal_sample <- 50
 calibration_results_subset <- sorted.mx[1:cal_sample, ]
-write.xlsx(calibration_results,
+openxlsx::write.xlsx(calibration_results,
   file = paste0("calibration/Calibrated_results.xlsx"),
   col.names = T, row.names = F
 )
@@ -86,6 +88,10 @@ precalib.par <- readRDS(file = "Inputs/Precalib_dtree.rds")
 OD_pub <- precalib.par[,"OD_pub"]
 rr_OD_wit_priv <- precalib.par[,"rr_OD_wit_priv"]
 rr_OD_911_priv <- precalib.par[,"rr_OD_911_priv"]
+
+# input params
+cal_param_names <- names(calibration_params)
+params <- list()
 
 # for each selected calibration run, determine the run's parameters
 for (cc in 1:nrow(calibration_results_subset)) {
@@ -105,9 +111,9 @@ for (cc in 1:nrow(calibration_results_subset)) {
   params$overdose_probs <- overdose_probs
 
   # Baseline mortality parameters, excluding overdose (per month)
-  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor_gp))
   rownames(mortality_probs) <- c("bg", "drug")
-  colnames(mortality_probs) <- mor.gp
+  colnames(mortality_probs) <- mor_gp
   mortality_probs["bg", ] <- params$mor.bg
   mortality_probs["drug", ] <- params$mor.drug
   params$mortality_probs <- mortality_probs
@@ -135,29 +141,12 @@ plot(
 )
 # title("A", adj = 0, line =-0.5)
 for (i in 1:cal_sample) {
-  lines(x = 2016:2019, y = calibration_results_subset[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 3)
+  lines(x = 2016:2019, y = calibration_results_subset[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha.f = 0.2), lwd = 3)
 }
 lines(x = 2016:2019, y = mean_oddeath, col = "red", lwd = 4)
 points(x = 2016:2019, tar.data[1:4], col = "black", pch = 16, cex = 1.2, cex.axis = 0.95)
 axis(1, at = 2016:2019, pos = 0, lwd.ticks = 0, cex.axis = 1.2)
-# axis(side=1, pos=0, lwd.ticks=0)
 abline(h = 0)
-# legend("top",
-#   legend = c("Target", "Model: mean", "Model: simulation"),
-#   col = c("black", "red", adjustcolor("indianred1", alpha = 0.2)),
-#   pch = c(16, NA, NA),
-#   lty = c(NA, 1, 1),
-#   lwd = 3,
-#   bty = "n",
-#   pt.cex = 1.2,
-#   cex = 1.1,
-#   text.col = "black",
-#   horiz = T
-# )
-# legend(x="bottomright",
-#        col=c("dodgerblue","firebrick2", "lightgrey"),
-#        lwd=c(1.2, 1, 0.5), lty = c(1, NA, NA), pch=c(16, 16,16), pt.cex = c(1,1.1,1), cex = 0.8, bty = "n")
-
 
 mean_fxdeath <- apply(calibration_results_subset[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
 # REVIEWED: change from hardcoded ylim; mean instead of median for everything
