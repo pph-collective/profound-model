@@ -1,0 +1,5 @@
+main_table:
+  val: tests/params/main_table.xlsx
+
+init_ppl:
+  val: tests/init_ppl.RDS

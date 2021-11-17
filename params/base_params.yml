@@ -1,0 +1,44 @@
+years:
+  description: start and end years for the simulation
+  year_start: 2016
+  year_end: 2020
+
+discount:
+  description: value of discount rate 
+  val: 0.03
+
+main_table:
+  description: table with data inputs
+  val: Inputs/MasterTable.xlsx
+
+seed:
+  description: random seed for the model run
+  val: 2021
+
+strategy:
+  description: whether regional or overall
+  val: overall
+
+out:
+  description: file to save results
+  dir: results/
+  file: overdoses.csv
+
+init_ppl:
+  description: initial population if saved
+  val: Inputs/init_ppl.rds
+
+scenarios:
+  SQ:
+    expansion:
+      description: scalar on number of kits, scaling from the status quo scenario
+      val: 1
+    program:
+      description: program name if targeting a specific program, else false
+      val: false
+      file:
+        description: excel file with program data, else false
+        val: false
+    scalar:
+      description: whether the number is a scalar (true) or raw number of kits (false)
+      val: true

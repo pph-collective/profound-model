@@ -1,0 +1,8 @@
+scenarios:
+  expand:
+    expansion:
+      val: 2
+    program:
+      val: false
+    scalar:
+      val: true

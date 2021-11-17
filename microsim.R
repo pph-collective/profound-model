@@ -1,61 +1,64 @@
-###############################################################################################
-#########################           Microsimulation        ####################################
-###############################################################################################
+#' Microsimulation for the PROFOUND model
+#'
+#' @description
+#' `MicroSim()` runs the main model for naloxone distribution. It relies on the
+#' decision tree function to simulate each individual's change of state and saves
+#' population data including change of drug use status, non-fatal overdose, fatal
+#' overdose, and cost.
+#'
+#' `step()` handles one time step of the model
+#'
+#' @param init_ppl The initial population for the simulation.
+#' @param params Model parameters.
+#' @param output The data frame for model output.
+#' @param scenario The scenario to be run.
+#'
+#' @returns
+#' `microsim()` returns a data frame of outcomes of the simulation
+#' `step()` returns the results of one time step and the new population data frame
+#'
 
-###############################################################################################
-####    Microsimulation to determine health states and number of overdoses                 ####
-####    7 health states: prescribed (preb), unregulated-injection (unreg.inj)              ####
-####                     unregulated-noninjection (unreg.nin)                              ####
-####                     inactive (inact),  non-opioid drug use (NODU) - stimulant,        ####
-####                     relapsed (relap), death (dead)                                    ####
-####    1 health event:  Overdose                                                          ####
-####    Attributes:      age, sex, residence, race,                                        ####
-####                     current state (curr.state), opioid use state (OU.state),          ####
-####                     initial state (init.state), initial age (inits.age),              ####
-####                     fenatneyl exposure (fx), ever overdosed (ever.od)                 ####
-####    Built to inform Naloxone distribution strategies to prevent overdsoe death         ####
-###############################################################################################
+source("transition_probability.R")
+source("decision_tree.R")
+source("cost_effectiveness.R")
 
+microsim <- function(init_ppl, params, output, scenarios) {
+  # Find number of agents by opioid use type
+  num_opioid_nonrx <- sum(
+    init_ppl$curr.state == "il.lr" | init_ppl$curr.state == "il.hr"
+  ) + sum(init_ppl$curr.state == "relap" & init_ppl$OU.state != "preb")
 
-MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, PT.out = TRUE, strategy = "SQ", seed = 1) {
-  # Arguments:
-  # init_ppl:       matrix of initial states for individuals
-  # params:         model parameters
-  # timesteps:      total number of cycles to run the model
-  # agent_states:   vector of health state names
-  # discount.rate:  discount rate for costs
-  # PT.out:         should the output include a Microsimulation trace? (default is TRUE)
-  # strategy:       simulating strategy
-  # seed:           starting seed number for random number generator (default is 1)
-  # Makes use of:
-  # trans.prob:     function for the estimation of transition probabilities
-  # Costs:          function for the estimation of cost state values
-  # decision_tree:  function for the decision tree module
-  # TODO: actual docstring description
-  list2env(params, environment())
-  # Find number of opioid and non-opioid users
-  num_opioid_nonpreb <- sum(init_ppl$curr.state == "il.lr" | init_ppl$curr.state == "il.hr") +
-    sum(init_ppl$curr.state == "relap" & init_ppl$OU.state != "preb") # estimate the number of individuals using heroin (non-prescription opioids), all of which are at risk for fentanyl exposure, including those in the relapsed state
-  num_opioid_preb <- sum(init_ppl$curr.state == "preb") +  
-    sum(init_ppl$curr.state == "relap" & init_ppl$OU.state == "preb") # estimate the number of individuals using prescription opioids, only a portion of them outsourced their opioids not from prescription (at risk for fentanyl exposure), including those in the relapsed state
-  num_noud <- sum(init_ppl$curr.state == "NODU")  # estimate the number of individuals using stimulants (non-opioid drug use)
+  num_opioid_preb <- sum(init_ppl$curr.state == "preb") +
+    sum(init_ppl$curr.state == "relap" & init_ppl$OU.state == "preb")
+  # Count of population per residence
   init_ppl.residence <- (init_ppl %>% count(residence))$n
-  # REVIEWED NxPharm is all data from pharmacy naloxone; only have overall number, so limited info
-  NxPharm.mx <- NxDataPharm$pe[NxDataPharm$year >= (yr_start - 1)] %*% t(init_ppl.residence / sum(init_ppl.residence))
+
+  NxPharm.mx <- NxDataPharm$pe[NxDataPharm$year >= (yr_start - 1)] %*%
+    t(init_ppl.residence / sum(init_ppl.residence))
+
   NxPharm.array <- array(0, dim = c(dim(NxPharm.mx)[1], 2, dim(NxPharm.mx)[2]))
+
   for (cc in 1:dim(NxPharm.mx)[1]) {
-    NxPharm.array[cc, , ] <- round(matrix(rep(NxPharm.mx[cc, ], each = 2), nrow = 2) * c(1-OD_loc_pub, OD_loc_pub), 0)
+    NxPharm.array[cc, , ] <- round(
+      matrix(rep(NxPharm.mx[cc, ], each = 2),
+        nrow = 2
+      ) * c(1 - OD_loc_pub, OD_loc_pub), 0
+    )
   }
 
-  array.Nx <- NxOEND.array[dimnames(NxOEND.array)[[1]] >= yr_start, , ] + NxPharm.array[-1, , ]
-  initial_nx <- NxOEND.array[dimnames(NxOEND.array)[[1]] == yr_start - 1, , ] + NxPharm.array[1, , ]
-
+  array.Nx <- params$oend[dimnames(oend)[[1]] >= yr_start, , ] +
+    NxPharm.array[-1, , ]
+  initial_nx <- params$oend[dimnames(oend)[[1]] == yr_start - 1, , ] +
+    NxPharm.array[1, , ]
   n.nlx.mx.lst <- array.Nx[dim(array.Nx)[1], , ]
+  
   if (strategy == "SQ") {
     n.nlx.mx.str <- n.nlx.mx.lst
   } else if (strategy == "expand") {
-    n.nlx.mx.str <- NxOEND.array[dim(NxOEND.array)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
+    # TODO what is exp.lv
+    n.nlx.mx.str <- oend[dim(oend)[1], , ] * exp.lv + NxPharm.array[dim(NxPharm.array)[1], , ]
   } else if (strategy == "program") {
+    # TODO what is pg.add
     n.nlx.mx.str <- n.nlx.mx.lst + pg.add
   }
 
@@ -63,7 +66,8 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     array.Nx <- abind(array.Nx, n.nlx.mx.str, along = 1)
   }
 
-  v.dwc <- rep(1 / (1 + discount.rate)^(0:(num_years - 1)), each = 12) # calculate the cost discount weight based on the discount rate
+  # cost discount weight
+  v.dwc <- rep(1 / (1 + params$discount)^(0:(num_years - 1)), each = 12)
 
   # Create the population list to capture the state/attributes/costs for all individuals at each time point
   ppl_list <- list()
@@ -83,7 +87,7 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
       ppl_list[[t]]$fx[with(ppl_list[[t]], ind[curr.state == "il.lr" | curr.state == "il.hr" | (curr.state == "relap" & OU.state != "preb")])] <- fx_nonpreb
       # determine fentanyl use among population who use prescription opioids
       set.seed(seed * 2)
-      OUD.preb.fx <- OUD.fx * out.prebopioid   #prevalence of fentanyl exposure is diluted by the portion outsourced opioids not from prescription
+      OUD.preb.fx <- OUD.fx * out.prebopioid # prevalence of fentanyl exposure is diluted by the portion outsourced opioids not from prescription
       fx_preb <- sample(0:1, size = num_opioid_preb, prob = c(1 - OUD.preb.fx, OUD.preb.fx), replace = T)
       ppl_list[[t]]$fx[with(ppl_list[[t]], ind[curr.state == "preb" | (curr.state == "relap" & OU.state == "preb")])] <- fx_preb
       # determine fentanyl use among population who use stimulants (non-opioid)
@@ -94,20 +98,20 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
       n.nlx.mn <- initial_nx + nx_avail_yr / 12
     } else {
       ppl_list[[t]] <- ppl_list[[t - 1]]
-      
-      gw.2inact <- ifelse(t < (2019-2016 + 1)*12, (1+gw.m.2inact)^t, (1+gw.m.2inact)^((2019-2016 + 1)*12))
+
+      gw.2inact <- ifelse(t < (2019 - 2016 + 1) * 12, (1 + gw.m.2inact)^t, (1 + gw.m.2inact)^((2019 - 2016 + 1) * 12))
       params$p.preb2inact <- p.preb2inact.ini * gw.2inact
       params$p.il.lr2inact <- p.il.lr2inact.ini * gw.2inact
       params$p.il.hr2inact <- p.il.hr2inact.ini * gw.2inact
-      
-      if ((t-1) %% 12 == 0) { #adjust and reassign fentanyl exposure every year   
+
+      if ((t - 1) %% 12 == 0) { # adjust and reassign fentanyl exposure every year
         OUD.fx <- min(ini.oud.fx * (1 + gw.fx * min(floor((t - 1) / 12) + 1, 3)), 0.9)
         num_opioid_nonpreb <- sum(ppl_list[[t]]$curr.state == "il.lr" | ppl_list[[t]]$curr.state == "il.hr") +
           sum(ppl_list[[t]]$curr.state == "relap" & ppl_list[[t]]$OU.state != "preb")
-        num_opioid_preb <- sum(ppl_list[[t]]$curr.state == "preb") +  
+        num_opioid_preb <- sum(ppl_list[[t]]$curr.state == "preb") +
           sum(ppl_list[[t]]$curr.state == "relap" & ppl_list[[t]]$OU.state == "preb")
         num_noud <- sum(ppl_list[[t]]$curr.state == "NODU")
-        
+
         # determine fentanyl use among population who use non-prescription opioids (heroin)
         set.seed(seed)
         fx_nonpreb <- sample(0:1, size = num_opioid_nonpreb, prob = c(1 - OUD.fx, OUD.fx), replace = T)
@@ -152,12 +156,12 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     m.oddeath.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state != "NODU" & od_ppl$OU.state != "preb", ])
     m.oddeath.st[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "NODU", ])
     m.EDvisits[t] <- n.hospcare
-    
-    ##ADDED for od deaths stratified by population groups##
-    m.oddeath.preb[t]  <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state =="preb", ])
-    m.oddeath.il.lr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state =="il.lr", ])
-    m.oddeath.il.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state =="il.hr", ])
-    
+
+    ## ADDED for od deaths stratified by population groups##
+    m.oddeath.preb[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "preb", ])
+    m.oddeath.il.lr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "il.lr", ])
+    m.oddeath.il.hr[t] <- nrow(od_ppl[od_ppl$curr.state == "dead" & od_ppl$OU.state == "il.hr", ])
+
     m.nlx.mn[t] <- sum(n.nlx.mn)
     ####
 
