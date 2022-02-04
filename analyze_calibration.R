@@ -30,7 +30,7 @@ source("data_input.R")
 
 calibration_results <- NULL
 
-for (batch.ind in 1:10) {
+for (batch.ind in 1:5) {
   temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
   calibration_results <- rbind(calibration_results, temp_results)
 }
@@ -67,7 +67,7 @@ for (ss in 1:nrow(calibration_results)) {
 
 # sort by goodness of fit and select top 100 fits
 sorted.mx <- calibration_results[order(calibration_results[, "gof"], decreasing = F), ]
-cal_sample <- 50
+cal_sample <- 40
 calibration_results_subset <- sorted.mx[1:cal_sample, ]
 write.xlsx(calibration_results,
   file = paste0("calibration/Calibrated_results.xlsx"),

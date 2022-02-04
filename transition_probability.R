@@ -21,7 +21,6 @@ trans.prob <- function(pop.t, params) {
 
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))
-
   mor.rate[filter(pop.t, age %in% c(10:14))$ind] <- mortality_probs["drug", "10to14"]
   mor.rate[filter(pop.t, age %in% c(15:24))$ind] <- mortality_probs["drug", "15to24"]
   mor.rate[filter(pop.t, age %in% c(25:34))$ind] <- mortality_probs["drug", "25to34"]
@@ -50,11 +49,11 @@ trans.prob <- function(pop.t, params) {
   od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 1)$ind] <- overdose_probs["il.lr", "first"] * multi.NODU.fx * multi.fx
   od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 1)$ind] <- overdose_probs["il.lr", "subs"] * multi.NODU.fx * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "preb")$ind] <- overdose_probs["preb", "first"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind] <- overdose_probs["preb", "subs"] * multi.relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind] <- overdose_probs["preb", "subs"] * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- overdose_probs["il.lr", "first"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- overdose_probs["il.lr", "subs"] * multi.relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- overdose_probs["il.lr", "subs"] * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- overdose_probs["il.hr", "first"] * multi.relap
-  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- overdose_probs["il.hr", "subs"] * multi.relap
+  od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- overdose_probs["il.hr", "subs"] * multi.fx
 
   # update the trans.prob matrix with the corresponding probabilities
   ind.preb <- pop.t$curr.state == "preb"

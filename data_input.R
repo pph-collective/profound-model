@@ -122,19 +122,16 @@ params$rr_mor_EMS <- with(Mortality, pe[par == "rr_mor_EMS"])
 ## Parameters for naloxone kits ##
 NxKit <- read.xlsx(WB, sheet = "NxKit")
 params$r.LossExp <- 1 / with(NxKit, pe[par == "LossExp"])
-params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
-params$High2Pub <- with(NxKit, pe[par == "High2Pub"])
+# params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
+# params$High2Pub <- with(NxKit, pe[par == "High2Pub"])
 params$nlx.adj <- with(NxKit, pe[par == "nlx.adj"])
 params$cap <- with(NxKit, pe[par == "cap"])
+params$eff.pharNlx <- with(NxKit, pe[par == "eff.pharNlx"])
 NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")
-NxOEND.array <- array(0, dim = c(length(unique(NxDataOEND$year)), length(unique(NxDataOEND$risk)), length(v.region)))
-dimnames(NxOEND.array)[[1]] <- unique(NxDataOEND$year)
-dimnames(NxOEND.array)[[2]] <- unique(NxDataOEND$risk)
-dimnames(NxOEND.array)[[3]] <- v.region
-for (i in 1:length(unique(NxDataOEND$year))) {
-  NxOEND.array[i, , ] <- data.matrix(subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)])
-}
-params$NxOEND.array <- NxOEND.array
+NxOEND.matrix <- NxDataOEND[ , -1]
+dimnames(NxOEND.matrix)[[1]] <- unique(NxDataOEND$year)
+dimnames(NxOEND.matrix)[[2]] <- v.region
+params$NxOEND.matrix <- NxOEND.matrix
 params$NxDataPharm <- read.xlsx(WB, sheet = "NxDataPharm")
 NxMvt <- data.matrix(read.xlsx(WB, sheet = "NxMvt")[, -1])
 row.names(NxMvt) <- v.region
