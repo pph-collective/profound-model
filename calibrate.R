@@ -45,7 +45,7 @@ args <- add_argument(args, "--size", help = "batch size", default = 10000)
 argv <- parse_args(args)
 seed <- as.integer(argv$seed)
 cores <- as.integer(argv$cores)
-batch.ind <- 1
+batch.ind <- as.integer(argv$index)
 batch.size <- as.integer(argv$size)
 # init_ppl <- readRDS(argv$ppl)
 # note: outfile, params not used
