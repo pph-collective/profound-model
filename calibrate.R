@@ -65,17 +65,18 @@ source("naloxone_availability.R")
 source("cost_effectiveness.R")
 source("parallel.R")
 
-# REVIEWED - check for both / is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
-## load or create calibration parameter sets for calibration simulation
-if (file.exists(paste0("calibration/prep_calibration_data/Calib_par_table.rds"))) {
-  # only load the indexed parameter set batch for calibration simulation
-  Calibration.data.ls <- readRDS(paste0("calibration/prep_calibration_data/CalibrationSampleData", batch.ind, ".rds"))
-} else {
-  ## Specify the number of calibration random parameter sets
-  sample.size <- 1000000 # total number of calibration samples
-  source("prep_calibration_data.R")
-  Calibration.data.ls <- readRDS(paste0("calibration/prep_calibration_data/CalibrationSampleData", batch.ind, ".rds"))
-}
+# # REVIEWED - check for both / is Calib_par_table.rds not used here? And do we know that if that file exists, the calibration sample data files necessarily exist?
+# ## load or create calibration parameter sets for calibration simulation
+# if (file.exists(paste0("calibration/prep_calibration_data/Calib_par_table.rds"))) {
+#   # only load the indexed parameter set batch for calibration simulation
+#   Calibration.data.ls <- readRDS(paste0("calibration/prep_calibration_data/CalibrationSampleData", batch.ind, ".rds"))
+# } else {
+#   ## Specify the number of calibration random parameter sets
+#   sample.size <- 1000000 # total number of calibration samples
+#   source("prep_calibration_data.R")
+#   Calibration.data.ls <- readRDS(paste0("calibration/prep_calibration_data/CalibrationSampleData", batch.ind, ".rds"))
+# }
+Calibration.data.ls <- readRDS(paste0("calibration/prep_calibration_data/CalibrationSampleData", batch.ind, ".rds"))
 
 # generate stepwise seeds for calibration starting at initial seed
 calib.seed.vt <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
