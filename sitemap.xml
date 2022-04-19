@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>http://pph-collective.github.io/profound-model/</loc>
-         <lastmod>2021-10-19</lastmod>
+         <lastmod>2022-04-19</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>http://pph-collective.github.io/profound-model/installing/</loc>
-         <lastmod>2021-10-19</lastmod>
+         <lastmod>2022-04-19</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>http://pph-collective.github.io/profound-model/run_internet/</loc>
-         <lastmod>2021-10-19</lastmod>
+         <lastmod>2022-04-19</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>http://pph-collective.github.io/profound-model/run_local/</loc>
-         <lastmod>2021-10-19</lastmod>
+         <lastmod>2022-04-19</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
