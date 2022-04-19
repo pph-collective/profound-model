@@ -30,7 +30,25 @@ source("data_input.R")
 
 calibration_results <- NULL
 
-for (batch.ind in 1:5) {
+for (batch.ind in 1:56) {
+  temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
+  calibration_results <- rbind(calibration_results, temp_results)
+}
+temp_results[,] <- 0
+calibration_results <- rbind(calibration_results, temp_results)
+for (batch.ind in 58:70) {
+  temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
+  calibration_results <- rbind(calibration_results, temp_results)
+}
+temp_results[,] <- 0
+calibration_results <- rbind(calibration_results, temp_results)
+for (batch.ind in 72:75) {
+  temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
+  calibration_results <- rbind(calibration_results, temp_results)
+}
+temp_results[,] <- 0
+calibration_results <- rbind(calibration_results, temp_results)
+for (batch.ind in 77:100) {
   temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
   calibration_results <- rbind(calibration_results, temp_results)
 }
@@ -38,7 +56,7 @@ rm(temp_results)
 
 calibration_params <- readRDS(paste0("calibration/prep_calibration_data/Calib_par_table.rds"))
 
-calibration_results <- cbind(calibration_results, calibration_params)
+calibration_results <- cbind(calibration_results, calibration_params[1:dim(calibration_results)[1], ])
 
 # read in workbook
 WB <- loadWorkbook("Inputs/MasterTable.xlsx")
@@ -65,11 +83,11 @@ for (ss in 1:nrow(calibration_results)) {
   calibration_results[ss, "gof"] <- gof
 }
 
-# sort by goodness of fit and select top 100 fits
+# sort by goodness of fit and select top 1000 fits
 sorted.mx <- calibration_results[order(calibration_results[, "gof"], decreasing = F), ]
-cal_sample <- 40
+cal_sample <- 1000
 calibration_results_subset <- sorted.mx[1:cal_sample, ]
-write.xlsx(calibration_results,
+write.xlsx(calibration_results_subset,
   file = paste0("calibration/Calibrated_results.xlsx"),
   col.names = T, row.names = F
 )
@@ -122,6 +140,14 @@ for (cc in 1:nrow(calibration_results_subset)) {
 saveRDS(calibrated_parameters, file = paste0("calibration/CalibratedData.rds"))
 saveRDS(calibration_results_subset[, "seed"], file = paste0("calibration/CalibratedSeed.rds"))
 
+#### plot calibrated results
+cal_sample <- 500
+calibration_results_subset <- read.xlsx( "calibration/Calibrated_results.xlsx")
+calibration_results_subset <- calibration_results_subset[1:cal_sample, ]
+# read in workbook
+WB <- loadWorkbook("Inputs/MasterTable.xlsx")
+Target <- read.xlsx(WB, sheet = "Target")
+tar.data <- Target$pe
 
 
 ## Plot ##
@@ -162,7 +188,7 @@ abline(h = 0)
 mean_fxdeath <- apply(calibration_results_subset[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
 # REVIEWED: change from hardcoded ylim; mean instead of median for everything
 plot(
-  x = 2016:2019, tar.data[5:8], col = "black", pch = 18, xlab = "Year", ylab = "Proportion of OOD deaths with fentanyl present", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
+  x = 2016:2019, tar.data[5:8], col = "black", pch = 18, xlab = "Year", ylab = "Percentage of opioid overdose deaths involving fentanyl", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", yaxt = "n", ylim = c(0, 1), frame.plot = FALSE
 )
 # title("A", adj = 0, line =-0.5)
@@ -192,7 +218,7 @@ axis(1, at = 2016:2019, pos = 0, lwd.ticks = 0, cex.axis = 1.2)
 abline(h = 0)
 
 par(mfrow = c(1, 1))
-legend("bottom",
+legend("top",
   legend = c("Target", "Model: mean", "Model: simulation"),
   col = c("black", "red", adjustcolor("indianred1", alpha = 0.2)),
   pch = c(16, NA, NA),
