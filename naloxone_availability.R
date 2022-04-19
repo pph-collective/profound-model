@@ -20,10 +20,33 @@
 # cap: the maximum level naloxone availability can be in a witnssed overdose (even when reaching saturation)
 # OD_loc: proportion of OD events occuring in private/public setting
 # nlx.adj: adjustment term for naloxone availability, to account for occations where naloxone is in possession but not immediately accessible (or familsy/friends may fail to find)
-nlx.avail.algm <- function(n.nlx, ou.pop.resid, OD_loc, Low2Priv, nlx.adj, cap) {
-  n.nlx.loc <- cbind(n.nlx["high", ] + n.nlx["low", ] * Low2Priv, n.nlx["low", ] * (1 - Low2Priv))
-  colnames(n.nlx.loc) <- c("priv", "pub")
-  # p.nlx.avail           <- n.nlx.loc / (ou.pop.resid$n * t(OD_loc)) * nlx.adj
-  p.nlx.avail <- cap * (1 - exp(-(nlx.adj / cap) * n.nlx.loc / (ou.pop.resid$n * t(OD_loc))))
-  return(p.nlx.avail)
+nlx.avail.algm <- function(n.nlx, crosstab_drug_resid, OD_loc_pub, nlx.adj, cap, eff.pharNlx, strategy = "SQ", t) {
+  if (!grepl("10K", strategy)){
+    n.nlx.total <- n.nlx$OEND + n.nlx$Pharm / eff.pharNlx
+    p.nlx.avail <- cap * (1 - exp(-(nlx.adj / cap) * n.nlx.total / rowSums(crosstab_drug_resid)))
+    return(p.nlx.avail)
+  } else if(t <= 48){
+    n.nlx$OEND <- n.nlx$OEND[-length(n.nlx$OEND)]
+    n.nlx.total <- n.nlx$OEND + n.nlx$Pharm / eff.pharNlx
+    p.nlx.avail <- cap * (1 - exp(-(nlx.adj / cap) * n.nlx.total / rowSums(crosstab_drug_resid)))
+    return(p.nlx.avail)
+  } else {
+    tenk <- sum(n.nlx$OEND[length(n.nlx$OEND)])
+    n.nlx.base <- n.nlx$OEND[-length(n.nlx$OEND)] + n.nlx$Pharm / eff.pharNlx
+    n.nlx.drug.resid.base <- as.vector(t(n.nlx.base)) * crosstab_drug_resid / rowSums(crosstab_drug_resid)
+    if (strategy == "SSP_10K"){
+      SSP_drug_resid <- crosstab_drug_resid[, c("il.hr", "NODU")]*rep(c(1, 0.133), each = nrow(crosstab_drug_resid))
+      n.nlx.drug.resid <- n.nlx.drug.resid.base
+      n.nlx.drug.resid[, c("il.hr", "NODU")] <- tenk * SSP_drug_resid / sum(SSP_drug_resid) + n.nlx.drug.resid.base[, c("il.hr", "NODU")]
+    } else if (strategy == "MailEvent_10K"){
+      n.nlx.drug.resid <- n.nlx.drug.resid.base
+      n.nlx.drug.resid <- tenk * crosstab_drug_resid / sum(crosstab_drug_resid) + n.nlx.drug.resid.base
+    } else if (strategy == "Healthcare_10K"){
+      Healthcare_drug_resid <- crosstab_drug_resid[, c("preb")]
+      n.nlx.drug.resid <- n.nlx.drug.resid.base
+      n.nlx.drug.resid[, c("preb")] <- tenk * Healthcare_drug_resid / sum(Healthcare_drug_resid) + n.nlx.drug.resid.base[, c("preb")]
+    }
+    p.nlx.avail <- cap * (1 - exp(-(nlx.adj / cap) * n.nlx.drug.resid / crosstab_drug_resid))
+    return(p.nlx.avail)
+  }
 }

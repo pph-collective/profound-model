@@ -65,8 +65,8 @@ initiate_ppl <- function(initials, seed = 2021) {
 
     # determine opioid use state
     oud.state <- agent_states[1:4]
-    oud.prob.m <- c((1 - init_inactive) * (1 - ini.il.m), (1 - init_inactive) * ini.il.m * (1 - ini.il.hr.m), (1 - init_inactive) * ini.il.m * ini.il.hr.m, init_inactive)
-    oud.prob.f <- c((1 - init_inactive) * (1 - ini.il.f), (1 - init_inactive) * ini.il.f * (1 - ini.il.hr.f), (1 - init_inactive) * ini.il.f * ini.il.hr.f, init_inactive)
+    oud.prob.m <- c((1 - ini.inactive) * (1 - ini.il.m), (1 - ini.inactive) * ini.il.m * (1 - ini.il.hr.m), (1 - ini.inactive) * ini.il.m * ini.il.hr.m, ini.inactive)
+    oud.prob.f <- c((1 - ini.inactive) * (1 - ini.il.f), (1 - ini.inactive) * ini.il.f * (1 - ini.il.hr.f), (1 - ini.inactive) * ini.il.f * ini.il.hr.f, ini.inactive)
     if (sex == "m") {
       curr.state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.m)]
     } else {

@@ -44,13 +44,13 @@ ini.il.m <- with(OpioidPattern, pe[par == "ini.il" & sex == "m"]) # % of illicit
 ini.il.f <- with(OpioidPattern, pe[par == "ini.il" & sex == "f"]) # % of illicite opioid use among OUD ppl
 ini.il.hr.m <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "m"]) # % of high-risk among illicit opioid ppl
 ini.il.hr.f <- with(OpioidPattern, pe[par == "ini.il.hr" & sex == "f"]) # % of high-risk among illicit opioid ppl
-init_inactive <- with(OpioidPattern, pe[par == "init_inactive"])
-init_oud_fx <- with(OpioidPattern, pe[par == "init_oud_fx"])
+ini.inactive <- with(OpioidPattern, pe[par == "ini.inactive"])
+ini.oud.fx <- with(OpioidPattern, pe[par == "ini.oud.fx"])
 gw.fx <- with(OpioidPattern, pe[par == "gw.fx"])
 ini.everod.preb <- with(OpioidPattern, pe[par == "ini.everod" & group == "preb"])
 ini.everod.il.lr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.lr"])
 ini.everod.il.hr <- with(OpioidPattern, pe[par == "ini.everod" & group == "il.hr"])
-out_prebopioid <- with(OpioidPattern, pe[par == "out_prebopioid"])
+out.prebopioid <- with(OpioidPattern, pe[par == "out.prebopioid"])
 
 # REVIEWED stimulant_use_patterns
 StimulantPattern <- read.xlsx(WB, sheet = "StimulantPattern")
@@ -60,16 +60,16 @@ ini.everod.sti <- with(StimulantPattern, pe[par == "ini.everod"])
 # REVIEWED things used in initilization functions \ see if i can add this without above initials = initial values?
 initials <- list(
   ppl.size = ppl.size, prev.oud = prev.oud, prev.NODU.m = prev.NODU.m, prev.NODU.f = prev.NODU.f, demo.mx = demo.mx, v.region = v.region, OUDDemo = OUDDemo, StimDemo = StimDemo,
-  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, init_inactive = init_inactive,
+  ini.il.m = ini.il.m, ini.il.f = ini.il.f, ini.il.hr.m = ini.il.hr.m, ini.il.hr.f = ini.il.hr.f, ini.inactive = ini.inactive,
   # init_oud_fx = init_oud_fx, ini.NOUD.fx = ini.NOUD.fx,
   ini.everod.preb = ini.everod.preb, ini.everod.il.lr = ini.everod.il.lr, ini.everod.il.hr = ini.everod.il.hr
 )
 
 # REVIEWED add these straight to list, no intermediary
-params$init_oud_fx <- init_oud_fx
+params$ini.oud.fx <- ini.oud.fx
 params$gw.fx <- gw.fx
 params$ini.NOUD.fx <- ini.NOUD.fx
-params$out_prebopioid <- out_prebopioid
+params$out.prebopioid <- out.prebopioid
 
 ## Parameters for microsimulation ##
 # life table: for mortality
@@ -93,63 +93,45 @@ params$multi.NODU.fx <- with(OverdoseRisk, pe[par == "multi.NODU.fx"])
 # transition probability
 TransProb <- read.xlsx(WB, sheet = "TransProb")
 params$p.preb2il.lr <- with(TransProb, pe[par == "p.preb2il.lr"])
-params$p.preb2inact <- with(TransProb, pe[par == "p.preb2inact"])
+params$p.preb2inact.ini <- with(TransProb, pe[par == "p.preb2inact.ini"])
 params$p.il.lr2il.hr <- with(TransProb, pe[par == "p.il.lr2il.hr"])
-params$p.il.lr2inact <- with(TransProb, pe[par == "p.il.lr2inact"])
+params$p.il.lr2inact.ini <- with(TransProb, pe[par == "p.il.lr2inact.ini"])
 params$p.il.hr2il.lr <- with(TransProb, pe[par == "p.il.hr2il.lr"])
-params$p.il.hr2inact <- with(TransProb, pe[par == "p.il.hr2inact"])
+params$p.il.hr2inact.ini <- with(TransProb, pe[par == "p.il.hr2inact.ini"])
 params$p.inact2relap <- with(TransProb, pe[par == "p.inact2relap"])
-
+params$gw.m.2inact <- with(TransProb, pe[par == "gw.m.2inact"])
 
 ## Parameters for decision tree ##
-if (exists("sw.EMS.ODloc")) {
-  if (sw.EMS.ODloc == "sp") {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS(sp)")$public
-    OD_loc <- rbind(OD_loc_priv, OD_loc_pub)
-  } else {
-    OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-    OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-    OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
-  }
-} else {
-  OD_loc_priv <- read.xlsx(WB, sheet = "ODSettingEMS")$private
-  OD_loc_pub <- read.xlsx(WB, sheet = "ODSettingEMS")$public
-  OD_loc <- rbind(rep(OD_loc_priv, length(v.region)), rep(OD_loc_pub, length(v.region)))
-}
-rownames(OD_loc) <- c("priv", "pub")
-colnames(OD_loc) <- v.region
-params$OD_loc <- OD_loc
-
 DecisionTree <- read.xlsx(WB, sheet = "DecisionTree")
-params$OD_wit_priv <- with(DecisionTree, pe[par == "OD_wit" & group == "priv"])
-params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit" & group == "pub"])
-params$OD_911_priv <- with(DecisionTree, pe[par == "OD_911_priv"])
-params$OD_911_pub_mul <- with(DecisionTree, pe[par == "OD_911_pub_mul"])
-params$OD_911_pub <- params$OD_911_priv * params$OD_911_pub_mul
+params$OD_loc_pub <- with(DecisionTree, pe[par == "OD_loc_pub"])
+
+params$OD_wit_pub <- with(DecisionTree, pe[par == "OD_wit_pub"])
+params$rr_OD_wit_priv <- with(DecisionTree, pe[par == "rr_OD_wit_priv"])
+params$OD_wit_priv <- params$OD_wit_pub * params$rr_OD_wit_priv
+params$OD_911_pub <- with(DecisionTree, pe[par == "OD_911_pub"])
+params$rr_OD_911_priv <- with(DecisionTree, pe[par == "rr_OD_911_priv"])
+params$OD_911_priv <- params$OD_911_pub * params$rr_OD_911_priv
 params$OD_hosp <- with(DecisionTree, pe[par == "OD_hosp"])
 params$OD_cess <- with(DecisionTree, pe[par == "OD_cess"])
 
 Mortality <- read.xlsx(WB, sheet = "Mortality")
 params$mor_bl <- with(Mortality, pe[par == "mor_bl"])
-params$mortality_nx <- with(Mortality, pe[par == "mortality_nx"])
+params$mor_nx <- with(Mortality, pe[par == "mor_nx"])
 params$rr_mor_EMS <- with(Mortality, pe[par == "rr_mor_EMS"])
 
 ## Parameters for naloxone kits ##
 NxKit <- read.xlsx(WB, sheet = "NxKit")
 params$r.LossExp <- 1 / with(NxKit, pe[par == "LossExp"])
-params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
+# params$Low2Priv <- with(NxKit, pe[par == "Low2Priv"])
+# params$High2Pub <- with(NxKit, pe[par == "High2Pub"])
 params$nlx.adj <- with(NxKit, pe[par == "nlx.adj"])
 params$cap <- with(NxKit, pe[par == "cap"])
+params$eff.pharNlx <- with(NxKit, pe[par == "eff.pharNlx"])
 NxDataOEND <- read.xlsx(WB, sheet = "NxDataOEND")
-NxOEND.array <- array(0, dim = c(length(unique(NxDataOEND$year)), length(unique(NxDataOEND$risk)), length(v.region)))
-dimnames(NxOEND.array)[[1]] <- unique(NxDataOEND$year)
-dimnames(NxOEND.array)[[2]] <- unique(NxDataOEND$risk)
-dimnames(NxOEND.array)[[3]] <- v.region
-for (i in 1:length(unique(NxDataOEND$year))) {
-  NxOEND.array[i, , ] <- data.matrix(subset(NxDataOEND, year == unique(NxDataOEND$year)[i])[-c(1, 2)])
-}
-params$NxOEND.array <- NxOEND.array
+NxOEND.matrix <- NxDataOEND[ , -1]
+dimnames(NxOEND.matrix)[[1]] <- unique(NxDataOEND$year)
+dimnames(NxOEND.matrix)[[2]] <- v.region
+params$NxOEND.matrix <- NxOEND.matrix
 params$NxDataPharm <- read.xlsx(WB, sheet = "NxDataPharm")
 NxMvt <- data.matrix(read.xlsx(WB, sheet = "NxMvt")[, -1])
 row.names(NxMvt) <- v.region
