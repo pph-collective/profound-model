@@ -4,7 +4,8 @@
 ###################### PROFOUND Naloxone Distribution model #### 2022 #########################
 ###############################################################################################
 # Main module for the microsimulation of the Profound Naloxone distribution model:
-#
+# SUPPLY-BASED DISTRIBUTION: consistent with historic spatial distribution patterns: 
+#                             using program level data availability algorithm
 # Author: Xiao Zang, PhD; Shayla Nolen, MPH; Sam Bessy, MSc
 # Marshall Lab, Department of Epidemiology, Brown University
 # Created: May 06, 2020
