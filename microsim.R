@@ -211,9 +211,9 @@ MicroSim <- function(init_ppl, params, timesteps, agent_states, discount.rate, P
     if (strategy == "SSP_10K"){
       SSP_drug_resid <- crosstab_drug_resid[, c("il.hr", "NODU")]*rep(c(1, 0.133), each = nrow(crosstab_drug_resid))
       n.nlx.OEND.str <- round(rowSums(n.nlx.OEND.str.add.total * SSP_drug_resid / sum(SSP_drug_resid)), 0) + n.nlx.OEND.str.base
-    # } else if (strategy == "StreetOutreach_10K"){
-    #   StreetOutreach_drug_resid <- crosstab_drug_resid[, c("il.lr", "il.hr", "NODU")]
-    #   n.nlx.OEND.str <- round(rowSums(n.nlx.OEND.str.add.total * StreetOutreach_drug_resid / sum(StreetOutreach_drug_resid)), 0) + n.nlx.OEND.str.base
+    } else if (strategy == "Outreach_10K"){
+      Outreach_drug_resid <- crosstab_drug_resid[, c("il.lr", "il.hr", "NODU")]
+      n.nlx.OEND.str <- round(rowSums(n.nlx.OEND.str.add.total * Outreach_drug_resid / sum(Outreach_drug_resid)), 0) + n.nlx.OEND.str.base
     } else if (strategy == "MailEvent_10K"){
       MailEvent_drug_resid <- crosstab_drug_resid
       n.nlx.OEND.str <- round(rowSums(n.nlx.OEND.str.add.total * MailEvent_drug_resid / sum(MailEvent_drug_resid)), 0) + n.nlx.OEND.str.base

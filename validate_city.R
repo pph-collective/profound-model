@@ -1,49 +1,64 @@
-# TODO file header
+###############################################################################################
+#######################         City-level validation         #################################
+###############################################################################################
+# Module for comparing model projections at the city level with observed surveillance data
+#
+# Authors: Xiao Zang, PhD, Sam Bessey, MS
+#
+# People, Place and Health Collective, Department of Epidemiology, Brown University
+#
+###############################################################################################
 
-ODdeaths16 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
-ODdeaths17 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
-ODdeaths18 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
-ODdeaths19 <- matrix(0, nrow = num_regions, ncol = nrow(calib.result.mx))
+#############################################################################
+# 1. SET directory and workspace
+#############################################################################
+rm(list = ls())
+library(argparser)
+library(dplyr)
+library(tictoc)
+library(openxlsx)
+library(abind)
+library(tictoc)
+source("transition_probability.R")
+source("microsim.R")
+source("decision_tree.R")
+source("data_input.R")
+source("naloxone_availability.R")
+source("cost_effectiveness.R")
+
+yr_start <- 2016 # starting year of simulation
+yr_end <- 2020 # end year of simulation (also the year for evaluation)
+discount.rate <- 0.03 # discounting of costs by 3%
+
+args <- arg_parser("arguments")
+args <- add_argument(args, "--seed", help = "seed for random numbers", default = 2021)
+args <- add_argument(args, "--regional", help = "flag to run regional model", flag = TRUE)
+args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")
+args <- add_argument(args, "--ppl", help = "file with initial ppl info", default = "Inputs/init_pop.rds")
+argv <- parse_args(args)
+seed <- as.integer(argv$seed)
+init_ppl.file <- argv$ppl
+source("io_setup.R")
+
+##################################### Run simulation with calibrated parameters ######################################################
+sim.seed <- sim.seed[1:500]
+ODdeaths16 <- matrix(0, nrow = num_regions, ncol = length(sim.seed))
+ODdeaths17 <- matrix(0, nrow = num_regions, ncol = length(sim.seed))
+ODdeaths18 <- matrix(0, nrow = num_regions, ncol = length(sim.seed))
+ODdeaths19 <- matrix(0, nrow = num_regions, ncol = length(sim.seed))
 row.names(ODdeaths16) <- row.names(ODdeaths17) <- row.names(ODdeaths18) <- row.names(ODdeaths19) <- v.region
-for (ss in 1:nrow(calib.result.mx)) {
+for (ss in 1:length(sim.seed)) {
   print(paste0("Parameter set: ", ss))
-  calib.seed <- calib.result.mx[ss, "seed"]
-
-  for (pp in 1:length(cal_param_names)) {
-    assign(cal_param_names[pp], calib.result.mx[ss, cal_param_names[pp]])
-  }
-  ## Fentanyl use status for initial population determined externally (allow to vary) ##
-  # TO_REVIEW is there ever a population variable like this that isn't the initial population? Can we change the variable name to just pop (ppl) instead of init_ppl (init_ppl)
-  num_opioid <- sum(init_ppl$curr.state != "NODU")
-  n.noud <- sum(init_ppl$curr.state == "NODU")
-  # determine fentanyl use among initial population who use opioids
-  set.seed(calib.seed)
-  fx <- sample(0:1, size = num_opioid, prob = c(1 - ini.OUD.fx, ini.OUD.fx), replace = T)
-  init_ppl$fx[init_ppl$curr.state != "NODU"] <- fx
-  # determine fentanyl use among initial population who use stimulants (non-opioid)
-  set.seed(calib.seed * 2)
-  fx <- sample(0:1, size = n.noud, prob = c(1 - ini.NOUD.fx, ini.NOUD.fx), replace = T)
-  init_ppl$fx[init_ppl$curr.state == "NODU"] <- fx
-
-  # Overdose probability matrix (per month)
-  # REVIEWED: subs = subsequent
-  overdose_probs <- matrix(0, nrow = 4, ncol = 2)
-  rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
-  colnames(overdose_probs) <- c("first", "subs")
-  overdose_probs["preb", "subs"] <- od.preb.sub
-  overdose_probs["il.lr", "subs"] <- od.il.lr.sub
-  overdose_probs["il.hr", "subs"] <- od.il.lr.sub * multi.hr
-  overdose_probs["NODU", "subs"] <- od.NODU.sub
-  overdose_probs[, "first"] <- overdose_probs[, "subs"] / multi.sub
-  # TO_REVIEW sim_sq status quo?
-  # run status quo simulation
-  sim_sq <- MicroSim(init_ppl, timesteps, agent_states, d.c, PT.out = TRUE, strategy = "SQ", seed = calib.seed) # run for no treatment
-
+  vparameters.temp <- sim.data.ls[[ss]]
+  sim_sq <- MicroSim(init_ppl, params = vparameters.temp, timesteps, agent_states, discount.rate, PT.out = FALSE, strategy = "SQ", seed = sim.seed[ss])        # run for status quo
   ODdeaths16[, ss] <- colSums(sim_sq$m.oddeath[1:12, ])
   ODdeaths17[, ss] <- colSums(sim_sq$m.oddeath[13:24, ])
   ODdeaths18[, ss] <- colSums(sim_sq$m.oddeath[25:36, ])
   ODdeaths19[, ss] <- colSums(sim_sq$m.oddeath[37:48, ])
 }
+
+detach("package:openxlsx", unload = TRUE)
+library(xlsx)
 
 write.xlsx(ODdeaths16,
   file = "CityLevelValidation.xlsx", sheetName = "2016",
@@ -61,3 +76,5 @@ write.xlsx(ODdeaths19,
   file = "CityLevelValidation.xlsx", sheetName = "2019", append = TRUE,
   col.names = F, row.names = T
 )
+
+

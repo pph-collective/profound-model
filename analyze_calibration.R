@@ -151,7 +151,7 @@ tar.data <- Target$pe
 
 
 ## Plot ##
-par(mfrow = c(1, 3))
+par(oma = c(4,1,1,1), mfrow = c(1, 3), mar = c(4, 4, 1, 1))
 # REVIEWED md = median, change to mean
 mean_oddeath <- apply(calibration_results_subset[, c("od.death16", "od.death17", "od.death18", "od.death19")], 2, mean)
 ymax <- max(calibration_results_subset[, c("od.death16", "od.death17", "od.death18", "od.death19")])
@@ -159,7 +159,7 @@ plot(
   x = 2016:2019, tar.data[1:4], col = "black", pch = 18, xlab = "Year", ylab = "Number of opioid overdose deaths", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", ylim = c(0, 500), frame.plot = FALSE
 )
-# title("A", adj = 0, line =-0.5)
+title("A", adj = 0.05, line =-2, cex.main = 1.5)
 for (i in 1:cal_sample) {
   lines(x = 2016:2019, y = calibration_results_subset[i, c("od.death16", "od.death17", "od.death18", "od.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 3)
 }
@@ -168,21 +168,7 @@ points(x = 2016:2019, tar.data[1:4], col = "black", pch = 16, cex = 1.2, cex.axi
 axis(1, at = 2016:2019, pos = 0, lwd.ticks = 0, cex.axis = 1.2)
 # axis(side=1, pos=0, lwd.ticks=0)
 abline(h = 0)
-# legend("top",
-#   legend = c("Target", "Model: mean", "Model: simulation"),
-#   col = c("black", "red", adjustcolor("indianred1", alpha = 0.2)),
-#   pch = c(16, NA, NA),
-#   lty = c(NA, 1, 1),
-#   lwd = 3,
-#   bty = "n",
-#   pt.cex = 1.2,
-#   cex = 1.1,
-#   text.col = "black",
-#   horiz = T
-# )
-# legend(x="bottomright",
-#        col=c("dodgerblue","firebrick2", "lightgrey"),
-#        lwd=c(1.2, 1, 0.5), lty = c(1, NA, NA), pch=c(16, 16,16), pt.cex = c(1,1.1,1), cex = 0.8, bty = "n")
+
 
 
 mean_fxdeath <- apply(calibration_results_subset[, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], 2, median)
@@ -191,7 +177,7 @@ plot(
   x = 2016:2019, tar.data[5:8], col = "black", pch = 18, xlab = "Year", ylab = "Percentage of opioid overdose deaths involving fentanyl", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", yaxt = "n", ylim = c(0, 1), frame.plot = FALSE
 )
-# title("A", adj = 0, line =-0.5)
+title("B", adj = 0.05, line =-2, cex.main = 1.5)
 for (i in 1:cal_sample) {
   lines(x = 2016:2019, y = calibration_results_subset[i, c("fx.death16", "fx.death17", "fx.death18", "fx.death19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
 }
@@ -208,7 +194,7 @@ plot(
   x = 2016:2019, tar.data[9:12], col = "black", pch = 18, xlab = "Year", ylab = "Number of ED visists for opioid overdose", cex = 1.2, cex.axis = 1.2, cex.lab = 1.3,
   xaxt = "n", ylim = c(0, 2500), frame.plot = FALSE
 )
-
+title("C", adj = 0.05, line =-2, cex.main = 1.5)
 for (i in 1:cal_sample) {
   lines(x = 2016:2019, y = calibration_results_subset[i, c("ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")], col = adjustcolor("indianred1", alpha = 0.2), lwd = 2)
 }
@@ -216,6 +202,22 @@ lines(x = 2016:2019, y = md.edvisits, col = "red", lwd = 3)
 points(x = 2016:2019, tar.data[9:12], col = "black", pch = 16, cex = 1.2, cex.axis = 1.2)
 axis(1, at = 2016:2019, pos = 0, lwd.ticks = 0, cex.axis = 1.2)
 abline(h = 0)
+
+par(fig = c(0, 1, 0, 1), oma = c(1, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
+legend("bottom",
+       legend = c("Target", "Model: mean", "Model: simulation"),
+       col = c("black", "red", adjustcolor("indianred1", alpha = 0.2)),
+       pch = c(16, NA, NA),
+       lty = c(NA, 1, 1),
+       lwd = 3,
+       bty = "n",
+       pt.cex = 2,
+       cex = 1.4,
+       text.col = "black",
+       horiz = T)
+
+
 
 par(mfrow = c(1, 1))
 legend("top",
@@ -263,4 +265,4 @@ p <- ggplot(ggplot.data, aes(x = case, y = pe, color = case)) +
   labs(y = "Value", x = "") +
   theme_bw()
 
-## City-level validation, please go to CityLevelValidation.R ##
+## City-level validation, please go to validate_city.R ##
