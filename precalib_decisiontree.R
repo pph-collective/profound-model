@@ -12,7 +12,7 @@
 #
 # All other parameters using point estimates
 # The calibration is performed using a Bayesian method
-# We aim to derived 1,000 acceptable sets for subsequent analysis 
+# We aim to derived 1,000,000 acceptable sets for subsequent analysis 
 #
 ###############################################################################################
 #########################           Decision Tree           ###################################
@@ -217,7 +217,7 @@ f_log_post <- function(v.params) {
 
 # calibration
 # number of resamples
-n.resamp <- 10000
+n.resamp <- 1000000
 
 # run IMIS
 fit.imis <- IMIS(B = 1000, # the incremental sample size at each iteration of IMIS.
@@ -243,7 +243,6 @@ m.calib.post.95cr
 v.calib.like <- likelihood(m.calib.post)
 v.calib.post.map <- m.calib.post[which.max(v.calib.like), ]
 
-
 # Calibrated model predictions vs. targets
 v.out.post.map <- decision_tree(n.od= n.od, nlx.avai.pub = nlx.avai.pub, nlx.avai.priv = nlx.avai.priv, fix.params = fix.params, v.calib.post.map)
 perc_nonfatal_ems_pub <- perc_fatal_pub <- numeric(n.resamp)
@@ -259,10 +258,12 @@ library(reshape2)
 post.params <- data.frame(OD_pub = m.calib.post[, "OD_pub"], rr_OD_wit_priv = m.calib.post[, "rr_OD_wit_priv"], rr_OD_911_priv = m.calib.post[, "rr_OD_911_priv"])
 post.params$sample <- c(1:nrow(m.calib.post))
 post.params <- melt(post.params, id.vars = "sample")
-fig1 <- ggplot(post.params, aes(x=value)) + geom_histogram() + labs(y= "Count", x = "Calibrated value") + facet_wrap(~variable, nrow = 1, scales = "free")
-fig2 <- ggplot(as.data.frame(perc_nonfatal_ems_pub, aes), aes(x = perc_nonfatal_ems_pub)) + geom_histogram(color="black", fill="white") + labs(y= "Count", x = "% non-fatal opioid overdoses involving EMS in public settings") +
+post.params$variable <- factor(post.params$variable, levels = c("OD_pub", "rr_OD_wit_priv", "rr_OD_911_priv"), 
+                  labels = c("Proportion of overdoses occurring in public", "RR of overdose witnessed in private/semi-private vs public", "RR of witness calling EMS in private/semi-private vs public"))
+fig1 <- ggplot(post.params, aes(x=value)) + geom_histogram() + labs(y= "Count number", x = "Posterior distribution of parameters") + facet_wrap(~variable, nrow = 1, scales = "free")
+fig2 <- ggplot(as.data.frame(perc_nonfatal_ems_pub, aes), aes(x = perc_nonfatal_ems_pub)) + geom_histogram(color="black", fill="white") + labs(y= "Count number", x = "Percentage of non-fatal opioid overdoses resulting in EMS in public settings") +
   geom_vline(xintercept = 0.308, colour = "red", size =2)
-fig3 <- ggplot(as.data.frame(perc_fatal_pub, aes), aes(x = perc_fatal_pub)) + geom_histogram(color="black", fill="white") + labs(y= "Count", x = "% fatal opioid overdoses in public settings") +
+fig3 <- ggplot(as.data.frame(perc_fatal_pub, aes), aes(x = perc_fatal_pub)) + geom_histogram(color="black", fill="white") + labs(y= "Count number", x = "Percentage of fatal opioid overdoses in public settings") +
   geom_vline(xintercept = 0.1, colour = "red", size =2)
 
 grid.arrange(

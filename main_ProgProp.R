@@ -39,7 +39,7 @@ source("transition_probability.R")
 source("microsim.R")
 source("decision_tree.R")
 source("data_input.R")
-source("naloxone_availability.R")
+source("naloxone_availability_program.R")
 source("cost_effectiveness.R")
 
 yr_start <- 2016 # starting year of simulation
@@ -91,6 +91,7 @@ for (ss in 1:length(sim.seed)){
   
   for (jj in 2:length(scenario.name)){
     vparameters.temp$expand.kits <- 10000
+    programprop <- read.xlsx("Inputs/ProgramData.xlsx")
     sim_pg <- MicroSim(init_ppl, params = vparameters.temp, timesteps, agent_states, discount.rate, PT.out = FALSE, strategy = scenario.name[jj], seed = sim.seed[ss]) # run for program scenario
     mx.od.death.1st[ss, jj]  <- sum(sim_pg$m.oddeath[(timesteps-35):(timesteps-24), ])
     mx.od.death.2nd[ss, jj]  <- sum(sim_pg$m.oddeath[(timesteps-23):(timesteps-12), ])
@@ -125,13 +126,13 @@ for (ii in 1:length(scenario.name)){
 detach("package:openxlsx", unload = TRUE)
 library(xlsx)
 
-write.xlsx(mx.od.death.1st, file = ("Outputs/RI10K/ODdeaths.xlsx"), sheetName = "1st year", row.names = F)
-write.xlsx(mx.od.death.2nd, file = ("Outputs/RI10K/ODdeaths.xlsx"), sheetName = "2nd year", append = T, row.names = F)
-write.xlsx(mx.od.death.last, file = ("Outputs/RI10K/ODdeaths.xlsx"), sheetName= "last year", append = T, row.names = F)
-write.xlsx(mx.od.death.totl, file = ("Outputs/RI10K/ODdeaths.xlsx"), sheetName= "Total", append = T, row.names = F)
-write.xlsx(mx.od.death.wtns.1st, file = ("Outputs/RI10K/WitnessedDeaths.xlsx"), sheetName = "1st year", row.names = F)
-write.xlsx(mx.od.death.wtns.2nd, file = ("Outputs/RI10K/WitnessedDeaths.xlsx"), sheetName = "2nd year", append = T, row.names = F)
-write.xlsx(mx.od.death.wtns.last, file = ("Outputs/RI10K/WitnessedDeaths.xlsx"), sheetName= "last year", append = T, row.names = F)
-write.xlsx(mx.od.death.wtns.totl, file = ("Outputs/RI10K/WitnessedDeaths.xlsx"), sheetName= "Total", append = T, row.names = F)
-write.xlsx(mx.costs.totl, file = ("Outputs/RI10K/Total_costs.xlsx"), row.names = F)
-write.csv(rgn.results, file = ("Outputs/RI10K/Results_bytown.csv"), row.names = F)
+write.xlsx(mx.od.death.1st, file = ("Outputs/RI10K/ODdeaths_prog.xlsx"), sheetName = "1st year", row.names = F)
+write.xlsx(mx.od.death.2nd, file = ("Outputs/RI10K/ODdeaths_prog.xlsx"), sheetName = "2nd year", append = T, row.names = F)
+write.xlsx(mx.od.death.last, file = ("Outputs/RI10K/ODdeaths_prog.xlsx"), sheetName= "last year", append = T, row.names = F)
+write.xlsx(mx.od.death.totl, file = ("Outputs/RI10K/ODdeaths_prog.xlsx"), sheetName= "Total", append = T, row.names = F)
+write.xlsx(mx.od.death.wtns.1st, file = ("Outputs/RI10K/WitnessedDeaths_prog.xlsx"), sheetName = "1st year", row.names = F)
+write.xlsx(mx.od.death.wtns.2nd, file = ("Outputs/RI10K/WitnessedDeaths_prog.xlsx"), sheetName = "2nd year", append = T, row.names = F)
+write.xlsx(mx.od.death.wtns.last, file = ("Outputs/RI10K/WitnessedDeaths_prog.xlsx"), sheetName= "last year", append = T, row.names = F)
+write.xlsx(mx.od.death.wtns.totl, file = ("Outputs/RI10K/WitnessedDeaths_prog.xlsx"), sheetName= "Total", append = T, row.names = F)
+write.xlsx(mx.costs.totl, file = ("Outputs/RI10K/Total_costs_prog.xlsx"), row.names = F)
+write.csv(rgn.results, file = ("Outputs/RI10K/Results_bytown_prog.csv"), row.names = F)

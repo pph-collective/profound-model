@@ -74,9 +74,9 @@ params$out.prebopioid <- out.prebopioid
 ## Parameters for microsimulation ##
 # life table: for mortality
 mor.bg.y <- read.xlsx(WB, sheet = "LifeTable")$pe
-params$mor.bg <- 1 - (1 - mor.bg.y / 1000000)^(1 / 12)
+params$mor.bg <- 1 - (1 - mor.bg.y / 100000)^(1 / 12)
 mor.drug.y <- read.xlsx(WB, sheet = "LifeTable")$drug
-params$mor.drug <- 1 - (1 - mor.drug.y / 1000000)^(1 / 12)
+params$mor.drug <- 1 - (1 - mor.drug.y / 100000)^(1 / 12)
 # REVIEWED gp = general population
 mor.gp <- read.xlsx(WB, sheet = "LifeTable")$age
 rm(list = c("mor.bg.y", "mor.drug.y"))

@@ -37,18 +37,18 @@ nlx.avail.algm <- function(n.nlx, crosstab_drug_resid, OD_loc_pub, nlx.adj, cap,
     if (strategy == "SSP_10K"){
       SSP_drug_resid <- crosstab_drug_resid[, c("il.hr", "NODU")]*rep(c(1, 0.133), each = nrow(crosstab_drug_resid))
       n.nlx.drug.resid <- n.nlx.drug.resid.base
-      n.nlx.drug.resid[, c("il.hr", "NODU")] <- tenk * SSP_drug_resid / sum(SSP_drug_resid) + n.nlx.drug.resid.base[, c("il.hr", "NODU")]
-    } else if (strategy == "MailEvent_10K"){
-      n.nlx.drug.resid <- n.nlx.drug.resid.base
-      n.nlx.drug.resid <- tenk * crosstab_drug_resid / sum(crosstab_drug_resid) + n.nlx.drug.resid.base
-    } else if (strategy == "Healthcare_10K"){
-      Healthcare_drug_resid <- crosstab_drug_resid[, c("preb")]
-      n.nlx.drug.resid <- n.nlx.drug.resid.base
-      n.nlx.drug.resid[, c("preb")] <- tenk * Healthcare_drug_resid / sum(Healthcare_drug_resid) + n.nlx.drug.resid.base[, c("preb")]
+      n.nlx.drug.resid[, c("il.hr", "NODU")] <- tenk * programprop$SSP * SSP_drug_resid / rowSums(SSP_drug_resid) + n.nlx.drug.resid.base[, c("il.hr", "NODU")]
     } else if (strategy == "Outreach_10K"){
       Outreach_drug_resid <- crosstab_drug_resid[, c("il.lr", "il.hr", "NODU")]
       n.nlx.drug.resid <- n.nlx.drug.resid.base
-      n.nlx.drug.resid[, c("il.lr", "il.hr", "NODU")] <- tenk * Outreach_drug_resid / sum(Outreach_drug_resid) + n.nlx.drug.resid.base[, c("il.lr", "il.hr", "NODU")]
+      n.nlx.drug.resid[, c("il.lr", "il.hr", "NODU")] <- tenk * programprop$Outreach * Outreach_drug_resid / rowSums(Outreach_drug_resid) + n.nlx.drug.resid.base[, c("il.lr", "il.hr", "NODU")]
+    } else if (strategy == "MailEvent_10K"){
+      n.nlx.drug.resid <- n.nlx.drug.resid.base
+      n.nlx.drug.resid <- tenk * programprop$MailEvent * crosstab_drug_resid / rowSums(crosstab_drug_resid) + n.nlx.drug.resid.base
+    } else if (strategy == "Healthcare_10K"){
+      Healthcare_drug_resid <- crosstab_drug_resid[, c("preb")]
+      n.nlx.drug.resid <- n.nlx.drug.resid.base
+      n.nlx.drug.resid[, c("preb")] <- tenk * programprop$Healthcare  + n.nlx.drug.resid.base[, c("preb")]
     }
     p.nlx.avail <- cap * (1 - exp(-(nlx.adj / cap) * n.nlx.drug.resid / crosstab_drug_resid))
     return(p.nlx.avail)
