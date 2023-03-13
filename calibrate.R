@@ -34,11 +34,11 @@ library("argparser")
 
 # ## Model setup parameters ##
 args <- arg_parser("arguments")
-args <- add_argument(args, "--seed", help = "seed for latin hypercube sampling", default = 5112021)
+args <- add_argument(args, "--seed", help = "seed for latin hypercube sampling", default = 2023)
 args <- add_argument(args, "--outfile", help = "file to store outputs", default = "OverdoseDeath_RIV1_0.csv")
 args <- add_argument(args, "--params", help = "name of the file with calibration params", default = "Inputs/CalibrationSampleData1.rds")
 args <- add_argument(args, "--ppl", help = "file with initial ppl info", default = "Inputs/init_pop.rds")
-args <- add_argument(args, "--cores", help = "number of cores for parallel processing", default = 4)
+args <- add_argument(args, "--cores", help = "number of cores for parallel processing", default = 10)
 args <- add_argument(args, "--index", help = "index of batch", default = 1)
 args <- add_argument(args, "--size", help = "batch size", default = 10000)
 
@@ -81,11 +81,15 @@ Calibration.data.ls <- readRDS(paste0("calibration/prep_calibration_data/Calibra
 # generate stepwise seeds for calibration starting at initial seed
 calib.seed.vt <- seed + c(((batch.ind - 1) * batch.size + 1):(batch.ind * batch.size))
 # initialize calibratiobration_results table
-calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 15)
+calibration_results <- matrix(0, nrow = length(Calibration.data.ls), ncol = 31)
 colnames(calibration_results) <- c(
   "index", "seed",
-  "od.death16", "od.death17", "od.death18", "od.death19",
-  "fx.death16", "fx.death17", "fx.death18", "fx.death19",
+  "od.death16.w", "od.death17.w", "od.death18.w", "od.death19.w", 
+  "od.death16.b", "od.death17.b", "od.death18.b", "od.death19.b", 
+  "od.death16.h", "od.death17.h", "od.death18.h", "od.death19.h",
+  "fx.death16.w", "fx.death17.w", "fx.death18.w", "fx.death19.w", 
+  "fx.death16.b", "fx.death17.b", "fx.death18.b", "fx.death19.b", 
+  "fx.death16.h", "fx.death17.h", "fx.death18.h", "fx.death19.h",
   "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19",
   "gof"
 )
@@ -93,10 +97,14 @@ calibration_results[, "index"] <- c(((batch.ind - 1) * batch.size + 1):(batch.in
 calibration_results[, "seed"] <- calib.seed.vt
 
 # initializbration_results matrix to savbration_results from parallel simulation
-calibration_temp <- matrix(0, nrow = length(Calibration.data.ls), ncol = 12)
-colnames(calibration_temp) <- c("od.death16", "od.death17", "od.death18", "od.death19",
-                                   "fx.death16", "fx.death17", "fx.death18", "fx.death19",
-                                   "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")  
+calibration_temp <- matrix(0, nrow = length(Calibration.data.ls), ncol = 28)
+colnames(calibration_temp) <- c("od.death16.w", "od.death17.w", "od.death18.w", "od.death19.w", 
+                                "od.death16.b", "od.death17.b", "od.death18.b", "od.death19.b", 
+                                "od.death16.h", "od.death17.h", "od.death18.h", "od.death19.h",
+                                "fx.death16.w", "fx.death17.w", "fx.death18.w", "fx.death19.w", 
+                                "fx.death16.b", "fx.death17.b", "fx.death18.b", "fx.death19.b", 
+                                "fx.death16.h", "fx.death17.h", "fx.death18.h", "fx.death19.h",
+                                "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19")  
 v.region <- Calibration.data.ls[[1]]$v.region # load vector for regions (required by simulation)
 # parallel calibration simulation
 # TODO: look into apply functions for parallel
@@ -117,23 +125,33 @@ calibration_temp <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind
   v.od <- rep(0, times = timesteps) # count of overdose events at each time step
   v.oddeath <- rep(0, times = timesteps) # count of overdose deaths at each time step
   v.oddeath.w <- rep(0, times = timesteps) # count of overdose deaths that were witnessed at each time step
+  v.oddeath.w.race <- matrix(0, nrow = timesteps, ncol = 3)
+  colnames(v.oddeath.w.race) <- c("white", "black", "hisp")
   m.oddeath <- matrix(0, nrow = timesteps, ncol = num_regions)
-  colnames(m.oddeath) <- v.region
+  m.oddeath.white <- matrix(0, nrow = timesteps, ncol = num_regions)
+  m.oddeath.black <- matrix(0, nrow = timesteps, ncol = num_regions)
+  m.oddeath.hisp  <- matrix(0, nrow = timesteps, ncol = num_regions)
+  colnames(m.oddeath) <- colnames(m.oddeath.white) <- colnames(m.oddeath.black) <- colnames(m.oddeath.hisp) <- v.region
   v.odpriv <- rep(0, times = timesteps) # count of overdose events occurred at private setting at each time step
   v.odpubl <- rep(0, times = timesteps) # count of overdose events occurred at public setting at each time step
   v.deathpriv <- rep(0, times = timesteps) # count of overdose deaths occurred at private setting at each time step
   v.deathpubl <- rep(0, times = timesteps) # count of overdose deaths occurred at public setting at each time step
   v.nlxused <- rep(0, times = timesteps) # count of naloxone kits used at each time step
-  v.str <- c("SQ", "expand", "program") # store the strategy names
+  v.str <- c("SQ", "non-target", "equity") # store the strategy names
   cost.item <- c("TotalCost", "NxCost")
-  cost.matrix <- matrix(0, nrow = timesteps, ncol = length(cost.item))
+  cost.matrix <- matrix(0, nrow = 3*12, ncol = length(cost.item))
   colnames(cost.matrix) <- cost.item
+  qaly.item <- c("all", "white", "black", "hisp")
+  qaly.matrix <- matrix(0, nrow = 3*12, ncol = length(qaly.item))
+  colnames(qaly.matrix) <- qaly.item
   m.oddeath.fx <- rep(0, times = timesteps) # count of overdose deaths with fentanyl present at each time step
   m.oddeath.op <- rep(0, times = timesteps) # count of overdose deaths among opioid users at each time step
   m.oddeath.st <- rep(0, times = timesteps) # count of overdose deaths among stimulant users at each time step
   m.EDvisits <- rep(0, times = timesteps) # count of opioid overdose-related ED visits at each time step
   m.oddeath.hr <- rep(0, times = timesteps) # count of overdose deaths among high-risk opioid users (inject heroin) at each time step
-  m.oddeath.preb <- m.oddeath.il.lr <- m.oddeath.il.hr <- m.nlx.mn.OEND <- m.nlx.mn.Pharm <- rep(0, times = timesteps)   # count of overdose deaths stratified by risk group each time step
+  m.oddeath.preb <- m.oddeath.il.lr <- m.oddeath.il.hr <- m.nlx.mn.OEND <- m.nlx.mn.Pharm <- rep(0, times = timesteps)   # count of overdose deaths stratified by risk group
+  m.oddeath.fx.race <- m.EDvisits.race <- matrix(0, nrow = timesteps, ncol = 3)
+  colnames(m.oddeath.fx.race) <- colnames(m.EDvisits.race) <- c("white", "black", "hisp")
 
   ## Initialize the study population - people who are at risk of opioid overdose
   ppl_info <- c("sex", "race", "age", "residence", "curr.state", "OU.state", "init.age", "init.state", "ever.od", "fx")
@@ -145,5 +163,5 @@ calibration_temp <- foreach(ss = 1:length(Calibration.data.ls), .combine = rbind
 stopCluster(c1)   #optional: stop clustering
 
 
-calibration_results[, 3:14] <- calibration_temp #  calibration results
+calibration_results[, 3:30] <- calibration_temp #  calibration results
 saveRDS(calibration_results, paste0("calibration/CalibrationOutputs", batch.ind, ".rds")) # save calibration_results table to an rds, will combine all 10 tables/bacthes in a subsequent process

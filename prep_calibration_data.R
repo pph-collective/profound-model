@@ -24,6 +24,8 @@ library(openxlsx)
 library(tictoc)
 
 source("data_input.R")
+sample.size <- 1000000
+batch.size<- 10000
 # # INPUT PARAMETERS
 # sw.EMS.ODloc <- "overall" # Please choose from "overall" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
 
@@ -31,10 +33,11 @@ source("data_input.R")
 
 CalibPar <- read.xlsx(WB, sheet = "CalibPar")
 parRange <- data.frame(min = CalibPar$lower, max = CalibPar$upper)
-row.names(parRange) <- CalibPar$par
-set.seed(5112021)
+set.seed(3042023)
 calib.par <- Latinhyper(parRange, sample.size)
-calib.par <- data.frame(calib.par)
+calib.par <- data.frame(t(calib.par))
+calib.par$par <- CalibPar$par
+calib.par$group <- CalibPar$group
 saveRDS(calib.par, paste0("calibration/prep_calibration_data/Calib_par_table.rds"))
 
 ## Load precalibrated decision tree data 
@@ -44,7 +47,8 @@ rr_OD_wit_priv <- precalib.par[,"rr_OD_wit_priv"]
 rr_OD_911_priv <- precalib.par[,"rr_OD_911_priv"]
   
 # Initialize calibration parameters
-cal_param_names <- names(calib.par)
+cal_param_names <- calib.par$par
+cal_param_group <- calib.par$group
 calib.parameters <- list()
 
 tic("outer loop")
@@ -54,7 +58,11 @@ for (bb in 1:(sample.size / batch.size)) {
   ii <- 1
   for (cc in batch.bgn:batch.end) {
     for (pp in 1:length(cal_param_names)) {
-      params[[cal_param_names[pp]]] <- calib.par[cc, pp]
+      if(cal_param_group[pp] != "na"){
+        params[[cal_param_names[pp]]][cal_param_group[pp]] <- calib.par[pp, cc]
+      } else {
+        params[[cal_param_names[pp]]] <- calib.par[pp, cc]
+      }
     }
     # Overdose probability matrix (per month)
     overdose_probs <- matrix(0, nrow = 4, ncol = 2)
@@ -68,15 +76,19 @@ for (bb in 1:(sample.size / batch.size)) {
     params$overdose_probs <- overdose_probs
 
     # Baseline mortality excluding overdose (per month)
-    mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
-    rownames(mortality_probs) <- c("bg", "drug")
-    colnames(mortality_probs) <- mor.gp
-    mortality_probs["bg", ] <- params$mor.bg
-    mortality_probs["drug", ] <- params$mor.drug
+    mortality_probs <- list()
+    mortality_probs$mor.bg <- matrix(0, nrow = 2, ncol = length(mor.gp))
+    rownames(mortality_probs$mor.bg) <- c("bg", "drug")
+    colnames(mortality_probs$mor.bg) <- mor.gp
+    mortality_probs$mor.drug <- mortality_probs$mor.bg
+    mortality_probs$mor.bg   <- params$mortality_probs$mor.bg
+    mortality_probs$mor.drug <- params$mortality_probs$mor.drug
     params$mortality_probs <- mortality_probs
     params$OD_loc_pub  <- OD_pub[cc]
     params$OD_wit_priv <- params$OD_wit_pub * rr_OD_wit_priv[cc] 
     params$OD_911_priv <- params$OD_911_pub * rr_OD_911_priv[cc]
+    params$OD_cess['black'] <- params$OD_cess['white'] * with(DecisionTree, pe[par == "rr_OD_cess_black"])
+    params$OD_cess['hisp']  <- params$OD_cess['white'] * with(DecisionTree, pe[par == "rr_OD_cess_hisp"])
 
     calib.parameters[[ii]] <- params
     ii <- ii + 1

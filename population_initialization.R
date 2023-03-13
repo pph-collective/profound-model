@@ -14,7 +14,7 @@
 # To initialize study population at time = 0, define all individual attributes
 ########################################################################################
 
-initiate_ppl <- function(initials, seed = 2021) {
+initiate_ppl <- function(initials, seed = 2022) {
   list2env(initials, environment())
   ## opioid population
   # Determine people with opioid use disorder as estimated by NSDUH
@@ -65,8 +65,8 @@ initiate_ppl <- function(initials, seed = 2021) {
 
     # determine opioid use state
     oud.state <- agent_states[1:4]
-    oud.prob.m <- c((1 - ini.inactive) * (1 - ini.il.m), (1 - ini.inactive) * ini.il.m * (1 - ini.il.hr.m), (1 - ini.inactive) * ini.il.m * ini.il.hr.m, ini.inactive)
-    oud.prob.f <- c((1 - ini.inactive) * (1 - ini.il.f), (1 - ini.inactive) * ini.il.f * (1 - ini.il.hr.f), (1 - ini.inactive) * ini.il.f * ini.il.hr.f, ini.inactive)
+    oud.prob.m <- c((1 - ini.inactive[race]) * (1 - ini.il.m), (1 - ini.inactive[race]) * ini.il.m * (1 - ini.il.hr.m), (1 - ini.inactive[race]) * ini.il.m * ini.il.hr.m, ini.inactive[race])
+    oud.prob.f <- c((1 - ini.inactive[race]) * (1 - ini.il.f), (1 - ini.inactive[race]) * ini.il.f * (1 - ini.il.hr.f), (1 - ini.inactive[race]) * ini.il.f * ini.il.hr.f, ini.inactive[race])
     if (sex == "m") {
       curr.state <- init.state <- oud.state[sample(1:length(oud.state), size = 1, prob = oud.prob.m)]
     } else {
@@ -135,7 +135,7 @@ initiate_ppl <- function(initials, seed = 2021) {
     }
 
     # # determine fentanyl use
-    # fx         <- sample(0:1, size = 1, prob = c(1-ini.NOUD.fx, ini.NOUD.fx))
+    # fx         <- sample(0:1, size = 1, prob = c(1-ini.NODU.fx, ini.NODU.fx))
 
     # determine ever overdosed
     ever.od <- sample(0:1, size = 1, prob = c(1 - ini.everod.sti, ini.everod.sti))

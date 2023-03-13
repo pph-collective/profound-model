@@ -15,7 +15,7 @@ library(dplyr)
 # library(openxlsx)
 library(abind)
 library(ggplot2)
-library(xlsx)
+library(openxlsx)
 
 # Load scripts
 source("population_initialization.R")
@@ -30,51 +30,45 @@ source("data_input.R")
 
 calibration_results <- NULL
 
-for (batch.ind in 1:56) {
+for (batch.ind in 1:1) {
   temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
   calibration_results <- rbind(calibration_results, temp_results)
 }
-temp_results[,] <- 0
-calibration_results <- rbind(calibration_results, temp_results)
-for (batch.ind in 58:70) {
-  temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
-  calibration_results <- rbind(calibration_results, temp_results)
-}
-temp_results[,] <- 0
-calibration_results <- rbind(calibration_results, temp_results)
-for (batch.ind in 72:75) {
-  temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
-  calibration_results <- rbind(calibration_results, temp_results)
-}
-temp_results[,] <- 0
-calibration_results <- rbind(calibration_results, temp_results)
-for (batch.ind in 77:100) {
-  temp_results <- readRDS(paste0("calibration/CalibrationOutputs", batch.ind, ".rds"))
-  calibration_results <- rbind(calibration_results, temp_results)
-}
+
 rm(temp_results)
 
 calibration_params <- readRDS(paste0("calibration/prep_calibration_data/Calib_par_table.rds"))
 
-calibration_results <- cbind(calibration_results, calibration_params[1:dim(calibration_results)[1], ])
+calibration_results <- cbind(calibration_results, t(calibration_params[, 1:dim(calibration_results)[1]]))
 
 # read in workbook
 WB <- loadWorkbook("Inputs/MasterTable.xlsx")
 Target <- read.xlsx(WB, sheet = "Target")
-tar.data <- Target$pe
+tar.data <- c(with(Target, white[par == "ODdeaths"])[1:4],
+              with(Target, black[par == "ODdeaths"])[1:4],
+              with(Target, hispanic[par == "ODdeaths"])[1:4],
+              with(Target, white[par == "Fx_ODD"])[3:4],
+              with(Target, black[par == "Fx_ODD"])[3:4],
+              with(Target, hispanic[par == "Fx_ODD"])[3:4],
+              with(Target, wbh[par == "EDvisits"])[1:4]
+              )
 
 
 # Calculate goodness of fit (gof)
 for (ss in 1:nrow(calibration_results)) {
   prediction <- calibration_results[ss, c(
-    "od.death16", "od.death17", "od.death18", "od.death19",
-    "fx.death16", "fx.death17", "fx.death18", "fx.death19",
+    "od.death16.w", "od.death17.w", "od.death18.w", "od.death19.w", 
+    "od.death16.b", "od.death17.b", "od.death18.b", "od.death19.b", 
+    "od.death16.h", "od.death17.h", "od.death18.h", "od.death19.h",
+    "fx.death18.w", "fx.death19.w", 
+    "fx.death18.b", "fx.death19.b", 
+    "fx.death18.h", "fx.death19.h",
     "ed.visit16", "ed.visit17", "ed.visit18", "ed.visit19"
   )]
   gof <- 0
   # TODO needs to be less hardcoded at some point
   for (j in 1:length(tar.data)) {
-    if (j %in% c(5:8)) { # 5:8 is proportion that involves fx
+    if (j %in% c(13:18)) { # 5:8 is proportion that involves fx
       gof <- gof + (abs(prediction[j] * 100 - tar.data[j] * 100) / (tar.data[j] * 100)) / length(tar.data)
     } else {
       gof <- gof + (abs(prediction[j] - tar.data[j]) / tar.data[j]) / length(tar.data)
@@ -83,20 +77,21 @@ for (ss in 1:nrow(calibration_results)) {
   calibration_results[ss, "gof"] <- gof
 }
 
-# sort by goodness of fit and select top 1000 fits
+# sort by goodness of fit and select top 10 fits
 sorted.mx <- calibration_results[order(calibration_results[, "gof"], decreasing = F), ]
-cal_sample <- 1000
+cal_sample <- 10
 calibration_results_subset <- sorted.mx[1:cal_sample, ]
-write.xlsx(calibration_results_subset,
-  file = paste0("calibration/Calibrated_results.xlsx"),
-  col.names = T, row.names = F
+write.csv(calibration_results_subset,
+  file = paste0("calibration/Calibrated_results.csv"),
+  col.names = TRUE, row.names = FALSE
 )
 
 
 ## save calibrated results as parameter lists (prepare for main analysis)##
 # INPUT PARAMETERS
 # sw.EMS.ODloc <- "overall" # Please choose from "overgit all" (using average overall) or "sp" (region-specific) for overdose setting parameter, default is "overall"
-cal_param_names <- names(calibration_params)
+cal_param_names <- calibration_params$par
+cal_param_group <- calibration_params$group
 calibrated_parameters <- list()
 
 ## Load precalibrated decision tree data 
@@ -108,10 +103,37 @@ rr_OD_911_priv <- precalib.par[,"rr_OD_911_priv"]
 # for each selected calibration run, determine the run's parameters
 for (cc in 1:nrow(calibration_results_subset)) {
   for (pp in 1:length(cal_param_names)) {
-    params[[cal_param_names[pp]]] <- calibration_results_subset[cc, cal_param_names[pp]]
+    if(cal_param_group[pp] != "na"){
+      params[[cal_param_names[pp]]][cal_param_group[pp]] <- calibration_results_subset[cc, 31+pp]
+    } else {
+      params[[cal_param_names[pp]]] <- calibration_results_subset[cc, 31+pp]
+    }
+    # params[[cal_param_names[pp]]] <- calibration_results_subset[cc, cal_param_names[pp]]
   }
   
-  # Overdose probability parameter matrix (per month)
+  # # Overdose probability parameter matrix (per month)
+  # overdose_probs <- matrix(0, nrow = 4, ncol = 2)
+  # rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
+  # colnames(overdose_probs) <- c("first", "subs")
+  # overdose_probs["preb", "subs"] <- params$od.preb.sub
+  # overdose_probs["il.lr", "subs"] <- params$od.il.lr.sub
+  # overdose_probs["il.hr", "subs"] <- params$od.il.lr.sub * params$multi.hr
+  # overdose_probs["NODU", "subs"] <- params$od.NODU.sub
+  # overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
+  # params$overdose_probs <- overdose_probs
+
+  # # Baseline mortality parameters, excluding overdose (per month)
+  # mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  # rownames(mortality_probs) <- c("bg", "drug")
+  # colnames(mortality_probs) <- mor.gp
+  # mortality_probs["bg", ] <- params$mor.bg
+  # mortality_probs["drug", ] <- params$mor.drug
+  # params$mortality_probs <- mortality_probs
+  # params$OD_loc_pub  <- OD_pub[calibration_results_subset[cc, "index"]]
+  # params$OD_wit_priv <- params$OD_wit_pub * rr_OD_wit_priv[calibration_results_subset[cc, "index"]] 
+  # params$OD_911_priv <- params$OD_911_pub * rr_OD_911_priv[calibration_results_subset[cc, "index"]]
+
+  # Overdose probability matrix (per month)
   overdose_probs <- matrix(0, nrow = 4, ncol = 2)
   rownames(overdose_probs) <- c("preb", "il.lr", "il.hr", "NODU")
   colnames(overdose_probs) <- c("first", "subs")
@@ -121,18 +143,22 @@ for (cc in 1:nrow(calibration_results_subset)) {
   overdose_probs["NODU", "subs"] <- params$od.NODU.sub
   overdose_probs[, "first"] <- overdose_probs[, "subs"] / params$multi.sub
   params$overdose_probs <- overdose_probs
-
-  # Baseline mortality parameters, excluding overdose (per month)
-  mortality_probs <- matrix(0, nrow = 2, ncol = length(mor.gp))
-  rownames(mortality_probs) <- c("bg", "drug")
-  colnames(mortality_probs) <- mor.gp
-  mortality_probs["bg", ] <- params$mor.bg
-  mortality_probs["drug", ] <- params$mor.drug
+  
+  # Baseline mortality excluding overdose (per month)
+  mortality_probs <- list()
+  mortality_probs$mor.bg <- matrix(0, nrow = 2, ncol = length(mor.gp))
+  rownames(mortality_probs$mor.bg) <- c("bg", "drug")
+  colnames(mortality_probs$mor.bg) <- mor.gp
+  mortality_probs$mor.drug <- mortality_probs$mor.bg
+  mortality_probs$mor.bg   <- params$mortality_probs$mor.bg
+  mortality_probs$mor.drug <- params$mortality_probs$mor.drug
   params$mortality_probs <- mortality_probs
   params$OD_loc_pub  <- OD_pub[calibration_results_subset[cc, "index"]]
   params$OD_wit_priv <- params$OD_wit_pub * rr_OD_wit_priv[calibration_results_subset[cc, "index"]] 
   params$OD_911_priv <- params$OD_911_pub * rr_OD_911_priv[calibration_results_subset[cc, "index"]]
-
+  params$OD_cess['black'] <- params$OD_cess['white'] * with(DecisionTree, pe[par == "rr_OD_cess_black"])
+  params$OD_cess['hisp']  <- params$OD_cess['white'] * with(DecisionTree, pe[par == "rr_OD_cess_hisp"])
+  
   calibrated_parameters[[cc]] <- params
 }
 
@@ -141,13 +167,20 @@ saveRDS(calibrated_parameters, file = paste0("calibration/CalibratedData.rds"))
 saveRDS(calibration_results_subset[, "seed"], file = paste0("calibration/CalibratedSeed.rds"))
 
 #### plot calibrated results
-cal_sample <- 500
+cal_sample <- 10
 calibration_results_subset <- read.xlsx( "calibration/Calibrated_results.xlsx")
 calibration_results_subset <- calibration_results_subset[1:cal_sample, ]
 # read in workbook
 WB <- loadWorkbook("Inputs/MasterTable.xlsx")
 Target <- read.xlsx(WB, sheet = "Target")
-tar.data <- Target$pe
+tar.data <- c(with(Target, white[par == "ODdeaths"])[1:4],
+              with(Target, black[par == "ODdeaths"])[1:4],
+              with(Target, hispanic[par == "ODdeaths"])[1:4],
+              with(Target, white[par == "Fx_ODD"])[3:4],
+              with(Target, black[par == "Fx_ODD"])[3:4],
+              with(Target, hispanic[par == "Fx_ODD"])[3:4],
+              with(Target, wbh[par == "EDvisits"])[1:4]
+)
 
 
 ## Plot ##
@@ -263,4 +296,4 @@ p <- ggplot(ggplot.data, aes(x = case, y = pe, color = case)) +
   labs(y = "Value", x = "") +
   theme_bw()
 
-## City-level validation, please go to CityLevelValidation.R ##
+## City-level validation, please go to validate_city.R ##

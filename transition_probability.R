@@ -21,13 +21,27 @@ trans.prob <- function(pop.t, params) {
 
   # create a vector to store baseline mortality (excluding od death) for each individual according to age and treatment
   mor.rate <- numeric(nrow(pop.t))
-  mor.rate[filter(pop.t, age %in% c(10:14))$ind] <- mortality_probs["drug", "10to14"]
-  mor.rate[filter(pop.t, age %in% c(15:24))$ind] <- mortality_probs["drug", "15to24"]
-  mor.rate[filter(pop.t, age %in% c(25:34))$ind] <- mortality_probs["drug", "25to34"]
-  mor.rate[filter(pop.t, age %in% c(35:44))$ind] <- mortality_probs["drug", "35to44"]
-  mor.rate[filter(pop.t, age %in% c(45:54))$ind] <- mortality_probs["drug", "45to54"]
-  mor.rate[filter(pop.t, age %in% c(55:64))$ind] <- mortality_probs["drug", "55to64"]
-  mor.rate[filter(pop.t, age >= 65)$ind] <- mortality_probs["drug", "65over"]
+  mor.rate[filter(pop.t, age %in% c(10:14) & race == "white")$ind] <- mortality_probs$mor.drug["10to14", "white"]
+  mor.rate[filter(pop.t, age %in% c(10:14) & race == "black")$ind] <- mortality_probs$mor.drug["10to14", "black"]
+  mor.rate[filter(pop.t, age %in% c(10:14) & race == "hisp")$ind]  <- mortality_probs$mor.drug["10to14", "hisp"]
+  mor.rate[filter(pop.t, age %in% c(15:24) & race == "white")$ind] <- mortality_probs$mor.drug["15to24", "white"]
+  mor.rate[filter(pop.t, age %in% c(15:24) & race == "black")$ind] <- mortality_probs$mor.drug["15to24", "black"]
+  mor.rate[filter(pop.t, age %in% c(15:24) & race == "hisp")$ind]  <- mortality_probs$mor.drug["15to24", "hisp"]
+  mor.rate[filter(pop.t, age %in% c(25:34) & race == "white")$ind] <- mortality_probs$mor.drug["25to34", "white"]
+  mor.rate[filter(pop.t, age %in% c(25:34) & race == "black")$ind] <- mortality_probs$mor.drug["25to34", "black"]
+  mor.rate[filter(pop.t, age %in% c(25:34) & race == "hisp")$ind]  <- mortality_probs$mor.drug["25to34", "hisp"]
+  mor.rate[filter(pop.t, age %in% c(35:44) & race == "white")$ind] <- mortality_probs$mor.drug["35to44", "white"]
+  mor.rate[filter(pop.t, age %in% c(35:44) & race == "black")$ind] <- mortality_probs$mor.drug["35to44", "black"]
+  mor.rate[filter(pop.t, age %in% c(35:44) & race == "hisp")$ind]  <- mortality_probs$mor.drug["35to44", "hisp"]
+  mor.rate[filter(pop.t, age %in% c(45:54) & race == "white")$ind] <- mortality_probs$mor.drug["45to54", "white"]
+  mor.rate[filter(pop.t, age %in% c(45:54) & race == "black")$ind] <- mortality_probs$mor.drug["45to54", "black"]
+  mor.rate[filter(pop.t, age %in% c(45:54) & race == "hisp")$ind]  <- mortality_probs$mor.drug["45to54", "hisp"]
+  mor.rate[filter(pop.t, age %in% c(55:64) & race == "white")$ind] <- mortality_probs$mor.drug["55to64", "white"]
+  mor.rate[filter(pop.t, age %in% c(55:64) & race == "black")$ind] <- mortality_probs$mor.drug["55to64", "black"]
+  mor.rate[filter(pop.t, age %in% c(55:64) & race == "hisp")$ind]  <- mortality_probs$mor.drug["55to64", "hisp"]
+  mor.rate[filter(pop.t, age >= 65 & race == "white")$ind] <- mortality_probs$mor.drug["65over", "white"]
+  mor.rate[filter(pop.t, age >= 65 & race == "black")$ind] <- mortality_probs$mor.drug["65over", "black"]
+  mor.rate[filter(pop.t, age >= 65 & race == "hisp")$ind]  <- mortality_probs$mor.drug["65over", "hisp"]
 
   # create a vector to store probability of overdose for each individual according to ever overdosed and fentanyl
   # TO_REVIEW what does "multi" mean here
@@ -47,7 +61,7 @@ trans.prob <- function(pop.t, params) {
   od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 0)$ind] <- overdose_probs["NODU", "first"]
   od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 0)$ind] <- overdose_probs["NODU", "subs"]
   od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 0 & fx == 1)$ind] <- overdose_probs["il.lr", "first"] * multi.NODU.fx * multi.fx
-  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 1)$ind] <- overdose_probs["il.lr", "subs"] * multi.NODU.fx * multi.fx
+  od.rate[filter(pop.t, curr.state == "NODU" & ever.od == 1 & fx == 1)$ind] <- overdose_probs["il.lr", "first"] * multi.NODU.fx * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "preb")$ind] <- overdose_probs["preb", "first"] * multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "preb")$ind] <- overdose_probs["preb", "subs"] * multi.fx
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.lr")$ind] <- overdose_probs["il.lr", "first"] * multi.relap
@@ -55,14 +69,18 @@ trans.prob <- function(pop.t, params) {
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 0 & OU.state == "il.hr")$ind] <- overdose_probs["il.hr", "first"] * multi.relap
   od.rate[filter(pop.t, curr.state == "relap" & ever.od == 1 & OU.state == "il.hr")$ind] <- overdose_probs["il.hr", "subs"] * multi.fx
 
+  v.p.preb2inact <- v.p.il.lr2inact <- v.p.il.hr2inact <- numeric(nrow(pop.t))
+  v.p.preb2inact  <- p.preb2inact[pop.t$race]
+  v.p.il.lr2inact <- p.il.lr2inact[pop.t$race]
+  v.p.il.hr2inact <- p.il.hr2inact[pop.t$race]
   # update the trans.prob matrix with the corresponding probabilities
   ind.preb <- pop.t$curr.state == "preb"
   if (sum(ind.preb) != 0) {
     trans.prob.matrix[, ind.preb] <- rbind(
-      1 - p.preb2il.lr - p.preb2inact - mor.rate[ind.preb] - od.rate[ind.preb],
+      1 - p.preb2il.lr - v.p.preb2inact[ind.preb] - mor.rate[ind.preb] - od.rate[ind.preb],
       rep(p.preb2il.lr, sum(ind.preb)),
       rep(0, sum(ind.preb)),
-      rep(p.preb2inact, sum(ind.preb)),
+      v.p.preb2inact[ind.preb],
       rep(0, sum(ind.preb)),
       rep(0, sum(ind.preb)),
       mor.rate[ind.preb],
@@ -74,9 +92,9 @@ trans.prob <- function(pop.t, params) {
   if (sum(ind.il.lr) != 0) {
     trans.prob.matrix[, ind.il.lr] <- rbind(
       rep(0, sum(ind.il.lr)),
-      1 - p.il.lr2il.hr - p.il.lr2inact - mor.rate[ind.il.lr] - od.rate[ind.il.lr],
+      1 - p.il.lr2il.hr - v.p.il.lr2inact[ind.il.lr] - mor.rate[ind.il.lr] - od.rate[ind.il.lr],
       rep(p.il.lr2il.hr, sum(ind.il.lr)),
-      rep(p.il.lr2inact, sum(ind.il.lr)),
+      v.p.il.lr2inact[ind.il.lr],
       rep(0, sum(ind.il.lr)),
       rep(0, sum(ind.il.lr)),
       mor.rate[ind.il.lr],
@@ -89,8 +107,8 @@ trans.prob <- function(pop.t, params) {
     trans.prob.matrix[, ind.il.hr] <- rbind(
       rep(0, sum(ind.il.hr)),
       rep(p.il.hr2il.lr, sum(ind.il.hr)),
-      1 - p.il.hr2il.lr - p.il.hr2inact - mor.rate[ind.il.hr] - od.rate[ind.il.hr],
-      rep(p.il.hr2inact, sum(ind.il.hr)),
+      1 - p.il.hr2il.lr - v.p.il.hr2inact[ind.il.hr] - mor.rate[ind.il.hr] - od.rate[ind.il.hr],
+      v.p.il.hr2inact[ind.il.hr],
       rep(0, sum(ind.il.hr)),
       rep(0, sum(ind.il.hr)),
       mor.rate[ind.il.hr],

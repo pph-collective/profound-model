@@ -46,9 +46,13 @@ decision_tree <- function(od_ppl, p.nlx.avail.mx, params, strategy = "SQ", t, se
   n.od <- nrow(od_ppl)
   residence <- od_ppl$residence
   OU.state <- od_ppl$OU.state
-  out.colnames <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
+  race <- od_ppl$race
+  race.ind <- race
+  race.ind[race.ind == "white"]= 1; race.ind[race.ind == "black"]= 2; race.ind[race.ind == "hisp"]= 3
+  race.ind <- as.numeric(race.ind)
+  out.colnames <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns", "race.ind")
   decntree.out <- matrix(0, nrow = n.od, ncol = length(out.colnames))
-  colnames(decntree.out) <- c("ind", "od.death", "EMS", "hospcare", "inact", "locpriv", "nlx.used", "wtns")
+  colnames(decntree.out) <- out.colnames
   # REVIEWED ind = index; id
   decntree.out[, "ind"] <- od_ppl$ind
 
@@ -58,12 +62,8 @@ decision_tree <- function(od_ppl, p.nlx.avail.mx, params, strategy = "SQ", t, se
     p.wtns <- ifelse(loc == "priv", OD_wit_priv, OD_wit_pub)
     p.911 <- ifelse(loc == "priv", OD_911_priv, OD_911_pub)
     p.hosp <- OD_hosp
-    p.od2inact <- OD_cess
-    if (!grepl("10K", strategy) | t<=48){
-      p.nlx.avail <- as.numeric(p.nlx.avail.mx[residence[d]])
-    } else {
-      p.nlx.avail <- p.nlx.avail.mx[residence[d], OU.state[d]]
-    }
+    p.od2inact <- OD_cess[race[d]]
+    p.nlx.avail <- p.nlx.avail.mx[residence[d], race[d]]
     wtns <- sample.dic(p.wtns)
     if (wtns == 1) { # if witnessed
       nlx.used <- sample.dic(p.nlx.avail)
@@ -108,7 +108,7 @@ decision_tree <- function(od_ppl, p.nlx.avail.mx, params, strategy = "SQ", t, se
       inact <- 0
     }
 
-    decntree.out[d, -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used, wtns)
+    decntree.out[d, -1] <- c(od.death, EMS, hospcare, inact, locpriv, nlx.used, wtns, race.ind[d])
   } # end for loop
 
   return(decntree.out)
